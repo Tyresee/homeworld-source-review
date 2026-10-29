@@ -30,7 +30,9 @@ import {createHomeState,applyChange,getFurniturePose} from '/js/home-engine.js';
 import {createLuxuryItem} from '/js/home-luxury-models.js';
 import {createStaircase} from '/js/home-staircase.js';
 import {STOREY_HEIGHT,FLOOR_Y} from '/js/home-staircase-shape.js';
+import {applyHomeTheme} from '/js/home-theme.js';
 
+const theme=applyHomeTheme(),lighting=theme.lighting.student??{};
 const $=id=>document.getElementById(id),stage=$('stage');
 const nativeRAF=window.requestAnimationFrame.bind(window),pending=new Map();let sequence=0,playing=false,simulationSeconds=0;
 // No production test hooks: only this page redirects the controller's RAF calls.
@@ -38,10 +40,10 @@ const nativeRAF=window.requestAnimationFrame.bind(window),pending=new Map();let 
 // its own 50 ms cap. A 0.1 second step executes two real controller ticks.
 window.requestAnimationFrame=callback=>{const id=++sequence;pending.set(id,{callback,origin:performance.now()});return id;};
 window.cancelAnimationFrame=id=>pending.delete(id);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor('#e7ece9');renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;stage.prepend(renderer.domElement);
-const scene=new THREE.Scene(),world=new THREE.Group();scene.add(world);scene.add(new THREE.HemisphereLight('#fff8e8','#a5b6ac',2));
-const key=new THREE.DirectionalLight('#fff1d5',3.2);key.position.set(-3,6,5);scene.add(key);const fill=new THREE.DirectionalLight('#dceafa',1.2);fill.position.set(4,3,-3);scene.add(fill);
-const ground=new THREE.Mesh(new THREE.BoxGeometry(5.6,.08,5.2),new THREE.MeshStandardMaterial({color:'#cdd8cc',roughness:.95}));ground.position.y=.04;scene.add(ground);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(theme.backdrop?.outer??'#e7ece9');renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=lighting.exposure??1.12;stage.prepend(renderer.domElement);
+const scene=new THREE.Scene(),world=new THREE.Group();scene.add(world);scene.add(new THREE.HemisphereLight(lighting.hemisphere?.sky??'#fff8e8',lighting.hemisphere?.ground??'#a5b6ac',lighting.hemisphere?.intensity??2));
+const key=new THREE.DirectionalLight(lighting.sun?.color??'#fff1d5',lighting.sun?.intensity??3.2);key.position.set(-3,6,5);scene.add(key);const fill=new THREE.DirectionalLight(lighting.fill?.color??'#dceafa',lighting.fill?.intensity??1.2);fill.position.set(4,3,-3);scene.add(fill);
+const ground=new THREE.Mesh(new THREE.BoxGeometry(5.6,.08,5.2),new THREE.MeshStandardMaterial({color:theme.id==='toy'?theme.rooms.living.floor:'#cdd8cc',roughness:.95}));ground.position.y=.04;scene.add(ground);
 const grid=new THREE.GridHelper(6,12,'#adbfb2','#c0cdc2');grid.position.y=.082;scene.add(grid);
 const camera=new THREE.OrthographicCamera(-3,3,3,-3,.01,50);camera.position.set(5,3.5,5);const orbit=new OrbitControls(camera,renderer.domElement);orbit.target.set(0,.85,.25);orbit.enableDamping=false;orbit.minZoom=.65;orbit.maxZoom=2.8;orbit.maxPolarAngle=Math.PI*.51;orbit.addEventListener('change',render);
 let controller=null,source=null,furniture=null,home=null,floors=null,view='side',supportSurfaces=[],footContacts={};

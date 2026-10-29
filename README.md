@@ -2,6 +2,20 @@
 
 Start here. This is an identity-normalized source-reading package for a browser-based AI collaborator. It contains the real account game's frontend, server, model builders, interaction logic and isolated tests, plus two local animation review tools. It is not a production deployment archive.
 
+## Real-render look development, no package installation
+
+A recent Node.js runtime and a browser with WebGL 2 are sufficient. You do not need npm or node_modules for this review workstation:
+
+```sh
+node scripts/qa/look-dev-review.mjs
+```
+
+Open the loopback URL printed by the script. The default is http://127.0.0.1:19534/?preset=default.json. Use ?preset=toy-v1.json for the frozen Toy v1 reference. If that local port is occupied, set LOOK_DEV_PORT to another free port.
+
+The workstation uses the real home/room/furniture builders and the v4 robot model. It has five deterministic reference views, live lighting and finish controls, JSON import/export, and full-resolution 1440 x 900 PNG capture. All five captures download together as one ZIP containing five named PNG files. It has no accounts, wallet, save endpoint, or write API.
+
+Three.js 0.186.1 and its actual transitive module dependencies are bundled in vendor/three with the original license. The server automatically uses this bundle when node_modules/three is absent. See LOOK_DEV_REVIEW.md for the review procedure and VENDORED_THREE.md for dependency provenance.
+
 ## Read in this order
 
 1. `PROJECT_BRIEF.md`: product goals, owner decisions, implementation status and collaboration rules.

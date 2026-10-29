@@ -10,6 +10,7 @@ import {createStudentHomeThumbnails} from './student-home-thumbnails.js';
 import {SHOP_CATALOG,ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade,listOwnedResaleQuotes,getFloorHomes,getFloorHome,setCartQuantity,quoteFloorConstruction,quoteOwnedRoomPlacement,getStoreyRoomSlots,placeOwnedItem,placeOwnedOutdoor} from './home-commerce.js';
 import {getHomeStairs} from './home-staircase-shape.js';
 import {applyChange,PALETTE} from './home-engine.js';
+import {getHomeSwatches} from './home-theme.js';
 import {roomRect} from './home-layout.js';
 import {getStoredPlacementGroups} from './home-inventory-menu.js';
 import {cloneRobotActivity,sameRobotActivity,isRobotActivityShape} from './student-home-robot-state.js';
@@ -371,7 +372,7 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     if(stairs.length)items.push({id:'robot-stairs',label:"DisplayText3848",children:stairs.map(stair=>({id:stair.id,label:stair.label,action:()=>world.useAvatarStairs(stair.id)}))});
     if(actions.length)items.push({id:'robot-use',label:"DisplayText3849",detail:"DisplayText3850, DisplayText3851",children:actions.map(action=>({id:action.id,label:action.label,disabled:action.disabled===true,action:()=>world.interactAvatar(targetId,action.id)}))});
     if(owned){const outdoor=product?.productType==='outdoor';const update=patch=>command({type:outdoor?'updateOutdoor':'updateItem',id:owned.id,patch,...outdoor?{}:{storey:floor}});
-      items.push({id:'rotate',label:"Rotate 90°",action:()=>update({rotation:((owned.item.rotation??0)+90)%360})},{id:'colors',label:"DisplayText3852",children:PALETTE.map(color=>({id:color.id??color.value,label:color.label??color.name??color.color,action:()=>update({color:color.color??color.value})}))},{id:'move',label:"DisplayText3853",detail:"DisplayText3854, DisplayText3855",action:()=>{world.selectSurface(`furniture:${owned.id}`);world.setTool('move');onStatus("DisplayText3854, DisplayText3856.");}},{id:'store',label:"DisplayText3857",action:()=>command({type:outdoor?'storeOutdoor':'storeItem',id:owned.id,...outdoor?{}:{storey:floor}})});
+      items.push({id:'rotate',label:"Rotate 90°",action:()=>update({rotation:((owned.item.rotation??0)+90)%360})},{id:'colors',label:"DisplayText3852",children:getHomeSwatches(PALETTE).map(color=>({id:color.id??color.value,label:color.label??color.name??color.color,action:()=>update({color:color.color??color.value})}))},{id:'move',label:"DisplayText3853",detail:"DisplayText3854, DisplayText3855",action:()=>{world.selectSurface(`furniture:${owned.id}`);world.setTool('move');onStatus("DisplayText3854, DisplayText3856.");}},{id:'store',label:"DisplayText3857",action:()=>command({type:outdoor?'storeOutdoor':'storeItem',id:owned.id,...outdoor?{}:{storey:floor}})});
       if(['furniture','outdoor'].includes(product?.productType)){
         const resale=resaleQuote(owned.id);
         items.push({id:'sell-item',label:resale.ok?`DisplayText3469 · +${resale.quote.amount.toLocaleString('en')} DisplayText0920`:"DisplayText3858",

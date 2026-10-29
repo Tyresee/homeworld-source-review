@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homeworld · Look development</title>
+<link rel="stylesheet" href="/look-dev-ui.css">
+<script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+</head>
+<body>
+<header class="app-header">
+  <div class="app-title"><span class="brand-mark" aria-hidden="true">◈</span><div><h1>Look development</h1><p>Real home builders · isolated fixtures · no account writes</p></div></div>
+  <div class="preset-tools"><label class="sr-only" for="preset-select">Load preset</label><select id="preset-select"><option value="default.json">Shipped default</option><option value="toy-v1.json">Toy blocks v1</option></select><button id="reset-preset">Reset preset</button><button id="import-preset">Import JSON</button><button id="export-preset">Export JSON</button><input id="preset-file" type="file" accept=".json,application/json" hidden></div>
+</header>
+<main class="workstation">
+  <section class="preview-workspace" aria-label="Fixed-resolution scene preview">
+    <div class="view-toolbar"><nav id="fixture-tabs" aria-label="Review views"></nav><div class="capture-tools"><span class="resolution">1440 × 900 PNG</span><button id="capture-view" disabled>Current PNG</button><button id="capture-all" class="primary" disabled>All 5 PNGs · ZIP</button></div></div>
+    <div id="preview-area"><div id="stage-shell"><canvas id="preview-canvas" width="1440" height="900" aria-label="Read-only 3D look-development preview"></canvas></div></div>
+    <div class="preview-footer"><span id="preview-scale">Fit preview</span><label class="gray-toggle"><input type="checkbox" id="grayscale"> Grayscale preview</label><span id="render-ready">Loading real assets…</span></div>
+    <output id="status" role="status" aria-live="polite">Loading preset…</output>
+  </section>
+  <aside class="inspector" aria-label="Look-development controls">
+    <div class="inspector-heading"><span class="eyebrow">PRESENTATION ONLY</span><h2 id="preset-name">Shipped default</h2><p>Edits update this preview. Export JSON to keep a candidate. Furniture, geometry and student saves stay unchanged.</p></div>
+    <div id="controls"></div>
+    <details class="snapshot"><summary>Resolved scene diagnostics</summary><pre id="snapshot">{}</pre></details>
+  </aside>
+</main>
+<div id="scene-canvas" style="position:fixed" aria-hidden="true"></div>
+<script type="module" src="/qa/look-dev-ui.mjs"></script>
+</body></html>

@@ -1,6 +1,9 @@
 import {loadStudentHomeScene} from './student-home-loader.js';
 import {createStudentHomeContextMenu} from './student-home-context-menu.js';
 import {CATALOG_VERSION} from './home-catalog-version.js';
+import {applyHomeTheme,preserveHomeTheme} from './home-theme.js';
+
+applyHomeTheme(document);
 
 const $=id=>document.getElementById(id),api='/games/homeworld/api/v1';
 const selectedStudentKey='homeworld:student-homes:selected-student:v1';
@@ -17,7 +20,7 @@ const contextMenu=createStudentHomeContextMenu({
 });
 function openContextMenu(context){if(!home||writing)return;$('palette').hidden=true;contextMenu.open(context);}
 function status(message,retry=null,retryLabel="DisplayText3806"){$('status').textContent=message;retryAction=retry;$('retry').hidden=!retry;$('retry').textContent=retryLabel;}
-function errorStatus(error,retry=null){if(error.status===401){$('login').hidden=false;$('login').href='/login/?next='+encodeURIComponent('/games/homeworld/student-homes.html');}status(error.message,error.status===401?null:retry);}
+function errorStatus(error,retry=null){if(error.status===401){$('login').hidden=false;$('login').href='/login/?next='+encodeURIComponent(preserveHomeTheme('/games/homeworld/student-homes.html'));}status(error.message,error.status===401?null:retry);}
 function message(text){$('scene-message').textContent=text;$('scene-message').hidden=!text;}
 // Remember only this tab's selection; authentication and saves still come from the server.
 function rememberStudent(student){

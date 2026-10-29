@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createStudentHome} from '../server/student-homes/profile.mjs';
 import {CATALOG_VERSION} from '../public/js/home-catalog-version.js';
+import {applyHomeTheme,preserveHomeTheme} from '../public/js/home-theme.js';
 
 const source=await readFile(new URL('../public/js/student-homes.js',import.meta.url),'utf8');
 const API='/games/homeworld/api/v1';
@@ -37,7 +38,7 @@ const savedSelection=(student=A,actorId=ACTOR)=>JSON.stringify({actorId,studentI
 // stubbed; fetch promises are completed explicitly in each test to reproduce
 // out-of-order responses without timers or real student data. Passing the same
 // storage to two fresh VM contexts reproduces a tab reload without retaining JS state.
-function fixture({loadScene,storage=tabStorage()}={}) {
+function fixture({loadScene,storage=tabStorage(),themeSearch=''}={}) {
   class Element {
     constructor(tag='div') {
       this.tagName=tag;this.children=[];this.attributes={};this.dataset={};this.events={};
@@ -55,6 +56,7 @@ function fixture({loadScene,storage=tabStorage()}={}) {
   const $=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
   function descendants(element){return [element,...element.children.flatMap(descendants)];}
   const document={
+    documentElement:{dataset:{}},
     getElementById:$,createElement:tag=>new Element(tag),createTextNode:text=>Object.assign(new Element('#text'),{textContent:text}),addEventListener(){},
     querySelectorAll(selector){
       const all=[...new Set([...elements.values()].flatMap(descendants))];
@@ -70,7 +72,7 @@ function fixture({loadScene,storage=tabStorage()}={}) {
     clear(){sceneCalls.clear++;},wave(){},reset(){},dispose(){},
     getView:()=>view,setView(value){view=value;sceneCalls.views.push(value);sceneOptions.onViewChange(value);},
   };
-  const context={document,CATALOG_VERSION,location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
+  const context={document,CATALOG_VERSION,applyHomeTheme,preserveHomeTheme:value=>preserveHomeTheme(value,themeSearch),location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
     ...(storage?{sessionStorage:storage}:{}),
     fetch(url,options){
       return new Promise((resolve,reject)=>calls.push({url,options,taken:false,
@@ -479,4 +481,12 @@ test('robot revision conflict returns its fresh snapshot without redrawing or re
   assert.deepEqual(f.snapshot().home,fresh.home);assert.equal(f.snapshot().session.actor.id,ACTOR);assert.equal(f.snapshot().selected.id,A.id);
   assert.equal(f.sceneCalls.show.length,shown);assert.equal(f.sceneCalls.clear,0);assert.equal(f.snapshot().writing,false);
   assert.equal(f.calls.filter(call=>call.url.endsWith('/commands')).length,1);
+});
+
+for(const themeSearch of ['?theme=toy','?theme=default','?theme=not-a-theme'])test(`expired platform session keeps only the approved theme in its login return (${themeSearch})`,async()=>{
+  const f=fixture({themeSearch}),task=f.app.boot();(await f.next('/session')).reply(failure('unauthenticated'),401);await task;
+  const login=new URL(f.$('login').href,'https://classroom.invalid'),next=new URL(login.searchParams.get('next'),'https://classroom.invalid');
+  assert.equal(login.pathname,'/login/');assert.equal(next.pathname,'/games/homeworld/student-homes.html');
+  assert.equal(next.searchParams.get('theme'),themeSearch.includes('not-a-theme')?null:themeSearch.slice(7));
+  assert.equal(f.$('login').hidden,false);assert.equal(f.calls.length,1,'theme resolution cannot request a save or a wallet write');
 });

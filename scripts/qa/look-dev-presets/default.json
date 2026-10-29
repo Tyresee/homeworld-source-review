@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "id": "default",
+  "label": "Shipped default",
+  "build": {
+    "theme": {
+      "id": "default",
+      "rooms": {
+        "living": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "bedroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "study": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "kitchen": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "playroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "bathroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "gallery": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "sunroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "hallway": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null
+        }
+      },
+      "surfaceRemap": {},
+      "shell": {
+        "trim": null,
+        "plinth": null,
+        "frame": null,
+        "glass": null,
+        "wallCap": null
+      },
+      "manor": {
+        "wall": null,
+        "trim": null,
+        "base": null,
+        "wood": null,
+        "glass": null,
+        "leaf": null,
+        "flower": null,
+        "gold": null
+      },
+      "lighting": {},
+      "swatches": null
+    },
+    "furniture": {
+      "mode": "default",
+      "examples": {}
+    }
+  },
+  "render": {
+    "toneMapping": "aces",
+    "exposure": 1.1,
+    "hemisphere": {
+      "sky": "#fff8e6",
+      "ground": "#9daa98",
+      "intensity": 2.1
+    },
+    "sun": {
+      "color": "#fff4d9",
+      "intensity": 3.4,
+      "azimuth": null,
+      "altitude": null
+    },
+    "fill": {
+      "color": "#dceceb",
+      "intensity": 1
+    },
+    "shadowRadius": 4,
+    "contactShadow": null,
+    "environmentIntensity": 1
+  },
+  "backdrop": {
+    "inner": "#fcf7df",
+    "outer": "#e5edce"
+  }
+}

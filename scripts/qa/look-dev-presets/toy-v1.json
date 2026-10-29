@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "id": "toy-v1",
+  "label": "Toy blocks \u00b7 v1",
+  "build": {
+    "theme": {
+      "id": "toy",
+      "backdrop": {
+        "inner": "#bfe6f5",
+        "outer": "#7cc3e6"
+      },
+      "rooms": {
+        "living": {
+          "wall": "#f6f1e6",
+          "floor": "#d58b48",
+          "trim": "#2d63b8",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "bedroom": {
+          "wall": "#eef3fb",
+          "floor": "#c7814f",
+          "trim": "#3b5bd6",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "study": {
+          "wall": "#f4f0e2",
+          "floor": "#a86a3c",
+          "trim": "#15864a",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "kitchen": {
+          "wall": "#f7f5ee",
+          "floor": "#c8a06e",
+          "trim": "#e5483d",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "playroom": {
+          "wall": "#fff4d6",
+          "floor": "#5fb3e0",
+          "trim": "#ff8a3d",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "bathroom": {
+          "wall": "#eef8fb",
+          "floor": "#6fb6c9",
+          "trim": "#2d63b8",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "gallery": {
+          "wall": "#f8f6f1",
+          "floor": "#9c6b45",
+          "trim": "#1d2b53",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "sunroom": {
+          "wall": "#f2f8ea",
+          "floor": "#c49a62",
+          "trim": "#2d9c46",
+          "floorMaterial": null,
+          "wallMaterial": null
+        },
+        "hallway": {
+          "wall": "#f4efe4",
+          "floor": "#b9773f",
+          "trim": "#a85f2a",
+          "floorMaterial": null,
+          "wallMaterial": null
+        }
+      },
+      "surfaceRemap": {
+        "wall.inner": {
+          "from": "#f7ead7",
+          "to": "#f6f1e6"
+        },
+        "wall.outer": {
+          "from": "#f7ead7",
+          "to": "#f6f1e6"
+        },
+        "wall.side": {
+          "from": "#d0dcca",
+          "to": "#f6f1e6"
+        },
+        "floor.main": {
+          "from": "#e7cfaa",
+          "to": "#d58b48"
+        },
+        "window.frame": {
+          "from": "#faf0d7",
+          "to": "#ffffff"
+        },
+        "table.top": {
+          "from": "#c99362",
+          "to": "#a85f2a"
+        },
+        "table.edge": {
+          "from": "#c99362",
+          "to": "#a85f2a"
+        },
+        "table.legs": {
+          "from": "#c99362",
+          "to": "#a85f2a"
+        },
+        "shelf.main": {
+          "from": "#cda67c",
+          "to": "#a85f2a"
+        },
+        "stool.main": {
+          "from": "#daae87",
+          "to": "#ffc93a"
+        },
+        "plant.pot": {
+          "from": "#d79d7c",
+          "to": "#e85f38"
+        },
+        "toy.body": {
+          "from": "#f8e4c9",
+          "to": "#2d63b8"
+        },
+        "rug.main": {
+          "from": "#d9e3d3",
+          "to": "#e5483d"
+        }
+      },
+      "shell": {
+        "trim": "#ffffff",
+        "plinth": "#6b4129",
+        "frame": "#ffffff",
+        "glass": "#74c4ee",
+        "wallCap": "#ffffff"
+      },
+      "manor": {
+        "wall": "#f4efe4",
+        "trim": "#ffffff",
+        "base": "#6b4129",
+        "wood": "#a85f2a",
+        "glass": "#74c4ee",
+        "leaf": "#2d9c46",
+        "flower": "#e5483d",
+        "gold": "#ffc93a"
+      },
+      "lighting": {
+        "editor": {
+          "toneMapping": "neutral",
+          "exposure": 1,
+          "hemisphere": {
+            "sky": "#eaf6ff",
+            "ground": "#c98f5a",
+            "intensity": 1.2
+          },
+          "sun": {
+            "color": "#fff1d6",
+            "intensity": 3.8
+          },
+          "fill": {
+            "color": "#bcd8ff",
+            "intensity": 0.6
+          },
+          "shadowRadius": 2,
+          "contactShadow": "#1d2b5c"
+        },
+        "student": {
+          "toneMapping": "neutral",
+          "exposure": 1,
+          "hemisphere": {
+            "sky": "#eaf6ff",
+            "ground": "#c98f5a",
+            "intensity": 1.2
+          },
+          "sun": {
+            "color": "#fff1d6",
+            "intensity": 2.9
+          },
+          "fill": {
+            "color": "#bcd8ff",
+            "intensity": 0.6
+          },
+          "shadowRadius": 2,
+          "contactShadow": "#1d2b5c"
+        }
+      },
+      "swatches": [
+        {
+          "id": "cream",
+          "label": "Cream",
+          "color": "#f6f1e6"
+        },
+        {
+          "id": "oak",
+          "label": "Oak",
+          "color": "#d58b48"
+        },
+        {
+          "id": "red",
+          "label": "Tomato red",
+          "color": "#e5483d"
+        },
+        {
+          "id": "green",
+          "label": "Grass green",
+          "color": "#15864a"
+        },
+        {
+          "id": "blue",
+          "label": "Studio blue",
+          "color": "#2d63b8"
+        },
+        {
+          "id": "yellow",
+          "label": "Lemon yellow",
+          "color": "#ffc93a"
+        },
+        {
+          "id": "orange",
+          "label": "Orange",
+          "color": "#ff8a3d"
+        },
+        {
+          "id": "cocoa",
+          "label": "Cocoa",
+          "color": "#6b4129"
+        }
+      ]
+    },
+    "furniture": {
+      "mode": "default",
+      "examples": {}
+    }
+  },
+  "render": {
+    "toneMapping": "neutral",
+    "exposure": 1,
+    "hemisphere": {
+      "sky": "#eaf6ff",
+      "ground": "#c98f5a",
+      "intensity": 1.2
+    },
+    "sun": {
+      "color": "#fff1d6",
+      "intensity": 3.8,
+      "azimuth": null,
+      "altitude": null
+    },
+    "fill": {
+      "color": "#bcd8ff",
+      "intensity": 0.6
+    },
+    "shadowRadius": 2,
+    "contactShadow": "#1d2b5c",
+    "environmentIntensity": 1
+  },
+  "backdrop": {
+    "inner": "#bfe6f5",
+    "outer": "#7cc3e6"
+  }
+}

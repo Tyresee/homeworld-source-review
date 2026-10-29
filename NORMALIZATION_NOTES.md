@@ -9,3 +9,7 @@ The source is aligned with a committed account-product snapshot. One later orien
 Only fictional identities and disposable local HTTP fixtures appear in the tests. The real platform service is not part of this package. Production authentication, student selection and real spending require external trusted platform contracts.
 
 Normalization summary: 5967 display fragments, 0 display-copy comments and 122 display-pattern expressions processed.
+
+## Look-development addition
+
+The optional Toy v1 candidate and isolated real-render workstation are now included for review. This supersedes the earlier statement excluding all appearance experiments. The product default remains unchanged; no deployment data or original Git history is included. New workstation UI and instructions are English.

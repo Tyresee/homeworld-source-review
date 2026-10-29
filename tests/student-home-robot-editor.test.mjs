@@ -10,6 +10,7 @@ import {reconcileRobotActivityDetail} from '../server/student-homes/robot-activi
 import {ROBOT_CLOTHING_PRODUCTS} from '../public/js/robot-wardrobe-catalog.js';
 import * as commerce from '../public/js/home-commerce.js';
 import {applyChange,PALETTE} from '../public/js/home-engine.js';
+import {getHomeSwatches,HOME_THEMES} from '../public/js/home-theme.js';
 import {roomRect} from '../public/js/home-layout.js';
 import {getStoredPlacementGroups} from '../public/js/home-inventory-menu.js';
 import {getHomeStairs} from '../public/js/home-staircase-shape.js';
@@ -30,7 +31,7 @@ function ownedHome(studentId=A){
   const home=createStudentHome(studentId),prepared=prepareCommerceCommand(home.commerce,{type:'checkout',lines:[{skuId:outfit,quantity:1},{skuId:'bed-classic',quantity:1}]},'robot-editor-fixture-buy');
   return {...home,commerce:prepared.commerce,house:houseFromCommerce(prepared.commerce),revision:1};
 }
-function fixture(initial=ownedHome()){
+function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
   let saved=clone(initial),savedActivity=null,balance=46_440,serial=0;
   const bindings={},requests=[],statuses=[],retries=[],frames=[],listeners=new Map(),calls={activity:[],commerce:[],interactions:[],stairs:[],placements:[],views:[],stage:[],stageCamera:[],danceRequests:[],exitCamera:0,resumeCamera:0,dance:0,stopDance:0,clear:0,stand:0};
   let stageState={requested:false,active:false},stageFloor=0;
@@ -69,7 +70,7 @@ function fixture(initial=ownedHome()){
     setTimeout,clearTimeout,document,
     cloneRobotActivity:jsonCall(cloneRobotActivity),sameRobotActivity:jsonCall(sameRobotActivity),isRobotActivityShape:jsonCall(isRobotActivityShape),createStudentHomeRobotOutbox:()=>createStudentHomeRobotOutbox({storage:null}),
     getKitchenFit,areKitchenModulesCompatible:getKitchenPair, getKitchenDockPose:getDockPose,
-    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,
+    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),
     ELEVATOR_UPGRADE_PRODUCT:commerce.ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade:jsonCall(commerce.quoteStaircaseUpgrade),getHomeStairs,
     listOwnedResaleQuotes:jsonCall(commerce.listOwnedResaleQuotes),
     getFloorHomes:commerce.getFloorHomes,getFloorHome:commerce.getFloorHome,roomRect,
@@ -554,4 +555,17 @@ test('rejected lamp save rolls its preview back to the acknowledged setting with
   const f=fixture(homeWithLamp());await f.show(undefined,null,'actor-fixture');const unit=f.owned('readingLamp-classic'),before=f.calls.commerce.length;
   f.bindings.world.onContextMenu({view:'interior',data:{furnitureId:unit.id},clientX:100,clientY:100});const change=f.menu.calls.raw.at(-1)[0].items.find(row=>row.id==='object-power').action();
   assert.equal(f.calls.objectStates.at(-1).objectStates[unit.id].power,true);f.requests[0].reject('isolated storage rejection',503);assert.equal((await change).ok,false);assert.equal(getObjectState(f.calls.objectStates.at(-1),unit.id).power,false);assert.equal(f.calls.commerce.length,before);
+});
+
+for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test(`right-click color options use ${theme.id} samples without recoloring a saved item`,async()=>{
+  const initial=ownedHome(),owned=initial.commerce.owned.find(item=>item.skuId==='bed-classic');
+  const placed=prepareCommerceCommand(initial.commerce,{type:'placeItem',id:owned.id,pose:{x:0,z:0},storey:0},'theme-fixture-place-bed');
+  initial.commerce=placed.commerce;initial.house=houseFromCommerce(placed.commerce);
+  const f=fixture(initial,theme);await f.show();const before=f.saved(),bed=f.owned('bed-classic');
+  f.bindings.world.onContextMenu({view:'interior',data:{furnitureId:bed.id,surfaceId:`furniture:${bed.id}`}});
+  const menu=f.menu.calls.raw.at(-1)[0],choices=menu.items.find(item=>item.id==='colors').children;
+  assert.deepEqual(choices.map(item=>item.label),getHomeSwatches(PALETTE,theme).map(item=>item.label));
+  assert.equal(choices.length,8);assert.deepEqual(f.saved(),before);assert.equal(f.requests.length,0,'opening theme colors does not mutate a home');
+  choices[0].action();assert.equal(f.requests.length,1);assert.equal(f.requests[0].command.type,'updateItem');assert.equal(f.requests[0].command.id,bed.id);
+  assert.equal(f.requests[0].command.patch.color,getHomeSwatches(PALETTE,theme)[0].color);f.requests[0].accept();await new Promise(resolve=>setImmediate(resolve));f.editor.dispose();
 });

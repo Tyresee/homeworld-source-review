@@ -4,6 +4,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {createRoomExpansion} from './home-room-expansion.js';
 import {createRobotAvatar,poseRobotAvatar,setRobotPalette,disposeRobotAvatar} from './robot-avatar.js';
+import {getHomeTheme} from './home-theme.js';
 
 const WALK_HEIGHT=.07;
 /** The account house currently has one convex, empty room. Keep the complete
@@ -35,19 +36,21 @@ export function pickStudentHomeContext(raycaster,{room,robot,rect}){
 // Only server-owned starter geometry and avatar colors enter this view. Legacy demo
 // wallet, save, furniture and construction state are deliberately not dependencies.
 export function createStudentHomeScene(stage,{onRobot=()=>{},onContextMenu}={}) {
+  const lighting=getHomeTheme().lighting.student??{};
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
-  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=lighting.exposure??1.12;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.shadowMap.autoUpdate=false;
   const canvas=renderer.domElement;canvas.tabIndex=0;canvas.setAttribute('aria-label',"DisplayText4161: DisplayText4162, DisplayText4163, DisplayText4164, DisplayText4165.");stage.prepend(canvas);
   const scene=new THREE.Scene(),display=new THREE.Group();scene.add(display);
   const roomEnvironment=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer),environment=pmrem.fromScene(roomEnvironment,.04);
   scene.environment=environment.texture;scene.environmentIntensity=.55;roomEnvironment.dispose();pmrem.dispose();
-  scene.add(new THREE.HemisphereLight('#fff8e9','#a4b899',1.6));
-  const sun=new THREE.DirectionalLight('#fff2d6',2.5);sun.position.set(-4,8,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+  scene.add(new THREE.HemisphereLight(lighting.hemisphere?.sky??'#fff8e9',lighting.hemisphere?.ground??'#a4b899',lighting.hemisphere?.intensity??1.6));
+  const sun=new THREE.DirectionalLight(lighting.sun?.color??'#fff2d6',lighting.sun?.intensity??2.5);sun.position.set(-4,8,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+  if(lighting.shadowRadius!==undefined)sun.shadow.radius=lighting.shadowRadius;
   Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:35});sun.shadow.normalBias=.02;sun.shadow.bias=-.00015;scene.add(sun);
-  const fill=new THREE.DirectionalLight('#d9eaf5',.8);fill.position.set(4,4,-5);scene.add(fill);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.ShadowMaterial({color:'#64744b',opacity:.15}));ground.rotation.x=-Math.PI/2;ground.position.y=-.25;ground.receiveShadow=true;scene.add(ground);
+  const fill=new THREE.DirectionalLight(lighting.fill?.color??'#d9eaf5',lighting.fill?.intensity??.8);fill.position.set(4,4,-5);scene.add(fill);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.ShadowMaterial({color:lighting.contactShadow??'#64744b',opacity:.15}));ground.rotation.x=-Math.PI/2;ground.position.y=-.25;ground.receiveShadow=true;scene.add(ground);
   const camera=new THREE.OrthographicCamera(-5,5,5,-5,.1,100);
   const controls=new OrbitControls(camera,canvas);controls.enableRotate=false;controls.enableDamping=false;controls.screenSpacePanning=true;
   controls.minZoom=.55;controls.maxZoom=2.5;controls.mouseButtons={LEFT:null,MIDDLE:THREE.MOUSE.PAN,RIGHT:null};controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_PAN};

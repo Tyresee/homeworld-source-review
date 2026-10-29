@@ -25,6 +25,7 @@ import { getFurnitureTableSupport, getFurnitureTableUV } from './home-item-place
 import { createStaircase, splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs, getStaircaseSurfaceId } from './home-staircase.js';
 import { createAvatarController } from './home-avatar-controller.js';
 import { commitHomePlacement } from './home-placement-commit.js';
+import {getHomeTheme,getHomeSurfaceAppearance,getRoomTheme} from './home-theme.js';
 
 const WALL_WIDTH = 5.6, WALL_HEIGHT = 2.85, TABLE_WIDTH = 2.25, TABLE_DEPTH = 1.35, TABLE_Y = 1.12;
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -63,7 +64,8 @@ export function applyFloorElevatorFrame(group, frame) {
 }
 
 // Each editable part owns its material. Appearance changes never mutate a shared asset.
-export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, avatarFactory = createAvatarController, floorClickWalk = false }) {
+export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
+  const lighting=theme.lighting.editor??{};
   const scene = new THREE.Scene();
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   // A retina display at DPR 2 quadruples the canvas pixels while the scene is
@@ -78,8 +80,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMapping = lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = lighting.exposure??1.1;
   renderer.domElement.setAttribute('aria-label', "DisplayText2742");
   renderer.domElement.style.touchAction = 'none';
   container.prepend(renderer.domElement);
@@ -211,15 +213,15 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const sofaFabricMaps = createSofaFabricMaps();
   Object.values(sofaFabricMaps).forEach(texture => textures.push(texture));
   const maps = { oak: grain('oak'), stone: grain('stone'), ceramic: grain('ceramic'), walnut: grain('oak'), marble: grain('stone'), wool: grain('wool'), linen: grain('linen'), velvet: grain('velvet'), ...Object.fromEntries(Object.entries(sofaFabricMaps).map(([name, texture]) => [`sofa-${name}`, texture])) };
-  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true }); root.add(roomExpansion);
+  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme }); root.add(roomExpansion);
   // The outdoor estate is an isolated scene layer. Its house is generated from
   // the same floor plan as the interior, so adding a room inside changes the
   // silhouette outside; it never participates in interior surfaces or bounds.
   estateOutdoor = createEstateOutdoor({ tier: 'courtyard', house: roomStage() }); estateOutdoor.visible = false; root.add(estateOutdoor);
-  estateManor = createEstateManor({ rooms }); estateManor.visible = false; root.add(estateManor);
-  scene.add(new THREE.HemisphereLight('#fff8e6', '#9daa98', 2.1));
-  const sun = new THREE.DirectionalLight('#fff4d9', 3.4); sun.position.set(3, 8, 6); sun.castShadow = true;
-  stageLighting=createStageLighting({scene,requestRender});
+  estateManor = createEstateManor({ rooms, theme }); estateManor.visible = false; root.add(estateManor);
+  const hemisphere=new THREE.HemisphereLight(lighting.hemisphere?.sky??'#fff8e6', lighting.hemisphere?.ground??'#9daa98', lighting.hemisphere?.intensity??2.1);scene.add(hemisphere);
+  const sun = new THREE.DirectionalLight(lighting.sun?.color??'#fff4d9', lighting.sun?.intensity??3.4); sun.position.set(3, 8, 6); sun.castShadow = true;
+  stageLighting=createStageLighting({scene,requestRender,backdropColor:theme.backdrop?.inner});
   const stageFraming=createStageFraming();
   stageCamera=createStageCamera({
     getPose:()=>({pan:{x:cameraPan.x,y:cameraPan.y,z:cameraPan.z},zoom,angle}),
@@ -229,7 +231,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     requestRender,onChange:onStageCameraChange,
   });
   sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: .5, far: 25 });
-  sun.shadow.normalBias = .025; sun.shadow.bias = -.0002; sun.shadow.radius = 4; scene.add(sun);
+  sun.shadow.normalBias = .025; sun.shadow.bias = -.0002; sun.shadow.radius = lighting.shadowRadius??4; scene.add(sun);
   const sunTarget = new THREE.Object3D(); scene.add(sunTarget); sun.target = sunTarget;
   function fitSunToLayout() {
     const bounds = roomStage().bounds;
@@ -245,11 +247,12 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     sun.shadow.camera.updateProjectionMatrix();
   }
 
-  const fill = new THREE.DirectionalLight('#dceceb', 1); fill.position.set(-5, 4, -3); scene.add(fill);
+  const fill = new THREE.DirectionalLight(lighting.fill?.color??'#dceceb', lighting.fill?.intensity??1); fill.position.set(-5, 4, -3); scene.add(fill);
 
   function starterWallBlock(id) {
     const block = STARTER_WALL_BLOCKS.find(block => block.id === id);
-    return box(starterShell, block.color, block.size, block.position, block.radius);
+    const color=theme.id==='toy'?(id.includes('body')?theme.rooms.living.wall:id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):block.color;
+    return box(starterShell, color, block.size, block.position, block.radius);
   }
   // A miniature architectural slice, with real inner/outer skins on the editable wall.
   box(starterShell, '#d0bb9b', [6, .38, 5.65], [0, -.3, 0], .17);
@@ -291,7 +294,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
 
   // Window and shelf retain their scene details when their body is painted.
   const windowGroup = new THREE.Group(); windowGroup.position.set(-2.675, 1.76, -.9); windowGroup.rotation.y = Math.PI / 2; root.add(windowGroup);
-  box(windowGroup, '#aeccc6', [1.44, 1.46, .06], [0, 0, .015], .12, { roughness: .45 });
+  box(windowGroup, theme.shell.glass??'#aeccc6', [1.44, 1.46, .06], [0, 0, .015], .12, { roughness: .45 });
   const outside = box(windowGroup, '#e4f0e0', [1.24, 1.26, .025], [0, 0, .055], .10); outside.castShadow = false;
   ball(windowGroup, '#f4d487', [.28, .34, .077], [.19, .19, .014]);
   for (const [x, y, w] of [[-.3, -.25, .32], [.2, -.42, .43]]) ball(windowGroup, '#a7cba4', [x, y, .087], [w, .29, .02]);
@@ -578,8 +581,10 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   /** Appearance of a surface: fixed living-room surfaces live in `surfaces`, added rooms carry their own skins. */
   function surfaceAppearance(next, id) {
     const room = parseRoomSurfaceId(id);
-    if (!room) return next.surfaces[id];
-    return next.rooms?.find(item => item.id === room.roomId)?.[room.part] ?? null;
+    if (!room) return getHomeSurfaceAppearance(id,next.surfaces[id],theme);
+    const owner=next.rooms?.find(item => item.id === room.roomId),appearance=owner?.[room.part]??null;
+    if(!appearance||theme.id==='default')return appearance;
+    return {...appearance,color:getRoomTheme(owner.kind,owner,theme)[room.part]};
   }
   function syncFixedModels(next) {
     if(next.profile==='upper')return;
@@ -589,7 +594,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       if (placement) group.position.set(placement.x, id === 'rug' ? .079 : .08, placement.z);
     }
     for (const [id, kind, parent, surfaceId] of [['plant','plant',plant,'plant.pot'],['toy','statue',rabbit,'toy.body'],['rug','rug',rug,'rug.main']]) {
-      const a = next.surfaces[surfaceId], plans = next.plans[id];
+      const a = getHomeSurfaceAppearance(surfaceId,next.surfaces[surfaceId],theme), plans = next.plans[id];
       const style = JSON.stringify([a,plans]); const old = fixedModels.get(id);
       if (old?.style === style) continue;
       if (old) release(old.group);
@@ -607,7 +612,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       if(standaloneFloor() || next.profile==='upper'&&['table','shelf','stool'].includes(objectId)) {
         const old=upgradeItems.get(objectId);if(old){release(old.group);upgradeItems.delete(objectId);}continue;
       }
-      const surfaces = Object.fromEntries((STATIC_UPGRADE_SURFACES[objectId] ?? []).map(id => [id, next.surfaces[id]]));
+      const surfaces = Object.fromEntries((STATIC_UPGRADE_SURFACES[objectId] ?? []).map(id => [id, getHomeSurfaceAppearance(id,next.surfaces[id],theme)]));
       const plans = next.plans[objectId], style = JSON.stringify([level,plans,surfaces,objectId==='floor'?getHomeStairs(next):null]);
       const old = upgradeItems.get(objectId); if (old?.style === style) continue;
       if (old) release(old.group);
@@ -649,10 +654,13 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     syncStaircase(next);
     syncFixedModels(next);
     table.position.set(next.table.x, .03, next.table.z); table.rotation.y = THREE.MathUtils.degToRad(next.table.rotation);
+    const themeRooms=theme.id==='toy'?new Map(next.rooms.map(room=>[room.id,room])):null;
     for (const [id, objects] of parts) {
       const a = surfaceAppearance(next, id); if (!a) continue;
       for (const o of objects) {
-        o.material.color.set(a.color);
+        const room=themeRooms?.get(o.userData.themeRoomId);
+        const appearance=room?getHomeSurfaceAppearance(id,next.surfaces[id]??a,theme,room):a;
+        o.material.color.set(appearance.color);
         const map = maps[a.material] || null;
         if (o.material.map !== map) { o.material.map = map; o.material.needsUpdate = true; }
         o.material.roughness = a.material === 'gold' ? .35 : a.material === 'ceramic' ? .45 : ['stone','marble'].includes(a.material) ? .4 : .72; o.material.metalness = a.material === 'gold' ? .6 : 0;
@@ -1431,6 +1439,10 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     }
     frameCamera(lastCameraBounds);
   }, { passive: false });
+  // Optional presentation adapter for isolated look development. The ordinary
+  // account editor supplies neither option; its lighting and input stay owned
+  // by this renderer. No account state or persistence capability is exposed.
+  onRenderSetup?.({scene,renderer,camera,hemisphere,sun,fill,maps,requestRender,markShadowsDirty});
   return {
     setState, setOutdoorState, beginOutdoorPlacement, flashOutdoor,
     setAvatar:value=>avatarActor.setAvatar(value),

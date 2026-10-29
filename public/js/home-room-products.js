@@ -1,4 +1,5 @@
 /** Room partitions and finishes are purchased separately from structural floor area. */
+import { getHomeTheme, getRoomTheme } from './home-theme.js';
 import { CELL, ROOM_KINDS } from './home-layout.js';
 
 const PRICES = Object.freeze({
@@ -12,13 +13,14 @@ const TIERS = Object.freeze(['essential', 'comfort', 'signature']);
 const number = value => Number(value.toFixed(2));
 
 export const ROOM_PRODUCTS = Object.freeze(ROOM_KINDS.filter(kind => !kind.core).map(kind => {
+  const skin = getRoomTheme(kind, null, getHomeTheme());
   const index = SIZES.indexOf(kind.size), width = number(kind.cols * CELL.width), depth = number(kind.rows * CELL.depth);
   return Object.freeze({
     skuId: `room-${kind.id}`, productType: 'room', placement: 'room', kind: kind.id,
     baseKind: kind.baseKind, family: kind.baseKind, category: 'rooms',
     name: kind.label, label: kind.label, icon: kind.icon, size: kind.size, tier: TIERS[index],
     price: PRICES[kind.baseKind][index], width, depth, area: number(width * depth), resizable: true, resizeStep: .2,
-    cols: kind.cols, rows: kind.rows, color: kind.floor, wall: kind.wall,
+    cols: kind.cols, rows: kind.rows, color: skin.floor, wall: skin.wall,
     description: `${kind.description} DisplayText2569, DisplayText2570; DisplayText2059, DisplayText2571.`,
     tags: Object.freeze(["DisplayText0953", "Room", kind.label, `${kind.cols}×${kind.rows}DisplayText2572`]),
   });

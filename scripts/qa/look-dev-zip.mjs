@@ -1,0 +1,8 @@
+// Standards-based stored ZIP, no compression library or network dependency.
+const crcTable=Uint32Array.from({length:256},(_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
+function crc32(bytes){let crc=0xffffffff;for(const byte of bytes)crc=crcTable[(crc^byte)&255]^(crc>>>8);return(crc^0xffffffff)>>>0;}
+export function zipFiles(files){
+  const encoder=new TextEncoder(),chunks=[],directory=[];let offset=0;
+  for(const{name,bytes}of files){const path=encoder.encode(name),crc=crc32(bytes),local=new Uint8Array(30+path.length),dv=new DataView(local.buffer);dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0x800,true);dv.setUint32(14,crc,true);dv.setUint32(18,bytes.length,true);dv.setUint32(22,bytes.length,true);dv.setUint16(26,path.length,true);local.set(path,30);chunks.push(local,bytes);const central=new Uint8Array(46+path.length),cd=new DataView(central.buffer);cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x800,true);cd.setUint32(16,crc,true);cd.setUint32(20,bytes.length,true);cd.setUint32(24,bytes.length,true);cd.setUint16(28,path.length,true);cd.setUint32(42,offset,true);central.set(path,46);directory.push(central);offset+=local.length+bytes.length;}
+  const directorySize=directory.reduce((sum,bytes)=>sum+bytes.length,0),end=new Uint8Array(22),dv=new DataView(end.buffer);dv.setUint32(0,0x06054b50,true);dv.setUint16(8,files.length,true);dv.setUint16(10,files.length,true);dv.setUint32(12,directorySize,true);dv.setUint32(16,offset,true);return new Blob([...chunks,...directory,end],{type:'application/zip'});
+}

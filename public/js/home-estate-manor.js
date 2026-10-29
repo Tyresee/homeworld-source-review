@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { getHomeTheme } from './home-theme.js';
 import { getRoomTierDefinition, describeRooms, WALL_HEIGHT } from './home-room-expansion.js';
 import { getRoomKind, roomRect, roomOuterFaces, CELL, getFloorRects, getFloorBounds } from './home-layout.js';
 import { getManorFacadeLayout, getManorDoorWidth, getManorEntranceSteps, MANOR_FACADE_OFFSET } from './home-manor-layout.js';
@@ -54,7 +55,7 @@ function exposedRoofPatches(room, covered) {
  * `plans` are independent routes: structure (porch and cornice), material
  * (facade), decor (shutters, planters, crowns) and detail (lamps, finials).
  */
-export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {}, color = DEFAULT_ROOF } = {}) {
+export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {}, color = DEFAULT_ROOF, theme = getHomeTheme() } = {}) {
   const root = new THREE.Group();
   root.name = 'estate-manor';
   root.userData.estateFeature = 'manor';
@@ -66,11 +67,11 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
   function refreshColors() {
     const roof = customization.color;
     colors = {
-      wall: '#e6c48b', trim: '#f3dca7', base: '#98714c', wood: '#8f5839',
+      wall: theme.manor.wall ?? '#e6c48b', trim: theme.manor.trim ?? '#f3dca7', base: theme.manor.base ?? '#98714c', wood: theme.manor.wood ?? '#8f5839',
       woodWall: '#b8784d', woodLine: '#70432f', stoneWall: '#d6bc91', stoneLine: '#997d5a',
-      marbleWall: '#f4f0e6', marbleLine: '#d8d1c4', roof, roofDark: shiftedColor(roof, -.18),
-      roofEdge: shiftedColor(roof, .14), gold: '#dca64e', glass: '#426f77', leaf: '#428750',
-      flower: '#ed8c87', glow: '#ffd778', chimney: '#8c6a57', skylight: '#9fd0dd',
+      marbleWall: theme.manor.wall ?? '#f4f0e6', marbleLine: '#d8d1c4', roof, roofDark: shiftedColor(roof, -.18),
+      roofEdge: shiftedColor(roof, .14), gold: theme.manor.gold ?? '#dca64e', glass: theme.manor.glass ?? '#426f77', leaf: theme.manor.leaf ?? '#428750',
+      flower: theme.manor.flower ?? '#ed8c87', glow: '#ffd778', chimney: '#8c6a57', skylight: '#9fd0dd',
     };
   }
   refreshColors();

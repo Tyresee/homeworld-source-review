@@ -14,7 +14,8 @@ void main(){vUv=uv;vec4 p=modelViewMatrix*vec4(position,1.0);vNormal=normalize(n
  * after every render, so lamp animation and account saves retain ownership.
  * The spot and a low, broad reflected-light approximation have no shadow maps.
  * This is a bounded art-directed bounce approximation, not realtime GI. */
-export function createStageLighting({scene,requestRender=()=>{}}){
+export function createStageLighting({scene,requestRender=()=>{},backdropColor}={}){
+  const fallbackBackdrop=backdropColor?new THREE.Color(backdropColor):DEFAULT_BACKDROP;
   const group=new THREE.Group();group.name='robot-dance-stage';group.userData.stageLighting=true;scene.add(group);
   const light=new THREE.SpotLight('#fff2d8',0,12,.46,1,2);light.name='robot-stage-spotlight';light.castShadow=false;light.userData.stageLighting=true;
   const bounce=new THREE.PointLight('#f5dfbe',0,5,2);bounce.name='robot-stage-reflected-light';bounce.castShadow=false;bounce.userData.stageLighting=true;group.add(bounce);
@@ -73,7 +74,7 @@ export function createStageLighting({scene,requestRender=()=>{}}){
   function darken(){
     restoreRender();if(disposed||amount<=0)return;
     rendering=true;background=scene.background;environment=scene.environmentIntensity;
-    backdrop.copy(background?.isColor?background:DEFAULT_BACKDROP).lerp(DARK,amount);scene.background=backdrop;scene.environmentIntensity=environment*(1-.88*amount);
+    backdrop.copy(background?.isColor?background:fallbackBackdrop).lerp(DARK,amount);scene.background=backdrop;scene.environmentIntensity=environment*(1-.88*amount);
     const emissionFactor=1-.9*amount;
     for(const row of lights){row.value=row.node.intensity;row.node.intensity*=1-(1-retainedLight(row.node))*amount;}
     for(const row of materials){

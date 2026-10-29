@@ -15,6 +15,7 @@ import {getKitchenFit,areKitchenModulesCompatible,getKitchenDockPose} from '../p
 import {getHomeStairs} from '../public/js/home-staircase-shape.js';
 import {ROBOT_CLOTHING_PRODUCTS} from '../public/js/robot-wardrobe-catalog.js';
 import {applyChange,PALETTE} from '../public/js/home-engine.js';
+import {getHomeSwatches} from '../public/js/home-theme.js';
 import {roomRect} from '../public/js/home-layout.js';
 import {getStoredPlacementGroups} from '../public/js/home-inventory-menu.js';
 
@@ -37,7 +38,7 @@ function fixture({storage=storageFixture()}={}){
     getAvatarInteractions:()=>[],getAvatarStairs:()=>[],
   };
   const document={visibilityState:'visible',addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}};
-  const context={getObjectQuickActions,getQuickActionOwned,createStudentHomeQuickActions:options=>{bindings.quick=options;return {show(value){calls.quick=value;},updateStatus(value){calls.quickStatus=value;},close(){calls.quick=null;},dispose(){}};},createStudentHomeObjectOutbox:()=>({...objectOutbox,enqueue:call(objectOutbox.enqueue)}),getHomeObjectMenu:(c,o,h)=>getHomeObjectMenu(clone(c),clone(o),h),getObjectState:call(getObjectState),...commerce,getKitchenFit,areKitchenModulesCompatible,getKitchenDockPose,getHomeStairs,ROBOT_CLOTHING_PRODUCTS,applyChange,PALETTE,roomRect,getStoredPlacementGroups,
+  const context={getObjectQuickActions,getQuickActionOwned,createStudentHomeQuickActions:options=>{bindings.quick=options;return {show(value){calls.quick=value;},updateStatus(value){calls.quickStatus=value;},close(){calls.quick=null;},dispose(){}};},createStudentHomeObjectOutbox:()=>({...objectOutbox,enqueue:call(objectOutbox.enqueue)}),getHomeObjectMenu:(c,o,h)=>getHomeObjectMenu(clone(c),clone(o),h),getObjectState:call(getObjectState),...commerce,getKitchenFit,areKitchenModulesCompatible,getKitchenDockPose,getHomeStairs,ROBOT_CLOTHING_PRODUCTS,applyChange,PALETTE,getHomeSwatches,roomRect,getStoredPlacementGroups,
     setTimeout,clearTimeout,
     ...Object.fromEntries(['cloneRobotActivity','sameRobotActivity','isRobotActivityShape'].map(name=>[name,call(activitySchema[name])])),
     createStudentHomeRobotOutbox:()=>outbox,

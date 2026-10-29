@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 115,
-    "tests": 67,
-    "selectedSourceFiles": 200,
-    "packagedFiles": 211
+    "modules": 114,
+    "tests": 70,
+    "selectedSourceFiles": 213,
+    "packagedFiles": 239
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -16,6 +16,21 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
+    "syntaxCheckedFiles": 204,
+    "coreTestFiles": 49,
+    "coreTestsPassed": 379,
+    "coreTestsFailed": 0,
+    "lookDevTestsPassed": 4,
+    "lookDevTestsFailed": 0,
+    "allIncludedTestsAttempted": 692,
+    "allIncludedTestsPassed": 637,
+    "allIncludedTestsWithDisplayExpectationDifferences": 55,
+    "sameDisplayFailureNamesAsPreviousSnapshot": true,
+    "offlineVendorVerification": "passed",
+    "browserSourceRender": "five views exported at 1440x900; AgX, ceramic floor, JSON round trip verified",
+    "freshCloneBrowserVerification": "pending"
+  },
+  "previousSnapshotValidation": {
     "syntaxCheckedFiles": 184,
     "relativeImportsChecked": 525,
     "coreTestFiles": 49,
@@ -24,5 +39,13 @@
     "allIncludedTestsAttempted": 666,
     "allIncludedTestsPassed": 611,
     "allIncludedTestsWithDisplayExpectationDifferences": 55
+  },
+  "sourceRefresh": {
+    "purpose": "Optional look-development review candidate",
+    "normalizedSourceFiles": 213,
+    "changedSourceFiles": 0,
+    "stableSeedLabels": 4676,
+    "newDisplayLabels": 7,
+    "identityDataIncluded": false
   }
 }

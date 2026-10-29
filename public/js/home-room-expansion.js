@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
+import { getHomeTheme, getRoomTheme } from './home-theme.js';
 import { splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs } from './home-staircase.js';
 
 export { ROOM_KINDS, getRoomKind, roomRect, layoutBounds };
@@ -37,13 +38,20 @@ const PALETTE = Object.freeze({ trim: '#e6c49e', plinth: '#d0bb9b', accent: '#c8
  * them into a room. Floor and wall skins carry `surfaceId`
  * (`room:<id>.floor` / `room:<id>.wall`) so they can be painted separately.
  */
-export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile } = {}) {
+export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile, theme = getHomeTheme() } = {}) {
   stairs = Array.isArray(stairs) ? stairs : getHomeStairs({stairs,staircases});
   const group = new THREE.Group(); group.name = 'room-expansion';
   const geometries = new Set(), materials = new Set();
   // Keep the empty fixtures bucket for callers that inspect older roomParts.
   const parts = { floor: [], walls: [], border: [], zones: [], columns: [], accents: [], windows: [], fixtures: [] };
-  let definition, disposed = false, currentRoom = null;
+  let definition, disposed = false, currentRoom = null, boundarySkinRoom = null;
+  const shellColor = (key, fallback = PALETTE[key]) => theme.shell[key] ?? fallback;
+  // Existing architecture already owns these strips, sills and posts. Theme
+  // them in place without adding volume, faces or new collision surfaces.
+  const trimColor = (fallback = PALETTE.trim) => {
+    const owner = currentRoom ?? boundarySkinRoom;
+    return (owner ? getRoomTheme(owner.kind, owner, theme)?.trim : null) ?? shellColor('trim', fallback);
+  };
   function material(color, options = {}) {
     const { mapKey, ...rest } = options;
     const m = new THREE.MeshStandardMaterial({ color, roughness: .76, ...rest });
@@ -83,9 +91,9 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   function windowAt(center, axis, width = 1.25, height = 1.35, y = 1.77) {
     const g = new THREE.Group(); g.position.set(...center); if (axis === 'z') g.rotation.y = Math.PI / 2; group.add(g);
     const local = (geometry, color, position, options = {}) => { const m = add(geometry, color, [0, 0, 0], 'windows', options); group.remove(m); g.add(m); m.position.set(...position); return m; };
-    const glass = local(new RoundedBoxGeometry(width - .05, height - .05, .03, 3, .17), PALETTE.glass, [0, y, 0], { transparent: true, opacity: .82, roughness: .3 }); glass.castShadow = false;
-    for (const [size, pos] of [[[.055, height + .13, .11], [-width / 2, y, .14]], [[.055, height + .13, .11], [width / 2, y, .14]], [[width + .12, .065, .11], [0, y - height / 2, .14]], [[width + .12, .065, .11], [0, y + height / 2, .14]], [[.045, height, .08], [0, y, .15]], [[width, .045, .08], [0, y, .15]]]) local(new RoundedBoxGeometry(...size, 3, .02), PALETTE.frame, pos);
-    local(new RoundedBoxGeometry(width + .25, .085, .28, 3, .03), PALETTE.trim, [0, y - height / 2 - .03, .2]);
+    const glass = local(new RoundedBoxGeometry(width - .05, height - .05, .03, 3, .17), shellColor('glass'), [0, y, 0], { transparent: true, opacity: .82, roughness: .3 }); glass.castShadow = false;
+    for (const [size, pos] of [[[.055, height + .13, .11], [-width / 2, y, .14]], [[.055, height + .13, .11], [width / 2, y, .14]], [[width + .12, .065, .11], [0, y - height / 2, .14]], [[width + .12, .065, .11], [0, y + height / 2, .14]], [[.045, height, .08], [0, y, .15]], [[width, .045, .08], [0, y, .15]]]) local(new RoundedBoxGeometry(...size, 3, .02), shellColor('frame'), pos);
+    local(new RoundedBoxGeometry(width + .25, .085, .28, 3, .03), trimColor(), [0, y - height / 2 - .03, .2]);
     // Painted sky and hills behind the glass make the opening read as a window from inside.
     local(new RoundedBoxGeometry(width - .1, height - .1, .02, 3, .1), '#e4f0e0', [0, y, -.04]).castShadow = false;
     local(new THREE.SphereGeometry(1, 12, 8), PALETTE.sun, [width * .22, y + .3, -.03]).scale.set(.16, .16, .01);
@@ -97,8 +105,8 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     return m;
   }
   function post(position, height = PARTITION_HEIGHT + .16) {
-    box([.16, height, .16], [position[0], height / 2 + .06, position[2]], PALETTE.trim, 'columns', .035);
-    box([.24, .08, .24], [position[0], height + .1, position[2]], PALETTE.accent, 'columns', .03);
+    box([.16, height, .16], [position[0], height / 2 + .06, position[2]], trimColor(), 'columns', .035);
+    box([.24, .08, .24], [position[0], height + .1, position[2]], shellColor('wallCap', PALETTE.accent), 'columns', .03);
   }
   /** Shared edges become a knee wall with a wide doorway so every floor stays visible from the isometric camera. */
   function partition(from, to, fixed, axis, color) {
@@ -109,7 +117,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     }
     for (const edge of [from + stub, to - stub]) post(axis === 'x' ? [edge, 0, fixed] : [fixed, 0, edge]);
     const mid = (from + to) / 2;
-    const sill = box(axis === 'x' ? [door, .05, .22] : [.22, .05, door], axis === 'x' ? [mid, .08, fixed] : [fixed, .08, mid], PALETTE.trim, 'accents', .012); sill.castShadow = false;
+    const sill = box(axis === 'x' ? [door, .05, .22] : [.22, .05, door], axis === 'x' ? [mid, .08, fixed] : [fixed, .08, mid], trimColor(), 'accents', .012); sill.castShadow = false;
   }
   /** Colored inlaid tiles are part of the paintable floor, not furniture. */
   function floorAccents(rect, kind) {
@@ -138,11 +146,11 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
         const offset = seg.from + len / 6 + i * len / 3;
         const pane = box(alongX ? [len / 3 - .08, 1.3, .04] : [.04, 1.3, len / 3 - .08],
           alongX ? [offset, 1.01, rect.minZ + .1] : [rect.minX + .1, 1.01, offset],
-          PALETTE.glass, 'windows', .01, { transparent: true, opacity: .55, roughness: .2 });
+          shellColor('glass'), 'windows', .01, { transparent: true, opacity: .55, roughness: .2 });
         pane.name = 'sunroom-glazing'; pane.castShadow = false;
       }
       const frame = box(alongX ? [len, .08, .12] : [.12, .08, len],
-        alongX ? [mid, 1.66, rect.minZ + .1] : [rect.minX + .1, 1.66, mid], PALETTE.white, 'windows', .02);
+        alongX ? [mid, 1.66, rect.minZ + .1] : [rect.minX + .1, 1.66, mid], shellColor('frame', PALETTE.white), 'windows', .02);
       frame.name = 'sunroom-window-frame';
     }
   }
@@ -154,10 +162,10 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   function buildRoom(rooms, room, bounds) {
     const kind = getRoomKind(room.kind), rect = roomRect(room), edges = roomEdges(rooms, room);
     currentRoom = room;
-    const floorColor = room.floor?.color ?? kind.floor, wallColor = room.wall?.color ?? kind.wall;
+    const { floor: floorColor, wall: wallColor } = getRoomTheme(kind, room, theme);
     const w = rect.width, d = rect.depth;
     for(const piece of splitFloorAroundOpening({minX:rect.minX-.07,maxX:rect.maxX+.07,minZ:rect.minZ-.07,maxZ:rect.maxZ+.07},stairs))
-      box([piece.maxX-piece.minX,.32,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,-.13,(piece.minZ+piece.maxZ)/2],PALETTE.plinth,'border',.04);
+      box([piece.maxX-piece.minX,.32,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,-.13,(piece.minZ+piece.maxZ)/2],shellColor('plinth'),'border',.04);
     for(const piece of splitFloorAroundOpening(rect,stairs)) {
       const floor=box([piece.maxX-piece.minX,.06,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,.03,(piece.minZ+piece.maxZ)/2],floorColor,'floor',.012,{mapKey:room.floor?.material??'oak'});floor.castShadow=false;
     }
@@ -166,7 +174,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       for (let x = rect.minX + .5; x < rect.maxX - .25; x += 1.4) { const seam = box([.008, .003, d - .4], [x, .064, rect.z], PALETTE.grid, 'zones', .001); seam.castShadow = false; }
     }
     // Threshold strip where this room meets the living room or another room.
-    const threshold = box([w - .1, .05, .06], [rect.x, .07, rect.minZ + .03], PALETTE.trim, 'accents', .01); threshold.castShadow = false;
+    const threshold = box([w - .1, .05, .06], [rect.x, .07, rect.minZ + .03], trimColor(), 'accents', .01); threshold.castShadow = false;
     if (includeWalls) {
       const backRow = Math.abs(rect.minZ-LAYOUT_GRID.minCz*CELL.depth)<1e-7, leftColumn = Math.abs(rect.minX-LAYOUT_GRID.minCx*CELL.width)<1e-7;
       for (const seg of edges.back) {
@@ -176,8 +184,8 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
           const holes = len > 2 ? [[0, 1.77, 1.25, 1.35, .21]] : [];
           fullWall(len, [mid, .06, rect.minZ - .03], 'x', wallColor, holes);
           for (const [x] of holes) windowAt([mid + x, 0, rect.minZ + .1], 'x');
-          box([len, .14, .11], [mid, .16, rect.minZ + .14], PALETTE.frame, 'border', .02);
-          box([len + .1, .11, .29], [mid, WALL_HEIGHT + .12, rect.minZ - .03], PALETTE.trim, 'border', .025);
+          box([len, .14, .11], [mid, .16, rect.minZ + .14], trimColor(PALETTE.frame), 'border', .02);
+          box([len + .1, .11, .29], [mid, WALL_HEIGHT + .12, rect.minZ - .03], shellColor('wallCap', PALETTE.trim), 'border', .025);
         } else lowWall(len, [mid, 0, rect.minZ + .085], 'x', wallColor, .72);
       }
       for (const seg of edges.left) {
@@ -187,15 +195,15 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
           const holes = len > 2 ? [[0, 1.77, 1.25, 1.35, .21]] : [];
           fullWall(len, [rect.minX - .03, .06, mid], 'z', wallColor, holes);
           for (const [x] of holes) windowAt([rect.minX + .1, 0, mid + x], 'z');
-          box([.11, .14, len], [rect.minX + .14, .16, mid], PALETTE.frame, 'border', .02);
-          box([.29, .11, len + .1], [rect.minX - .03, WALL_HEIGHT + .12, mid], PALETTE.trim, 'border', .025);
+          box([.11, .14, len], [rect.minX + .14, .16, mid], trimColor(PALETTE.frame), 'border', .02);
+          box([.29, .11, len + .1], [rect.minX - .03, WALL_HEIGHT + .12, mid], shellColor('wallCap', PALETTE.trim), 'border', .025);
         } else lowWall(len, [rect.minX + .085, 0, mid], 'z', wallColor, .72);
       }
       // Corner posts where two full-height outer walls or a wall and a cut-away meet.
       if (backRow && edges.back.some(s => !s.shared)) post([rect.maxX - .11, 0, rect.minZ - .03], WALL_HEIGHT + .12);
       if (leftColumn && edges.left.some(s => !s.shared)) post([rect.minX - .03, 0, rect.maxZ - .11], WALL_HEIGHT + .12);
-      if (!edges.frontShared) { const lip = box([w + .14, .05, .08], [rect.x, .085, rect.maxZ - .02], PALETTE.trim, 'border', .015); lip.castShadow = false; }
-      if (!edges.rightShared) { const lip = box([.08, .05, d + .14], [rect.maxX - .02, .085, rect.z], PALETTE.trim, 'border', .015); lip.castShadow = false; }
+      if (!edges.frontShared) { const lip = box([w + .14, .05, .08], [rect.x, .085, rect.maxZ - .02], trimColor(), 'border', .015); lip.castShadow = false; }
+      if (!edges.rightShared) { const lip = box([.08, .05, d + .14], [rect.maxX - .02, .085, rect.z], trimColor(), 'border', .015); lip.castShadow = false; }
     }
     floorAccents(rect, kind);
     for(const part of ['zones','accents'])for(const object of parts[part])if(object.userData.surfaceId?.startsWith(`room:${room.id}.`)&&object.position.y<.2)clipFloor(object);
@@ -231,32 +239,47 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     for (const rect of getFloorRects(home).flatMap(rect=>subtract(rect,starterRect))) {
       for (const piece of splitFloorAroundOpening(rect, stairs)) {
         const size = [piece.maxX-piece.minX, .30, piece.maxZ-piece.minZ], center = [(piece.minX+piece.maxX)/2, -.15, (piece.minZ+piece.maxZ)/2];
-        box(size, center, PALETTE.plinth, 'border', .015);
-        const floor = box([size[0], .06, size[2]], [center[0], .03, center[2]], '#f8e9cb', 'floor', .008, {mapKey:'oak'});
+        box(size, center, shellColor('plinth'), 'border', .015);
+        const floor = box([size[0], .06, size[2]], [center[0], .03, center[2]], getRoomTheme('living', null, theme).floor, 'floor', .008, {mapKey:'oak'});
         floor.userData.surfaceId='floor.main';floor.userData.publicFloor=true;floor.castShadow=false;
       }
     }
     if (includeWalls) for (const edge of shell) {
       if(edge.owner?.id==='living')continue;
       currentRoom=edge.owner??null;
+      // Purchased floors keep their public wall paint targets. Resolve only a
+      // color owner here: assigning edge.owner would turn a right-click on the
+      // same wall into a different room target. A single existing trim strip
+      // can inherit a room color only when that room covers the complete edge.
+      boundarySkinRoom = home.rooms.find(room => {
+        const rect = roomRect(room), alongX = edge.side === 'back' || edge.side === 'front';
+        const at = edge.side === 'back' ? rect.minZ : edge.side === 'front' ? rect.maxZ : edge.side === 'left' ? rect.minX : rect.maxX;
+        const from = alongX ? rect.minX : rect.minZ, to = alongX ? rect.maxX : rect.maxZ;
+        return Math.abs(at - edge.at) < 1e-6 && from <= edge.from + 1e-6 && to >= edge.to - 1e-6;
+      }) ?? null;
       const alongX=edge.side==='back'||edge.side==='front', axis=alongX?'x':'z', length=edge.to-edge.from, mid=(edge.from+edge.to)/2;
       const full=edge.side==='back'||edge.side==='left', surfaceId=edge.owner?`room:${edge.owner.id}.wall`:edge.side==='left'?'wall.side':'wall.inner';
       const center=alongX?[mid,.06,edge.at-.03]:[edge.at-.03,.06,mid];
       const before=new Set(Object.values(parts).flat());
       if (full) {
         const holes=length>2.1?[[0,1.77,Math.min(1.25,length-.65),1.35,.21]]:[];
-        fullWall(length,center,axis,edge.owner?.wall?.color??'#efe6cc',holes);
+        // The historical slab fallback differs from room-kind defaults. Keep
+        // it byte-for-byte in default; only the candidate resolves room color.
+        const wallColor = theme.id === 'default' ? edge.owner?.wall?.color ?? '#efe6cc' : getRoomTheme(edge.owner?.kind ?? 'living', edge.owner, theme).wall;
+        fullWall(length,center,axis,wallColor,holes);
         if(holes.length)windowAt(alongX?[mid,0,edge.at+.1]:[edge.at+.1,0,mid],axis,holes[0][2]);
-        box(alongX?[length,.11,.29]:[.29,.11,length],alongX?[mid,WALL_HEIGHT+.12,edge.at-.03]:[edge.at-.03,WALL_HEIGHT+.12,mid],PALETTE.trim,'border',.025);
-        box(alongX?[length,.14,.11]:[.11,.14,length],alongX?[mid,.16,edge.at+.14]:[edge.at+.14,.16,mid],PALETTE.frame,'border',.02);
+        box(alongX?[length,.11,.29]:[.29,.11,length],alongX?[mid,WALL_HEIGHT+.12,edge.at-.03]:[edge.at-.03,WALL_HEIGHT+.12,mid],shellColor('wallCap', PALETTE.trim),'border',.025);
+        box(alongX?[length,.14,.11]:[.11,.14,length],alongX?[mid,.16,edge.at+.14]:[edge.at+.14,.16,mid],trimColor(PALETTE.frame),'border',.02);
       } else {
-        const lip=box(alongX?[length,.08,.09]:[.09,.08,length],alongX?[mid,.08,edge.at]:[edge.at,.08,mid],PALETTE.trim,'border',.015);lip.castShadow=false;
+        const lip=box(alongX?[length,.08,.09]:[.09,.08,length],alongX?[mid,.08,edge.at]:[edge.at,.08,mid],trimColor(),'border',.015);lip.castShadow=false;
       }
       for(const object of Object.values(parts).flat()) if(!before.has(object)) {
         object.userData.surfaceId=surfaceId;object.userData.floorBoundary={...edge};
+        if(theme.id==='toy'&&!legacy&&boundarySkinRoom&&object.userData.roomPart==='walls')object.userData.themeRoomId=boundarySkinRoom.id;
         if(full)object.userData.wallId=edge.owner?`room:${edge.owner.id}:${edge.side}:${edge.from}:${edge.to}`:`slab:${edge.side}:${edge.at}:${edge.from}:${edge.to}`;
       }
     }
+    boundarySkinRoom = null;
     // The original living room keeps its actual back/left walls and mounted
     // objects when purchased floor extends behind it. Those walls then become
     // interior partitions, with the same solids in the collision model. Do not
@@ -272,7 +295,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     for(const room of home.rooms.filter(room=>room.id!=='living')) {
       currentRoom=room;const rect=roomRect(room),kind=getRoomKind(room.kind);
       for(const piece of splitFloorAroundOpening(rect,stairs)) {
-        const floor=box([piece.maxX-piece.minX,.006,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,.064,(piece.minZ+piece.maxZ)/2],room.floor?.color??kind.floor,'floor',.002,{mapKey:room.floor?.material??'oak'});floor.castShadow=false;
+        const floor=box([piece.maxX-piece.minX,.006,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,.064,(piece.minZ+piece.maxZ)/2],getRoomTheme(kind,room,theme).floor,'floor',.002,{mapKey:room.floor?.material??'oak'});floor.castShadow=false;
       }
       if(includeWalls)for(const edge of getFloorBoundarySegments({rooms:[room]})) {
         const axis=edge.side==='back'||edge.side==='front'?'x':'z';let intervals=[{from:edge.from,to:edge.to}];
@@ -280,7 +303,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
           const otherAxis=other.side==='back'||other.side==='front'?'x':'z';
           if(axis===otherAxis&&Math.abs(edge.at-other.at)<1e-6)intervals=removeIntervals(intervals,other);
         }
-        for(const part of intervals){partition(part.from,part.to,edge.at,axis,room.wall?.color??kind.wall);drawn.push({...edge,...part});}
+        for(const part of intervals){partition(part.from,part.to,edge.at,axis,getRoomTheme(kind,room,theme).wall);drawn.push({...edge,...part});}
       }
       const before=new Set(parts.zones);floorAccents(rect,kind);
       for(const object of parts.zones)if(!before.has(object)){object.position.y+=.007;clipFloor(object);}

@@ -5,7 +5,7 @@
     "modules": 114,
     "tests": 70,
     "selectedSourceFiles": 213,
-    "packagedFiles": 239
+    "packagedFiles": 253
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -27,8 +27,20 @@
     "allIncludedTestsWithDisplayExpectationDifferences": 55,
     "sameDisplayFailureNamesAsPreviousSnapshot": true,
     "offlineVendorVerification": "passed",
-    "browserSourceRender": "five views exported at 1440x900; AgX, ceramic floor, JSON round trip verified",
-    "freshCloneBrowserVerification": "pending"
+    "browserSourceRender": "Passed real ACES/Neutral/AgX controls, ceramic map, JSON import/export, fixed-resolution ZIP capture",
+    "freshCloneBrowserVerification": {
+      "status": "passed",
+      "nodeModulesPresent": false,
+      "codeCommit": "20e80051150052b1d415119a9533ce47783a930f",
+      "views": 5,
+      "presets": 2,
+      "pngs": 10,
+      "width": 1440,
+      "height": 900,
+      "sameCameraPerPair": true,
+      "allFurnitureDefaultColors": true,
+      "browserConsoleErrors": 0
+    }
   },
   "previousSnapshotValidation": {
     "syntaxCheckedFiles": 184,

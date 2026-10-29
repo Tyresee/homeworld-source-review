@@ -1,0 +1,93 @@
+{
+  "testedCodeCommit": "20e80051150052b1d415119a9533ce47783a930f",
+  "source": "fresh anonymous GitHub clone",
+  "nodeModulesPresent": false,
+  "startCommand": "node scripts/qa/look-dev-review.mjs",
+  "externalRuntimeDependencies": false,
+  "viewsRendered": 5,
+  "presetsRendered": 2,
+  "sameCameraPerView": true,
+  "sameTrianglesPerView": true,
+  "allFurnitureAtProductDefaultColors": true,
+  "captures": [
+    {
+      "file": "default--living.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 950266,
+      "sha256": "6534a2f8758ae5b0d8464d8aab1b10568ec5844bea8deca7e4f959962f6cba7d"
+    },
+    {
+      "file": "default--bedroom.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 942141,
+      "sha256": "37bb1cca6af9fba7c9ea46c6780c895f61ea0b143f7ef1d1932100dfd0704e75"
+    },
+    {
+      "file": "default--kitchen.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 925686,
+      "sha256": "f97022f9cae60f1cb91203fd0149771cf3699af0e54ad7c2a23b9e0e3357ff90"
+    },
+    {
+      "file": "default--bathroom.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 907992,
+      "sha256": "28066b88b5444aa03efb41a2c5f6be532740680aa959038d0e973c28ac31c933"
+    },
+    {
+      "file": "default--exterior.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 476697,
+      "sha256": "dbb2392bb08233a23cedbcd30676f115fca75f15f7152887b62b3886d5728e8f"
+    },
+    {
+      "file": "toy-v1--living.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 1121577,
+      "sha256": "610f56b8c662c8c3fcb65f1f466da0f743b1c44c440f75e7b6bf3c22014ca0bf"
+    },
+    {
+      "file": "toy-v1--bedroom.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 1125376,
+      "sha256": "8f42615f80e69b15f285ccce749a52117aa6e8978bbe40558c378cc8f421572c"
+    },
+    {
+      "file": "toy-v1--kitchen.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 1105569,
+      "sha256": "049d9f6f6855e2a4bd503015d9cdb5b8abf090d8518add45f9e146c4a5443053"
+    },
+    {
+      "file": "toy-v1--bathroom.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 1115941,
+      "sha256": "72155f48a709a04a25cbd3b81fb978a1f34c579724aa1da2a3e208ceba907506"
+    },
+    {
+      "file": "toy-v1--exterior.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 559636,
+      "sha256": "c15444b59cdd8996e2676e9042026c35420683b0abaf622d4df83230cf0b41e1"
+    }
+  ],
+  "deploymentPerformed": false,
+  "liveControlChecks": {
+    "toneMapping": "agx",
+    "exposure": 1.31,
+    "sunAzimuthDegrees": 70.0,
+    "sunAltitudeDegrees": 38.4,
+    "jsonImportExportSemanticMatch": true,
+    "actualFloorCeramicMapVerifiedInSourceReview": true
+  }
+}

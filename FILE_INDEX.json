@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 239,
+  "totalFiles": 253,
   "files": [
     {
       "path": ".gitignore",
@@ -12,11 +12,11 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 20747
+      "bytes": 22084
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
-      "bytes": 4190
+      "bytes": 5390
     },
     {
       "path": "MODULE_MAP.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 1536
+      "bytes": 1886
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -36,7 +36,7 @@
     },
     {
       "path": "README.md",
-      "bytes": 6179
+      "bytes": 6251
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
@@ -45,6 +45,62 @@
     {
       "path": "VENDORED_THREE.md",
       "bytes": 2018
+    },
+    {
+      "path": "docs/look-dev-captures/README.md",
+      "bytes": 1427
+    },
+    {
+      "path": "docs/look-dev-captures/default--bathroom.png",
+      "bytes": 907992
+    },
+    {
+      "path": "docs/look-dev-captures/default--bedroom.png",
+      "bytes": 942141
+    },
+    {
+      "path": "docs/look-dev-captures/default--exterior.png",
+      "bytes": 476697
+    },
+    {
+      "path": "docs/look-dev-captures/default--kitchen.png",
+      "bytes": 925686
+    },
+    {
+      "path": "docs/look-dev-captures/default--living.png",
+      "bytes": 950266
+    },
+    {
+      "path": "docs/look-dev-captures/default-render-readback.json",
+      "bytes": 17111
+    },
+    {
+      "path": "docs/look-dev-captures/toy-render-readback.json",
+      "bytes": 17193
+    },
+    {
+      "path": "docs/look-dev-captures/toy-v1--bathroom.png",
+      "bytes": 1115941
+    },
+    {
+      "path": "docs/look-dev-captures/toy-v1--bedroom.png",
+      "bytes": 1125376
+    },
+    {
+      "path": "docs/look-dev-captures/toy-v1--exterior.png",
+      "bytes": 559636
+    },
+    {
+      "path": "docs/look-dev-captures/toy-v1--kitchen.png",
+      "bytes": 1105569
+    },
+    {
+      "path": "docs/look-dev-captures/toy-v1--living.png",
+      "bytes": 1121577
+    },
+    {
+      "path": "docs/look-dev-captures/verification.json",
+      "bytes": 2677
     },
     {
       "path": "game.manifest.json",

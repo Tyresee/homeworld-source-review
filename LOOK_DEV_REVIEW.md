@@ -44,3 +44,11 @@ Export JSON downloads the complete in-memory candidate. Import JSON applies a lo
 Current PNG downloads one actual source render. All 5 PNGs captures every reference and downloads one ZIP, avoiding browser restrictions on consecutive automatic downloads. Each file includes the preset ID and view name. The grayscale checkbox is a preview aid; the reference PNG export remains the actual color render.
 
 Only browser/desktop rendering is validated by this tool. It does not establish physical projector appearance, real touchpad feel, or a change to the shipped default. Source-copy normalization still applies; this repository is not a production deployment archive.
+
+## Recorded validation
+
+A fresh anonymous GitHub clone was started with only `node scripts/qa/look-dev-review.mjs`, without a node_modules directory. Both presets rendered all five views. Ten actual PNGs were downloaded through the workstation, each 1440 x 900. Camera transforms and triangle counts match within every preset pair; every furniture color matches its catalogue default. Browser console errors were empty.
+
+AgX, exposure, actual main-light angles and JSON import/export were read back in the clean clone. A ceramic floor edit was also checked against the actual mesh material map in the source workstation. The screenshot gallery and machine-readable render readbacks are in [docs/look-dev-captures](docs/look-dev-captures/README.md).
+
+Validation limits: null finish values intentionally inherit the existing per-part defaults; batch PNGs are packaged into one ZIP. The normalized full source suite has the same 55 display/source-text assertion differences as the earlier snapshot (637 of 692 pass). The verified core subset passes 379/379, and the new preset/safety/ZIP tests pass 4/4 without package installation. No assertions were weakened. No production deployment was performed.

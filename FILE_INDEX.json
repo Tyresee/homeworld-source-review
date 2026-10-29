@@ -1,0 +1,847 @@
+{
+  "edition": "source-review-v1",
+  "totalFiles": 211,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 27
+    },
+    {
+      "path": "CORE_TESTS.json",
+      "bytes": 2369
+    },
+    {
+      "path": "MODULE_MAP.md",
+      "bytes": 5462
+    },
+    {
+      "path": "NORMALIZATION_NOTES.md",
+      "bytes": 1517
+    },
+    {
+      "path": "PACKAGE_AUDIT.json",
+      "bytes": 701
+    },
+    {
+      "path": "PROJECT_BRIEF.md",
+      "bytes": 29622
+    },
+    {
+      "path": "README.md",
+      "bytes": 5049
+    },
+    {
+      "path": "REVIEW_TEST_LIMITS.md",
+      "bytes": 1535
+    },
+    {
+      "path": "game.manifest.json",
+      "bytes": 1681
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 21893
+    },
+    {
+      "path": "package.json",
+      "bytes": 687
+    },
+    {
+      "path": "public/assets/asset-lab/robot-v1/models/v4/robot.glb",
+      "bytes": 890024
+    },
+    {
+      "path": "public/assets/quick-actions/sit.webp",
+      "bytes": 9582
+    },
+    {
+      "path": "public/assets/quick-actions/tidy.webp",
+      "bytes": 9446
+    },
+    {
+      "path": "public/assets/quick-actions/watch.webp",
+      "bytes": 11452
+    },
+    {
+      "path": "public/home-context-menu.css",
+      "bytes": 13166
+    },
+    {
+      "path": "public/home-floor-planner.css",
+      "bytes": 8163
+    },
+    {
+      "path": "public/home-room-planner.css",
+      "bytes": 3559
+    },
+    {
+      "path": "public/home-shop.css",
+      "bytes": 30847
+    },
+    {
+      "path": "public/js/home-avatar-catalog.js",
+      "bytes": 7592
+    },
+    {
+      "path": "public/js/home-avatar-controller.js",
+      "bytes": 6604
+    },
+    {
+      "path": "public/js/home-avatar-model.js",
+      "bytes": 27212
+    },
+    {
+      "path": "public/js/home-avatar-navigation.js",
+      "bytes": 18868
+    },
+    {
+      "path": "public/js/home-avatar-state.js",
+      "bytes": 2031
+    },
+    {
+      "path": "public/js/home-bath-daily-collection.js",
+      "bytes": 8352
+    },
+    {
+      "path": "public/js/home-bath-daily-models.js",
+      "bytes": 17241
+    },
+    {
+      "path": "public/js/home-building-collision.js",
+      "bytes": 12269
+    },
+    {
+      "path": "public/js/home-camera-input.js",
+      "bytes": 1154
+    },
+    {
+      "path": "public/js/home-catalog-version.js",
+      "bytes": 267
+    },
+    {
+      "path": "public/js/home-commerce.js",
+      "bytes": 82900
+    },
+    {
+      "path": "public/js/home-construction-grid.js",
+      "bytes": 4922
+    },
+    {
+      "path": "public/js/home-context-menu.js",
+      "bytes": 21210
+    },
+    {
+      "path": "public/js/home-context-placement.js",
+      "bytes": 6024
+    },
+    {
+      "path": "public/js/home-decor-models.js",
+      "bytes": 28945
+    },
+    {
+      "path": "public/js/home-elevator-model.js",
+      "bytes": 9295
+    },
+    {
+      "path": "public/js/home-elevator-products.js",
+      "bytes": 559
+    },
+    {
+      "path": "public/js/home-engine.js",
+      "bytes": 66210
+    },
+    {
+      "path": "public/js/home-estate-landmarks.js",
+      "bytes": 16571
+    },
+    {
+      "path": "public/js/home-estate-manor.js",
+      "bytes": 29091
+    },
+    {
+      "path": "public/js/home-estate-outdoor.js",
+      "bytes": 41356
+    },
+    {
+      "path": "public/js/home-feedback.js",
+      "bytes": 9197
+    },
+    {
+      "path": "public/js/home-floor-planner.js",
+      "bytes": 19802
+    },
+    {
+      "path": "public/js/home-furniture-capabilities.js",
+      "bytes": 942
+    },
+    {
+      "path": "public/js/home-furniture-models.js",
+      "bytes": 21103
+    },
+    {
+      "path": "public/js/home-house-overview.js",
+      "bytes": 13188
+    },
+    {
+      "path": "public/js/home-household-collection.js",
+      "bytes": 9996
+    },
+    {
+      "path": "public/js/home-household-models.js",
+      "bytes": 23938
+    },
+    {
+      "path": "public/js/home-interactive-collection.js",
+      "bytes": 1290
+    },
+    {
+      "path": "public/js/home-interactive-models.js",
+      "bytes": 6684
+    },
+    {
+      "path": "public/js/home-inventory-menu.js",
+      "bytes": 1381
+    },
+    {
+      "path": "public/js/home-item-placement.js",
+      "bytes": 10029
+    },
+    {
+      "path": "public/js/home-kitchen-daily-collection.js",
+      "bytes": 8603
+    },
+    {
+      "path": "public/js/home-kitchen-daily-models.js",
+      "bytes": 17704
+    },
+    {
+      "path": "public/js/home-kitchen-fit.js",
+      "bytes": 1568
+    },
+    {
+      "path": "public/js/home-layout.js",
+      "bytes": 25448
+    },
+    {
+      "path": "public/js/home-living-collection.js",
+      "bytes": 12385
+    },
+    {
+      "path": "public/js/home-living-models.js",
+      "bytes": 26983
+    },
+    {
+      "path": "public/js/home-luxury-models.js",
+      "bytes": 55913
+    },
+    {
+      "path": "public/js/home-manor-layout.js",
+      "bytes": 3387
+    },
+    {
+      "path": "public/js/home-modular-kitchen-collection.js",
+      "bytes": 9904
+    },
+    {
+      "path": "public/js/home-modular-kitchen-models.js",
+      "bytes": 17129
+    },
+    {
+      "path": "public/js/home-object-state.js",
+      "bytes": 4930
+    },
+    {
+      "path": "public/js/home-outdoor-catalog.js",
+      "bytes": 9343
+    },
+    {
+      "path": "public/js/home-outdoor-models.js",
+      "bytes": 25718
+    },
+    {
+      "path": "public/js/home-outdoor-placement.js",
+      "bytes": 4872
+    },
+    {
+      "path": "public/js/home-outdoor-world.js",
+      "bytes": 2898
+    },
+    {
+      "path": "public/js/home-placement-commit.js",
+      "bytes": 825
+    },
+    {
+      "path": "public/js/home-plan-outline.js",
+      "bytes": 4399
+    },
+    {
+      "path": "public/js/home-play-collection.js",
+      "bytes": 10835
+    },
+    {
+      "path": "public/js/home-play-models.js",
+      "bytes": 29573
+    },
+    {
+      "path": "public/js/home-roof-candidates.js",
+      "bytes": 10563
+    },
+    {
+      "path": "public/js/home-roof-gable.js",
+      "bytes": 5840
+    },
+    {
+      "path": "public/js/home-room-expansion.js",
+      "bytes": 23727
+    },
+    {
+      "path": "public/js/home-room-planner.js",
+      "bytes": 14046
+    },
+    {
+      "path": "public/js/home-room-products.js",
+      "bytes": 1626
+    },
+    {
+      "path": "public/js/home-roomy-furniture-collection.js",
+      "bytes": 6788
+    },
+    {
+      "path": "public/js/home-roomy-furniture-models.js",
+      "bytes": 14487
+    },
+    {
+      "path": "public/js/home-scene-framing.js",
+      "bytes": 6815
+    },
+    {
+      "path": "public/js/home-scene.js",
+      "bytes": 104037
+    },
+    {
+      "path": "public/js/home-shop-browse.js",
+      "bytes": 9638
+    },
+    {
+      "path": "public/js/home-shop-catalog.js",
+      "bytes": 16674
+    },
+    {
+      "path": "public/js/home-shop-rooms.js",
+      "bytes": 8329
+    },
+    {
+      "path": "public/js/home-shop-ui.js",
+      "bytes": 61678
+    },
+    {
+      "path": "public/js/home-sofa-fabrics.js",
+      "bytes": 7244
+    },
+    {
+      "path": "public/js/home-sports-court-models.js",
+      "bytes": 16903
+    },
+    {
+      "path": "public/js/home-sports-recreation-models.js",
+      "bytes": 27459
+    },
+    {
+      "path": "public/js/home-staircase-shape.js",
+      "bytes": 3527
+    },
+    {
+      "path": "public/js/home-staircase.js",
+      "bytes": 9481
+    },
+    {
+      "path": "public/js/home-static-upgrades.js",
+      "bytes": 37803
+    },
+    {
+      "path": "public/js/home-storey-products.js",
+      "bytes": 895
+    },
+    {
+      "path": "public/js/home-utility-daily-collection.js",
+      "bytes": 8175
+    },
+    {
+      "path": "public/js/home-utility-daily-models.js",
+      "bytes": 17672
+    },
+    {
+      "path": "public/js/robot-avatar.js",
+      "bytes": 32707
+    },
+    {
+      "path": "public/js/robot-wardrobe-catalog.js",
+      "bytes": 1022
+    },
+    {
+      "path": "public/js/robot-wardrobe.js",
+      "bytes": 14212
+    },
+    {
+      "path": "public/js/roof-review.js",
+      "bytes": 7222
+    },
+    {
+      "path": "public/js/student-home-context-menu.js",
+      "bytes": 5618
+    },
+    {
+      "path": "public/js/student-home-cushion-presentation.js",
+      "bytes": 1283
+    },
+    {
+      "path": "public/js/student-home-editor.js",
+      "bytes": 50014
+    },
+    {
+      "path": "public/js/student-home-loader.js",
+      "bytes": 377
+    },
+    {
+      "path": "public/js/student-home-object-menu.js",
+      "bytes": 2038
+    },
+    {
+      "path": "public/js/student-home-object-outbox.js",
+      "bytes": 6845
+    },
+    {
+      "path": "public/js/student-home-object-runtime.js",
+      "bytes": 17130
+    },
+    {
+      "path": "public/js/student-home-quick-action-menu.js",
+      "bytes": 3270
+    },
+    {
+      "path": "public/js/student-home-quick-actions.js",
+      "bytes": 8588
+    },
+    {
+      "path": "public/js/student-home-robot-controller.js",
+      "bytes": 74436
+    },
+    {
+      "path": "public/js/student-home-robot-dance.js",
+      "bytes": 7851
+    },
+    {
+      "path": "public/js/student-home-robot-elevator.js",
+      "bytes": 7757
+    },
+    {
+      "path": "public/js/student-home-robot-football.js",
+      "bytes": 8541
+    },
+    {
+      "path": "public/js/student-home-robot-interactions.js",
+      "bytes": 20744
+    },
+    {
+      "path": "public/js/student-home-robot-motion.js",
+      "bytes": 3706
+    },
+    {
+      "path": "public/js/student-home-robot-outbox.js",
+      "bytes": 4883
+    },
+    {
+      "path": "public/js/student-home-robot-stairs.js",
+      "bytes": 7096
+    },
+    {
+      "path": "public/js/student-home-robot-state.js",
+      "bytes": 7732
+    },
+    {
+      "path": "public/js/student-home-robot-swimming.js",
+      "bytes": 14268
+    },
+    {
+      "path": "public/js/student-home-scene.js",
+      "bytes": 11081
+    },
+    {
+      "path": "public/js/student-home-stage-camera.js",
+      "bytes": 6208
+    },
+    {
+      "path": "public/js/student-home-stage-framing.js",
+      "bytes": 1102
+    },
+    {
+      "path": "public/js/student-home-stage-lighting.js",
+      "bytes": 8660
+    },
+    {
+      "path": "public/js/student-home-thumbnails.js",
+      "bytes": 3514
+    },
+    {
+      "path": "public/js/student-home-wardrobe.js",
+      "bytes": 6657
+    },
+    {
+      "path": "public/js/student-home-world.js",
+      "bytes": 6111
+    },
+    {
+      "path": "public/js/student-homes.js",
+      "bytes": 19443
+    },
+    {
+      "path": "public/roof-review.css",
+      "bytes": 4163
+    },
+    {
+      "path": "public/roof-review.html",
+      "bytes": 3684
+    },
+    {
+      "path": "public/student-home-context-menu.css",
+      "bytes": 1230
+    },
+    {
+      "path": "public/student-home-editor.css",
+      "bytes": 3876
+    },
+    {
+      "path": "public/student-home-quick-actions.css",
+      "bytes": 10301
+    },
+    {
+      "path": "public/student-homes.css",
+      "bytes": 7833
+    },
+    {
+      "path": "public/student-homes.html",
+      "bytes": 4452
+    },
+    {
+      "path": "scripts/qa/robot-dance-review.mjs",
+      "bytes": 14471
+    },
+    {
+      "path": "scripts/qa/robot-motion-review.mjs",
+      "bytes": 22800
+    },
+    {
+      "path": "scripts/run-core-tests.mjs",
+      "bytes": 577
+    },
+    {
+      "path": "server/student-homes/app.mjs",
+      "bytes": 10421
+    },
+    {
+      "path": "server/student-homes/cli.mjs",
+      "bytes": 1649
+    },
+    {
+      "path": "server/student-homes/commerce.mjs",
+      "bytes": 9942
+    },
+    {
+      "path": "server/student-homes/errors.mjs",
+      "bytes": 1084
+    },
+    {
+      "path": "server/student-homes/platform-client.mjs",
+      "bytes": 16447
+    },
+    {
+      "path": "server/student-homes/profile.mjs",
+      "bytes": 3071
+    },
+    {
+      "path": "server/student-homes/robot-activity.mjs",
+      "bytes": 6992
+    },
+    {
+      "path": "server/student-homes/static-assets.mjs",
+      "bytes": 3034
+    },
+    {
+      "path": "server/student-homes/store.mjs",
+      "bytes": 23216
+    },
+    {
+      "path": "tests/fixtures/home-shop-dom.mjs",
+      "bytes": 4337
+    },
+    {
+      "path": "tests/student-home-account-world.test.mjs",
+      "bytes": 4125
+    },
+    {
+      "path": "tests/student-home-catalog-growth.test.mjs",
+      "bytes": 12689
+    },
+    {
+      "path": "tests/student-home-construction-grid.test.mjs",
+      "bytes": 2610
+    },
+    {
+      "path": "tests/student-home-context-menu.test.mjs",
+      "bytes": 9004
+    },
+    {
+      "path": "tests/student-home-elevator-model.test.mjs",
+      "bytes": 10098
+    },
+    {
+      "path": "tests/student-home-elevator-shop.test.mjs",
+      "bytes": 8207
+    },
+    {
+      "path": "tests/student-home-entrance-clearance.test.mjs",
+      "bytes": 7233
+    },
+    {
+      "path": "tests/student-home-facade-a.test.mjs",
+      "bytes": 8621
+    },
+    {
+      "path": "tests/student-home-floor-planner.test.mjs",
+      "bytes": 12433
+    },
+    {
+      "path": "tests/student-home-interactive-models.test.mjs",
+      "bytes": 6059
+    },
+    {
+      "path": "tests/student-home-interactive-shop.test.mjs",
+      "bytes": 1608
+    },
+    {
+      "path": "tests/student-home-kitchen-fit.test.mjs",
+      "bytes": 3601
+    },
+    {
+      "path": "tests/student-home-modular-kitchen-models.test.mjs",
+      "bytes": 7430
+    },
+    {
+      "path": "tests/student-home-object-outbox.test.mjs",
+      "bytes": 9352
+    },
+    {
+      "path": "tests/student-home-object-runtime.test.mjs",
+      "bytes": 12472
+    },
+    {
+      "path": "tests/student-home-quick-action-menu.test.mjs",
+      "bytes": 3064
+    },
+    {
+      "path": "tests/student-home-quick-actions.test.mjs",
+      "bytes": 6054
+    },
+    {
+      "path": "tests/student-home-resale-shop.test.mjs",
+      "bytes": 12473
+    },
+    {
+      "path": "tests/student-home-robot-controller.test.mjs",
+      "bytes": 34036
+    },
+    {
+      "path": "tests/student-home-robot-dance-controller.test.mjs",
+      "bytes": 19449
+    },
+    {
+      "path": "tests/student-home-robot-dance-pose.test.mjs",
+      "bytes": 8569
+    },
+    {
+      "path": "tests/student-home-robot-editor.test.mjs",
+      "bytes": 59963
+    },
+    {
+      "path": "tests/student-home-robot-elevator-controller.test.mjs",
+      "bytes": 14229
+    },
+    {
+      "path": "tests/student-home-robot-elevator.test.mjs",
+      "bytes": 10619
+    },
+    {
+      "path": "tests/student-home-robot-football.test.mjs",
+      "bytes": 7032
+    },
+    {
+      "path": "tests/student-home-robot-orientation.test.mjs",
+      "bytes": 5193
+    },
+    {
+      "path": "tests/student-home-robot-quick-actions.test.mjs",
+      "bytes": 12262
+    },
+    {
+      "path": "tests/student-home-robot-stairs.test.mjs",
+      "bytes": 18330
+    },
+    {
+      "path": "tests/student-home-robot-state-controller.test.mjs",
+      "bytes": 18601
+    },
+    {
+      "path": "tests/student-home-robot-state-editor.test.mjs",
+      "bytes": 25008
+    },
+    {
+      "path": "tests/student-home-robot-swim-controller.test.mjs",
+      "bytes": 11950
+    },
+    {
+      "path": "tests/student-home-robot-swim-pose.test.mjs",
+      "bytes": 5767
+    },
+    {
+      "path": "tests/student-home-robot-swimming.test.mjs",
+      "bytes": 7866
+    },
+    {
+      "path": "tests/student-home-robot-television.test.mjs",
+      "bytes": 11326
+    },
+    {
+      "path": "tests/student-home-robot-wardrobe.test.mjs",
+      "bytes": 8618
+    },
+    {
+      "path": "tests/student-home-robot-world.test.mjs",
+      "bytes": 6859
+    },
+    {
+      "path": "tests/student-home-roof-a.test.mjs",
+      "bytes": 7837
+    },
+    {
+      "path": "tests/student-home-roomy-furniture.test.mjs",
+      "bytes": 8098
+    },
+    {
+      "path": "tests/student-home-shop-browse.test.mjs",
+      "bytes": 3334
+    },
+    {
+      "path": "tests/student-home-shop-rooms.test.mjs",
+      "bytes": 4938
+    },
+    {
+      "path": "tests/student-home-stage-camera-ui.test.mjs",
+      "bytes": 3730
+    },
+    {
+      "path": "tests/student-home-stage-camera.test.mjs",
+      "bytes": 8323
+    },
+    {
+      "path": "tests/student-home-stage-framing.test.mjs",
+      "bytes": 1177
+    },
+    {
+      "path": "tests/student-home-stage-lighting.test.mjs",
+      "bytes": 6647
+    },
+    {
+      "path": "tests/student-home-stage-scene.test.mjs",
+      "bytes": 11397
+    },
+    {
+      "path": "tests/student-home-toilets.test.mjs",
+      "bytes": 5678
+    },
+    {
+      "path": "tests/student-home-wardrobe-ui.test.mjs",
+      "bytes": 5212
+    },
+    {
+      "path": "tests/student-home-world-view.test.mjs",
+      "bytes": 4566
+    },
+    {
+      "path": "tests/student-homes-catalog-compat.test.mjs",
+      "bytes": 8090
+    },
+    {
+      "path": "tests/student-homes-commerce.test.mjs",
+      "bytes": 20542
+    },
+    {
+      "path": "tests/student-homes-elevator-commerce.test.mjs",
+      "bytes": 16088
+    },
+    {
+      "path": "tests/student-homes-object-state.test.mjs",
+      "bytes": 15040
+    },
+    {
+      "path": "tests/student-homes-payment-http.test.mjs",
+      "bytes": 16472
+    },
+    {
+      "path": "tests/student-homes-pricing.test.mjs",
+      "bytes": 6434
+    },
+    {
+      "path": "tests/student-homes-resale-commerce.test.mjs",
+      "bytes": 13093
+    },
+    {
+      "path": "tests/student-homes-resale-http.test.mjs",
+      "bytes": 12649
+    },
+    {
+      "path": "tests/student-homes-resale-store.test.mjs",
+      "bytes": 15874
+    },
+    {
+      "path": "tests/student-homes-robot-activity.test.mjs",
+      "bytes": 13250
+    },
+    {
+      "path": "tests/student-homes-robot-checkpoint-history.test.mjs",
+      "bytes": 3385
+    },
+    {
+      "path": "tests/student-homes-robot-commerce.test.mjs",
+      "bytes": 14383
+    },
+    {
+      "path": "tests/student-homes-robot-sleep-integration.test.mjs",
+      "bytes": 6276
+    },
+    {
+      "path": "tests/student-homes-robot-state.test.mjs",
+      "bytes": 19673
+    },
+    {
+      "path": "tests/student-homes-server.test.mjs",
+      "bytes": 16225
+    },
+    {
+      "path": "tests/student-homes-starter-grant.test.mjs",
+      "bytes": 9674
+    },
+    {
+      "path": "tests/student-homes-static-assets.test.mjs",
+      "bytes": 7170
+    },
+    {
+      "path": "tests/student-homes-television-integration.test.mjs",
+      "bytes": 7072
+    },
+    {
+      "path": "tests/student-homes-ui.test.mjs",
+      "bytes": 35679
+    }
+  ],
+  "note": "The index itself is counted but omitted from its byte-length listing."
+}

@@ -1,0 +1,42 @@
+/** Original bathroom props. Prices use game points, dimensions use world units. */
+const tiers={essential:"Essential",comfort:"Comfort",signature:"Signature"};
+function item(id,label,size,color,price,placement,family,familyLabel,description,tags=[],tier='essential',material='ceramic',supportSurface){
+  return Object.freeze({id,label,name:label,width:size[0],depth:size[1],height:size[2],defaultColor:color,price,placement,category:'bathroom',family,familyLabel,description,tier,material,collection:'daily-bath-2026-10-17',tags:Object.freeze([label,familyLabel,"DisplayText0257","DisplayText0258","Bathroom",tiers[tier],...tags]),...(supportSurface?{supportSurface:Object.freeze(supportSurface)}:{})});
+}
+export const BATH_DAILY_COLLECTION=Object.freeze([
+  item('bdBrushCup',"DisplayText0259",[.29,.25,.46],'#8bb8b0',120,'table','oral-care',"DisplayText0260","DisplayText0261, DisplayText0262.",["DisplayText0263","DisplayText0264","DisplayText0265"]),
+  item('bdPasteStation',"DisplayText0266",[.34,.17,.48],'#e6c788',280,'wall','oral-care',"DisplayText0260","DisplayText0267, DisplayText0268.",["DisplayText0269","DisplayText0270","DisplayText0271"]),
+  item('bdSoapPump',"DisplayText0272",[.27,.24,.38],'#91b8b4',160,'table','soap-care',"DisplayText0273","DisplayText0274, DisplayText0275, DisplayText0276.",["DisplayText0277","DisplayText0278"]),
+  item('bdSoapDish',"DisplayText0279",[.36,.24,.12],'#e0b8ac',80,'table','soap-care',"DisplayText0273","DisplayText0280, DisplayText0281.",["DisplayText0282","DisplayText0283","DisplayText0284"]),
+  item('bdShampooPump',"DisplayText0285",[.23,.23,.49],'#8eabc8',180,'table','shower-care',"DisplayText0286","DisplayText0287, DisplayText0288, DisplayText0289.",["DisplayText0290","DisplayText0291"]),
+  item('bdShowerGel',"DisplayText0292",[.27,.18,.39],'#deb879',150,'table','shower-care',"DisplayText0286","DisplayText0293, DisplayText0294, DisplayText0295.",["DisplayText0296","DisplayText0297"]),
+  item('bdTissueBox',"DisplayText0298",[.43,.27,.24],'#89aaa1',160,'table','bath-paper',"DisplayText0299","DisplayText0300, DisplayText0301.",["DisplayText0302","DisplayText0303","DisplayText0304"]),
+  item('bdRollHolder',"DisplayText0305",[.44,.23,.33],'#b3bdb1',220,'wall','bath-paper',"DisplayText0299","DisplayText0306, DisplayText0307.",["DisplayText0308","DisplayText0309","DisplayText0310"]),
+  item('bdToiletBrush',"DisplayText0311",[.28,.28,.68],'#91b5ae',180,'floor','toilet-cleaning',"DisplayText0312","DisplayText0313, DisplayText0314.",["DisplayText0315","DisplayText0316"]),
+  item('bdPedalBin',"DisplayText0317",[.40,.40,.58],'#d8b68e',280,'floor','toilet-cleaning',"DisplayText0312","DisplayText0318, DisplayText0319, DisplayText0320.",["DisplayText0321","DisplayText0322"]),
+  item('bdTowelRing',"DisplayText0323",[.42,.18,.52],'#d7b56d',240,'wall','towel-hardware',"DisplayText0324","DisplayText0325, DisplayText0326.",["DisplayText0327","DisplayText0328","DisplayText0329"],'essential','gold'),
+  item('bdTowelBar',"DisplayText0330",[.97,.28,.49],'#8faeab',300,'wall','towel-hardware',"DisplayText0324","DisplayText0331, DisplayText0332.",["DisplayText0333","DisplayText0334","DisplayText0335"],'comfort'),
+  item('bdHookRail',"DisplayText0336",[.73,.16,.20],'#b7c2a8',210,'wall','towel-hardware',"DisplayText0324","DisplayText0337, DisplayText0338.",["DisplayText0339","DisplayText0340","DisplayText0341"]),
+  item('bdShowerBasket',"DisplayText0342",[.49,.27,.88],'#91aca5',300,'wall','bath-organisers',"DisplayText0343","DisplayText0344, DisplayText0345.",["DisplayText0346","DisplayText0347","DisplayText0348"],'comfort'),
+  item('bdHairDryer',"DisplayText0349",[.39,.24,.49],'#d9b4b8',500,'wall','bath-appliances',"DisplayText0350","DisplayText0351, DisplayText0352, DisplayText0353.",["DisplayText0354","DisplayText0355"],'comfort'),
+  item('bdRoundMirror',"DisplayText0356",[.69,.12,.72],'#d6b57b',300,'wall','bath-mirrors',"DisplayText0357","DisplayText0358, DisplayText0359.",["DisplayText0360","DisplayText0361","DisplayText0362"],'comfort','gold'),
+  item('bdMedicineCabinet',"DisplayText0363",[.84,.24,.83],'#97b6b0',800,'wall','bath-mirrors',"DisplayText0357","DisplayText0364, DisplayText0365.",["DisplayText0366","DisplayText0367","DisplayText0368"],'comfort'),
+  item('bdRainShower',"DisplayText0369",[.51,.48,1.55],'#a9c5c0',1200,'wall','shower-fixtures',"DisplayText0370","DisplayText0371, DisplayText0372, DisplayText0373.",["DisplayText0374","DisplayText0375","DisplayText0376"],'comfort','gold'),
+  item('bdWaterHeater',"DisplayText0377",[1.12,.48,.69],'#e3d8bf',1800,'wall','bath-appliances',"DisplayText0350","DisplayText0378, DisplayText0379, DisplayText0380.",["DisplayText0381","DisplayText0382"],'signature'),
+  item('bdBathMat',"DisplayText0383",[.85,.57,.07],'#d9a9ac',240,'floor','bath-textiles',"DisplayText0384","DisplayText0385, DisplayText0386.",["DisplayText0387","DisplayText0388","DisplayText0389"],'essential','wool'),
+  item('bdFootBath',"DisplayText0390",[.65,.53,.34],'#b4c5a2',500,'floor','bath-comfort',"DisplayText0391","DisplayText0392, DisplayText0393.",["DisplayText0394","DisplayText0395","DisplayText0396"],'comfort'),
+  item('bdBathStool',"DisplayText0397",[.51,.43,.48],'#d9c097',300,'floor','bath-comfort',"DisplayText0391","DisplayText0398, DisplayText0399.",["DisplayText0247","DisplayText0400","DisplayText0401"]),
+  item('bdRolledTowels',"DisplayText0402",[.48,.33,.37],'#a9c0ae',260,'table','bath-textiles',"DisplayText0384","DisplayText0403, DisplayText0404.",["DisplayText0405","DisplayText0335","DisplayText0406"],'essential','linen'),
+  item('bdCottonJar',"DisplayText0407",[.26,.26,.30],'#c5aecc',140,'table','bath-organisers',"DisplayText0343","DisplayText0408, DisplayText0409.",["DisplayText0410","DisplayText0411","DisplayText0412"]),
+  item('bdToiletryTray',"DisplayText0413",[.51,.32,.29],'#c4b5a2',240,'table','bath-organisers',"DisplayText0343","DisplayText0414, DisplayText0415, DisplayText0416.",["DisplayText0417","DisplayText0418","DisplayText0419"]),
+  item('bdBathCaddy',"DisplayText0420",[1.14,.31,.16],'#c8a170',280,'table','bath-organisers',"DisplayText0343","DisplayText0421, DisplayText0422, DisplayText0423.",["DisplayText0424","DisplayText0425","DisplayText0426"],'essential','oak'),
+  item('bdPlunger',"DisplayText0427",[.29,.28,.73],'#b99d83',180,'floor','toilet-cleaning',"DisplayText0312","DisplayText0428, DisplayText0429, DisplayText0430.",["DisplayText0431","DisplayText0432","DisplayText0433"]),
+  item('bdSqueegee',"DisplayText0434",[.49,.11,.59],'#99b9be',140,'wall','toilet-cleaning',"DisplayText0312","DisplayText0435, DisplayText0436.",["DisplayText0437","DisplayText0438","DisplayText0439"]),
+  item('bdScale',"DisplayText0440",[.47,.43,.085],'#9dbebc',300,'floor','bath-appliances',"DisplayText0350","DisplayText0441, DisplayText0442.",["DisplayText0443","DisplayText0444","DisplayText0445"],'comfort'),
+  item('bdShowerCurtain',"DisplayText0446",[1.12,.16,1.82],'#92b4b6',300,'wall','bath-textiles',"DisplayText0384","DisplayText0447, DisplayText0448.",["DisplayText0449","DisplayText0450","DisplayText0451"],'comfort','linen'),
+  item('bdLaundryLiquid',"DisplayText0452",[.31,.23,.42],'#b0ba8d',180,'table','laundry-care',"DisplayText0453","DisplayText0454, DisplayText0455, DisplayText0456.",["DisplayText0457","DisplayText0458","DisplayText0453"]),
+  item('bdCompactVanity',"DisplayText0459",[1.24,.68,1.22],'#8dafaa',2400,'floor','vanities',"DisplayText0460","DisplayText0461, DisplayText0462, DisplayText0463.",["DisplayText0464","DisplayText0465","DisplayText0460","DisplayText0466"],'signature','oak',{width:.40,depth:.44,height:.90,offsetX:.34,offsetZ:.02}),
+  item('bdSplitToilet',"DisplayText0467",[.68,1.04,1.04],'#d2ddd2',800,'floor','toilets',"DisplayText0468","DisplayText0469, DisplayText0470.",["DisplayText0471","DisplayText0468","DisplayText0472","DisplayText0473"],'essential'),
+  item('bdMonoblocToilet',"DisplayText0474",[.76,1.05,1.00],'#e1c7ab',1500,'floor','toilets',"DisplayText0468","DisplayText0475, DisplayText0476.",["DisplayText0471","DisplayText0468","DisplayText0477","DisplayText0473"],'comfort'),
+  item('bdSmartToilet',"DisplayText0478",[.70,.98,.83],'#91b7b8',2800,'floor','toilets',"DisplayText0468","DisplayText0479, DisplayText0480, DisplayText0481.",["DisplayText0482","DisplayText0471","DisplayText0468","DisplayText0473"],'signature'),
+]);

@@ -1,0 +1,25 @@
+{
+  "name": "homeworld-source-review",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Privacy-normalized account game source for code review",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "test": "node scripts/run-core-tests.mjs",
+    "review:motion": "node scripts/qa/robot-motion-review.mjs",
+    "review:dance": "node scripts/qa/robot-dance-review.mjs",
+    "start:service": "node server/student-homes/cli.mjs",
+    "test:all": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@fontsource/nunito": "5.3.0",
+    "@phosphor-icons/core": "2.1.1",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "sharp": "0.35.5"
+  }
+}

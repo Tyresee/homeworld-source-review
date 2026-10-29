@@ -1,0 +1,10 @@
+.student-home-context-menu{position:fixed;z-index:30;width:286px;overflow:auto;padding:8px;background:#fffdf6;border:1px solid #d9e2cb;border-radius:17px;box-shadow:0 10px 40px #30452d25;color:#284c40;font:inherit;overscroll-behavior:contain}
+.student-home-context-menu[hidden]{display:none!important}
+.student-home-context-title{padding:8px 11px 10px;color:#7a886c;font-size:11px;font-weight:650;letter-spacing:.06em}
+.student-home-context-item{display:flex;align-items:center;gap:12px;width:100%;padding:12px 10px;text-align:left;border:0;border-radius:10px;background:transparent;color:inherit;cursor:pointer}
+.student-home-context-item:hover,.student-home-context-item:focus-visible{background:#e9f0df;outline:2px solid #96ae80;outline-offset:-2px}
+.student-home-context-item:disabled{opacity:.55;cursor:default;background:transparent;outline:0}
+.student-home-context-icon{display:grid;place-items:center;flex:none;width:26px;height:26px;font-size:22px;font-weight:500;color:#658652}
+.student-home-context-copy{display:grid;gap:4px;line-height:1.45;min-width:0}
+.student-home-context-copy strong{font-size:14px;font-weight:650}
+.student-home-context-copy small{font-size:10px;font-weight:400;color:#7b886e;white-space:normal}

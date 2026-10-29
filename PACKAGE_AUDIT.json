@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "purpose": "source comprehension",
+  "counts": {
+    "modules": 115,
+    "tests": 67,
+    "selectedSourceFiles": 200,
+    "packagedFiles": 211
+  },
+  "normalization": {
+    "localizedFragments": 5967,
+    "removedComments": 0,
+    "regexNormalizations": 122
+  },
+  "identityDataIncluded": false,
+  "productionCredentialsIncluded": false,
+  "productionDataIncluded": false,
+  "validation": {
+    "syntaxCheckedFiles": 184,
+    "relativeImportsChecked": 525,
+    "coreTestFiles": 49,
+    "coreTestsPassed": 379,
+    "coreTestsFailed": 0,
+    "allIncludedTestsAttempted": 666,
+    "allIncludedTestsPassed": 611,
+    "allIncludedTestsWithDisplayExpectationDifferences": 55
+  }
+}

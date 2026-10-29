@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "platform-game-manifest.v1",
+  "id": "homeworld",
+  "kind": "standalone-game",
+  "version": "0.3.0",
+  "display": {
+    "title": "DisplayText0001",
+    "description": "DisplayText0002, DisplayText0003.",
+    "status": "DisplayText0004",
+    "tags": [
+      "DisplayText0005",
+      "DisplayText0006",
+      "DisplayText0007"
+    ],
+    "coverKind": "homeworld"
+  },
+  "entry": {
+    "path": "/games/homeworld/student-homes.html",
+    "navigation": "document"
+  },
+  "integration": {
+    "contract": "platform-game-entry.v1",
+    "auth": {
+      "mode": "same-origin-platform-session",
+      "cookieName": "__Host-platform_session",
+      "sessionEndpoint": "/api/auth/me",
+      "credentials": "same-origin"
+    },
+    "platformOwns": [
+      "catalog-entry",
+      "login-session",
+      "game-launch-link",
+      "student-identity",
+      "unified-game-points-ledger"
+    ],
+    "gameOwns": [
+      "student-home",
+      "robot-avatar",
+      "inventory",
+      "construction",
+      "game-service"
+    ]
+  },
+  "preview": {
+    "mode": "local-art-slice",
+    "port": 18802,
+    "realAuth": false,
+    "realSpeechAssessment": false
+  },
+  "isolation": {
+    "assetPrefix": "/games/homeworld/",
+    "storageNamespace": "homeworld.student-homes.v1",
+    "proposedService": "homeworld.service",
+    "proposedProductionPort": 18801,
+    "proposedDeployDirectory": "/srv/homeworld/app",
+    "occupationCheckedOn": "2026-10-18",
+    "deploymentStatus": "ready-for-first-account-release",
+    "service": "homeworld.service",
+    "productionPort": 18801,
+    "deployDirectory": "/srv/homeworld/app",
+    "dataDirectory": "/srv/homeworld/data/student-homes-v1"
+  }
+}

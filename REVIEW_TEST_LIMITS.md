@@ -1,0 +1,25 @@
+# Validation of the normalized copy
+
+All 666 included checks were attempted in this review copy: 611 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. This is not a production test result.
+
+`npm test` runs the independent passing-file subset listed in CORE_TESTS.json. `npm run test:all` runs all included files and is expected to report those normalized-copy differences. Full production validation remains the implementation agent's responsibility against the original localization and namespace.
+
+Display-sensitive files:
+- `tests/student-home-entrance-clearance.test.mjs`
+- `tests/student-home-floor-planner.test.mjs`
+- `tests/student-home-resale-shop.test.mjs`
+- `tests/student-home-robot-controller.test.mjs`
+- `tests/student-home-robot-editor.test.mjs`
+- `tests/student-home-robot-elevator-controller.test.mjs`
+- `tests/student-home-robot-elevator.test.mjs`
+- `tests/student-home-robot-quick-actions.test.mjs`
+- `tests/student-home-robot-state-editor.test.mjs`
+- `tests/student-home-robot-television.test.mjs`
+- `tests/student-home-stage-camera-ui.test.mjs`
+- `tests/student-home-wardrobe-ui.test.mjs`
+- `tests/student-homes-commerce.test.mjs`
+- `tests/student-homes-elevator-commerce.test.mjs`
+- `tests/student-homes-payment-http.test.mjs`
+- `tests/student-homes-resale-commerce.test.mjs`
+- `tests/student-homes-robot-state.test.mjs`
+- `tests/student-homes-ui.test.mjs`

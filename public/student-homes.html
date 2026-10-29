@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light"><title>DisplayText0001 · Learning Platform</title>
+  <link rel="stylesheet" href="./student-homes.css">
+  <link rel="stylesheet" href="./student-home-context-menu.css">
+  <link rel="stylesheet" href="./home-context-menu.css">
+  <link rel="stylesheet" href="./home-shop.css">
+  <link rel="stylesheet" href="./home-floor-planner.css">
+  <link rel="stylesheet" href="./home-room-planner.css">
+  <link rel="stylesheet" href="./student-home-editor.css">
+  <link rel="stylesheet" href="./student-home-quick-actions.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+</head>
+<body>
+  <a class="skip" href="#students">DisplayText0002</a>
+  <header class="topbar"><a class="brand" href="/">Learning Platform <span>/ DisplayText0001</span></a><span id="teacher">DisplayText4270…</span><a href="/">DisplayText4339 ↗</a></header>
+  <main>
+    <aside class="roster" aria-label="DisplayText4340">
+      <p class="eyebrow">DisplayText4173, DisplayText4341</p><h1>DisplayText0001</h1>
+      <label for="search">DisplayText4342</label><input id="search" type="search" placeholder="DisplayText4343" disabled autocomplete="off">
+      <div id="students" class="students" tabindex="-1" aria-label="DisplayText4344"></div>
+      <p id="roster-note" class="muted">DisplayText4345</p>
+      <p class="roster-foot">DisplayText4346, DisplayText4347.</p>
+    </aside>
+    <section class="home" aria-label="DisplayText4348">
+      <div class="home-heading"><div><p class="eyebrow" id="home-caption">DisplayText4349</p><h2 id="home-title">DisplayText4267?</h2></div>
+        <div class="wallet" aria-label="DisplayText4350"><span>DisplayText4350</span><strong id="balance">—</strong><button id="refresh-wallet" type="button" disabled aria-label="DisplayText4351">↻</button><small id="starter-note">DisplayText4251 150,000 DisplayText0920</small></div>
+      </div>
+      <div id="stage"><div id="scene-message">DisplayText4352, DisplayText4276.</div></div>
+      <div class="home-tools" id="home-tools" hidden>
+        <div class="home-views" role="group" aria-label="DisplayText4353">
+          <button id="view-interior" type="button" aria-pressed="true">Interior</button><button id="view-estate" type="button" aria-pressed="false">Outdoors</button><button id="view-building" type="button" aria-pressed="false">DisplayText4354</button>
+        </div>
+        <div class="home-actions" role="group" aria-label="DisplayText4355"><button id="wardrobe-open" type="button">DisplayText3890</button><button id="palette-open" type="button">DisplayText3710</button><button id="stage-toggle" type="button" aria-pressed="false">DisplayText4217</button><button id="stage-camera-toggle" type="button" aria-pressed="false" title="DisplayText4356, DisplayText4218" hidden>DisplayText3761</button><button id="wave" type="button">DisplayText3711</button><button id="reset-view" type="button">DisplayText3712</button></div>
+      </div>
+      <div class="welcome" id="welcome" hidden><span class="welcome-icon" aria-hidden="true">⌂</span><h3>DisplayText4357</h3><p>DisplayText4358, DisplayText4359.<br>DisplayText4360, DisplayText4361.</p><button id="claim" class="primary" type="button">DisplayText4362</button></div>
+      <p class="scene-hint" id="scene-hint" hidden>DisplayText4363: DisplayText4364 · DisplayText4162 · DisplayText3901: DisplayText4365 · DisplayText4366 + DisplayText4367 · DisplayText4204</p>
+      <div class="feedback" role="status" aria-live="polite"><span id="status">DisplayText4270…</span><button id="retry" type="button" hidden>DisplayText3806</button><a id="login" hidden>DisplayText4368</a></div>
+      <section id="palette" class="palette" aria-label="DisplayText3710" hidden>
+        <div class="palette-title"><h3>DisplayText3715</h3><button type="button" id="palette-close" aria-label="DisplayText4369">×</button></div><p>DisplayText4370, DisplayText4371.</p>
+        <fieldset id="palette-colors"><legend>DisplayText4372</legend><div class="swatches" id="shell-colors"></div><p class="legend">DisplayText4373</p><div class="swatches" id="accent-colors"></div></fieldset>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./js/student-homes.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 725,
+  "totalFiles": 727,
   "files": [
     {
       "path": ".gitignore",
@@ -732,7 +732,7 @@
     },
     {
       "path": "docs/ROAM_FIXES_HANDOFF.md",
-      "bytes": 2273
+      "bytes": 2838
     },
     {
       "path": "docs/ROAM_HANDOFF.md",
@@ -741,6 +741,10 @@
     {
       "path": "docs/roam-2026-10-30-fixes/contact-sheet.png",
       "bytes": 1530056
+    },
+    {
+      "path": "docs/roam-2026-10-30-fixes/lamp-comparison.png",
+      "bytes": 461045
     },
     {
       "path": "docs/roam-2026-10-30-fixes/measurements/07-look-back-at-open-front-door--legacy.json",
@@ -863,6 +867,10 @@
       "bytes": 788
     },
     {
+      "path": "docs/roam-2026-10-30-fixes/measurements/fresh-clone.json",
+      "bytes": 9869
+    },
+    {
       "path": "docs/roam-2026-10-30-fixes/measurements/photometry.json",
       "bytes": 30381
     },
@@ -876,7 +884,7 @@
     },
     {
       "path": "docs/roam-2026-10-30-fixes/README.md",
-      "bytes": 7421
+      "bytes": 7794
     },
     {
       "path": "docs/roam-2026-10-30-fixes/renders/01-exterior-orbit.json",
@@ -1700,7 +1708,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 75555
+      "bytes": 75761
     },
     {
       "path": "game.manifest.json",
@@ -1720,7 +1728,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 5180
+      "bytes": 5681
     },
     {
       "path": "package-lock.json",

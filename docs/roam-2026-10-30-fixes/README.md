@@ -2,14 +2,16 @@
 
 Implementation and evidence for the correction pack based on public commit `3e9c6166668a096bfe5335914a73f75792f173c9`.
 
-Status: implemented and tested locally; see the delivery commit on GitHub for committed/pushed status. **Not deployed.** No account data, wallet, prices, persistence schema or business validation changed.
+Status: implementation committed and pushed as `01cdaf93fe49bb1ee9d2a504853aed9a6fdbeacc`. Fresh GitHub clone without node_modules: all fourteen views rendered without browser errors and all fourteen PNGs match the delivered images byte-for-byte. Offline tests: 10/10; photometry output is byte-identical. The follow-up documentation commit records this proof. **Not deployed.** No account data, wallet, prices, persistence schema or business validation changed.
 
 ## Evidence
 
 - [All fourteen scene captures](renders/): original twelve cases, retaken with the corrected House arrangement, plus paired `11a`/`11b`. PNGs are actual 1440 × 900 renderer exports, without UI or image adjustment. Matching JSON records the actual controller, camera, lighting, scene ownership and unchanged fixture state.
+- [Same-camera lamp off/on comparison](lamp-comparison.png).
 - [Contact sheet](contact-sheet.png): reduced previews only; use original PNGs for review and measurement.
 - [Six classroom-language UI proofs](ui/): exterior, entrance hover, newly entered living room, a real faucet hover and both help cards. These are browser screenshots cropped to the stage, not re-created UI.
 - [Photometry](measurements/photometry.json), [ROI masks/coordinates](measurements/), [approved acceptance adjustment](measurements/acceptance-adjustment.json).
+- [Fresh-clone proof](measurements/fresh-clone.json).
 - [Tests](measurements/tests.json), [existing public failure-set comparison](measurements/test-baseline-comparison.json), [five-view Default/Toy image comparison](measurements/baseline-regression.json).
 
 ## Entrance and fixture

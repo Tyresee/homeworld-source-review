@@ -1,0 +1,392 @@
+{
+  "testedCommit": "01cdaf93fe49bb1ee9d2a504853aed9a6fdbeacc",
+  "repository": "https://github.com/Tyresee/homeworld-source-review",
+  "downloadedVia": "fresh HTTPS git clone from pushed main",
+  "npmInstallRun": false,
+  "nodeModulesPresent": false,
+  "serverCommand": "node scripts/qa/roam-review.mjs",
+  "threeSource": "vendor/three; 0.186.1",
+  "status": "PASS",
+  "browserErrors": [],
+  "all14CasesRendered": true,
+  "all14PNGBytesIdentical": true,
+  "pngComparisons": [
+    {
+      "case": "01-exterior-orbit",
+      "bytesIdentical": true,
+      "sha256": "ac3af1f21e821522c356ff344b633d6ee9524ff1b70bf1bd21c4a611703c540e"
+    },
+    {
+      "case": "02-orbit-auto-interior-cutaway",
+      "bytesIdentical": true,
+      "sha256": "47a06f8da727224cc8133aa1ade76df5c8972fcc0538acaf8e439d5551b9b22e"
+    },
+    {
+      "case": "03-door-hover",
+      "bytesIdentical": true,
+      "sha256": "65af6a482ba32e71a34b3e5b6e2e0f25604f969e91530eabc45edcaf7726c80f"
+    },
+    {
+      "case": "04-door-opening",
+      "bytesIdentical": true,
+      "sha256": "f4d0acdaa2122b48a5361c5e544c8e3be2ae5d844e5dabd91c2f99f8bfab5f73"
+    },
+    {
+      "case": "05-just-entered-living-room",
+      "bytesIdentical": true,
+      "sha256": "8422cb7cec1297bf658b4c7c5bff1e33893283f64aa17fd6baf547669cad5f26"
+    },
+    {
+      "case": "06-lamp-lit-interior-through-doorway",
+      "bytesIdentical": true,
+      "sha256": "07a239cee6970d152701544b0de08cfd05a07f020c9d7f7ae1835ce31303c902"
+    },
+    {
+      "case": "07-look-back-at-open-front-door",
+      "bytesIdentical": true,
+      "sha256": "577ad15256f8d697b82a1d6621f9139e625965b762deb8edb94cd42b91370028"
+    },
+    {
+      "case": "08-kitchen-tap-hob-drawers-doors",
+      "bytesIdentical": true,
+      "sha256": "fe0d99409a57f67c1010395527508aefe2772570690c211c803211bd8f4b90e7"
+    },
+    {
+      "case": "09-bathroom-tap-flush-drawers",
+      "bytesIdentical": true,
+      "sha256": "f11897bb155f0aaa3f1171957ff545246555a165008f7cf5ff7dc83566a95b47"
+    },
+    {
+      "case": "10-bedside-drawer",
+      "bytesIdentical": true,
+      "sha256": "a6e3887c18f4f22ca08a4298490e08cbba0c69a75d106e1df480dc20732434f8"
+    },
+    {
+      "case": "11-floor-lamp-on",
+      "bytesIdentical": true,
+      "sha256": "3752b74ede3d7ee1bdbf14a34f7e52e1d3093b6897fa68e5a46cb19a7ca84c13"
+    },
+    {
+      "case": "12-living-ceiling-lamp-switched-off",
+      "bytesIdentical": true,
+      "sha256": "307f44211f12ff64b0e4e49317a216d631bf3f40849bbfdc1b96d8c922ce7762"
+    },
+    {
+      "case": "11a-floor-lamp-off",
+      "bytesIdentical": true,
+      "sha256": "232e12c87b86acdb9cd260819a271263ddef5a95ffcf169db4cea6996c8f88e4"
+    },
+    {
+      "case": "11b-floor-lamp-on",
+      "bytesIdentical": true,
+      "sha256": "3752b74ede3d7ee1bdbf14a34f7e52e1d3093b6897fa68e5a46cb19a7ca84c13"
+    }
+  ],
+  "cases": [
+    {
+      "case": "01-exterior-orbit",
+      "phase": "orbit",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": false,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "02-orbit-auto-interior-cutaway",
+      "phase": "orbit",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": false,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "03-door-hover",
+      "phase": "orbit",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": false,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "04-door-opening",
+      "phase": "opening",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": false,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "05-just-entered-living-room",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "06-lamp-lit-interior-through-doorway",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "07-look-back-at-open-front-door",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "08-kitchen-tap-hob-drawers-doors",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "09-bathroom-tap-flush-drawers",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "10-bedside-drawer",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "11-floor-lamp-on",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "12-living-ceiling-lamp-switched-off",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "11a-floor-lamp-off",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    },
+    {
+      "case": "11b-floor-lamp-on",
+      "phase": "free",
+      "entranceRoom": "living",
+      "canvas": [
+        1440,
+        900
+      ],
+      "targets": 18,
+      "fixtureDataUnchanged": true,
+      "accounts": false,
+      "wallet": false,
+      "persistence": false,
+      "locale": "en",
+      "outdoorCompensation": {
+        "enabled": true,
+        "visible": true,
+        "independentOfExposure": true,
+        "additionalLights": 0
+      }
+    }
+  ],
+  "offlineTests": {
+    "command": "node --test tests/roam-photometry.test.mjs tests/roam-review.test.mjs",
+    "tests": 10,
+    "pass": 10,
+    "fail": 0
+  },
+  "offlinePhotometryByteIdentical": true,
+  "originalWall25PercentCriterionStillFalse": true,
+  "userAdjustedAcceptanceSeparate": true,
+  "productionDataAccess": false,
+  "deployed": false
+}

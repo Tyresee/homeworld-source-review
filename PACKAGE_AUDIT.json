@@ -5,7 +5,7 @@
     "modules": 131,
     "tests": 102,
     "selectedSourceFiles": 276,
-    "packagedFiles": 725,
+    "packagedFiles": 727,
     "browserModules": 122,
     "serverModules": 9,
     "qaScripts": 17
@@ -19,8 +19,8 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "sourceRefresh": "tests-and-render-evidence-verified-no-deployment",
-    "notes": "Core tests pass. Full-suite failures match the previous baseline; see docs/roam-2026-10-30-fixes/measurements/tests.json. Fresh GitHub clone verification follows the implementation push."
+    "sourceRefresh": "verified-and-pushed-code-with-fresh-clone",
+    "notes": "Core tests pass; original full-suite failures are unchanged. Fourteen fresh-clone PNGs and offline photometry reproduce exactly. No deployment."
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
@@ -165,6 +165,24 @@
     "copyPolicy": "Centralized classroom-language source defaults; natural English-only public export",
     "ceilingLightsUnchanged": true,
     "lampCriterion": "User accepted visible off/on contrast and floor pool instead of original encoded-sRGB wall +25%; raw report retains original false flag",
-    "deployed": false
+    "deployed": false,
+    "implementationCommit": "01cdaf93fe49bb1ee9d2a504853aed9a6fdbeacc",
+    "freshClone": {
+      "noNodeModules": true,
+      "npmInstallRun": false,
+      "renderedCases": 14,
+      "browserErrors": 0,
+      "allScenePNGsByteIdentical": true,
+      "offlineTestsPass": 10,
+      "offlineTestsTotal": 10,
+      "photometryJSONByteIdentical": true
+    },
+    "privacy": {
+      "status": "PASS",
+      "packagedFilesScanned": 727,
+      "findings": 0,
+      "originalReferencePathsUnchanged": 112,
+      "privatePlatformFixtureIncluded": false
+    }
   }
 }

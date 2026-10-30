@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 131,
-    "tests": 104,
-    "selectedSourceFiles": 278,
-    "packagedFiles": 734,
-    "browserModules": 122,
+    "modules": 133,
+    "tests": 108,
+    "selectedSourceFiles": 285,
+    "packagedFiles": 749,
+    "browserModules": 124,
     "serverModules": 9,
-    "qaScripts": 17
+    "qaScripts": 18
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -19,13 +19,56 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "sourceRefresh": "direct-door-core-and-targeted-tests-verified",
-    "notes": "Direct exterior entrance regression and isolated real-application browser proof passed. Original broader normalization-sensitive failures remain documented; no production configuration is included."
+    "sourceRefresh": "verified-tests-and-browser",
+    "sourceRelevant": {
+      "tests": 100,
+      "pass": 100,
+      "fail": 0
+    },
+    "sourceFullSnapshot": {
+      "tests": 1006,
+      "pass": 1005,
+      "fail": 1,
+      "knownFailure": "Existing catalog count assertion expects 311 instead of 376; unchanged"
+    },
+    "releaseGate": {
+      "tests": 749,
+      "pass": 749,
+      "fail": 0
+    },
+    "publicCore": {
+      "files": 70,
+      "tests": 495,
+      "pass": 495,
+      "fail": 0,
+      "dependencyEnvironment": "standard dependency environment"
+    },
+    "publicNoInstallFocused": {
+      "tests": 123,
+      "pass": 123,
+      "fail": 0,
+      "vendor": "included licensed Three"
+    },
+    "publicFinalInteractionRepeat": {
+      "tests": 25,
+      "pass": 25,
+      "fail": 0
+    },
+    "noInstallCoreLimitation": "The account-service static vendor route requires the installed Three package. Both standalone review tools resolve bundled vendor/three; no npm is required for those browser tools.",
+    "fullPublicSuite": "Not re-run for this delivery; documented historical display-normalization-sensitive failures remain outside the passing core list. No old assertions were removed.",
+    "browser": "Fictional multi-floor application: actual door entry, elevator to floor 2, television power/remote, upstairs exit; real child viewport dock geometry at 1440x900, 1280x720 and 1024x600. No production data or physical classroom-device certification.",
+    "privacy": {
+      "status": "PASS",
+      "approvedReferenceFilesPreserved": 113,
+      "realStudentDataIncluded": false,
+      "credentialsIncluded": false,
+      "productionDeploymentConfigurationIncluded": false
+    }
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 278,
-    "changedSourceFiles": 8,
+    "normalizedSourceFiles": 285,
+    "changedSourceFiles": 24,
     "stableSeedLabels": 4676,
     "newDisplayLabels": 97,
     "identityDataIncluded": false
@@ -217,5 +260,16 @@
     "fictionalAccountBrowserProof": "docs/qa/direct-door-entry-2026-10-30/browser-proof.json",
     "defaultToyVisualGeometryUnchanged": true,
     "privateRollbackFixtureIncluded": false
+  },
+  "multiFloorVisit": {
+    "sourceRevision": "0a7eb90742e0d9144009363e99fca46f2d855d29",
+    "handoff": "docs/MULTIFLOOR_ROAM_HANDOFF.md",
+    "temporaryNoSave": true,
+    "allActualFloors": true,
+    "stairsAndElevators": true,
+    "televisionPowerAndRemote": true,
+    "viewportBoundedControls": true,
+    "publicCoreFilesAdded": 4,
+    "oldCoreFilesRemoved": 0
   }
 }

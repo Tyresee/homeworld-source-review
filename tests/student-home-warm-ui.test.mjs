@@ -121,3 +121,14 @@ test('the optional English review locale changes only visit copy and preserves t
   const visit=f.body.querySelector('.warm-view-dock').children.find(node=>node.dataset.warmView==='roam');assert.equal(visit.getAttribute('aria-label'),copy.dock);await visit.dispatch('click');assert.deepEqual(f.actions,[['view','roam']]);
   f.state.view='roam';f.state.roam={active:true,phase:'orbit'};f.ui.refresh();assert.equal(title.textContent,formatHomeRoamTitle('A','en'));f.ui.dispose();assert.equal(title.textContent,'A home');
 });
+
+test('bottom view and stage tools share one responsive flow while camera tools keep their own reserved edge',async()=>{
+  const f=shell(),home=f.doc.querySelector('.home'),bottom=home.querySelector('.warm-bottom-tools'),dock=home.querySelector('.warm-view-dock'),stage=home.querySelector('.warm-stage-tools'),camera=home.querySelector('.warm-camera-dock');
+  assert.ok(bottom);assert.equal(bottom.parentElement,home);assert.equal(dock.parentElement,bottom);assert.equal(stage.parentElement,bottom);assert.equal(camera.parentElement,home);
+  assert.deepEqual(stage.children.map(node=>node.className),['warm-stage-camera','warm-show']);assert.equal(stage.hidden,false);
+  for(const button of dock.children)await button.dispatch('click');assert.deepEqual(f.actions,[['view','interior'],['view','estate'],['view','building'],['view','roam']]);
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit'};f.ui.refresh();assert.equal(stage.hidden,true);assert.equal(camera.hidden,true);assert.equal(dock.hidden,false);
+  f.state.roam.transition=true;f.ui.refresh();assert.equal(dock.hidden,true);
+  f.state.roam={active:false};f.state.view='interior';f.ui.refresh();assert.equal(stage.hidden,false);assert.equal(camera.hidden,false);assert.equal(dock.hidden,false);
+  f.state.ready=false;f.ui.refresh();assert.equal(stage.hidden,true);assert.equal(camera.hidden,true);assert.equal(dock.hidden,true);f.ui.dispose();
+});

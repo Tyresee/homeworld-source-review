@@ -19,7 +19,7 @@ function harness() {
   const renderer={toneMappingExposure:1.03,shadowMap:{autoUpdate:false,needsUpdate:false}},model={daylight:{setVisible(value){this.visible=value;}},manor:{visible:true},doorway:new THREE.Group(),interior:{visible:false},ceilings:[{visible:false}],ceilingLights:[descriptor],entrance:{roomId:'living'},setOrbitCut:()=>false};
   const context=createContext({outdoorPresentation:true,THREE,model,renderer,sun,fill,hemisphere,master,home:{rooms:[createRoom('living')]},roomRect,baseline:{sun:3.4,fill:.9,hemi:1.7,exposure:1.03},controller:{camera:{position:new THREE.Vector3(0,1.45,0)},controls:{target:new THREE.Vector3()}}});
   new Script(`let lastMode='',lastLight='';${applySource}\nglobalThis.apply=applyLighting;globalThis.refreshLighting=()=>{lastLight='';};`,{filename:'home-roam-world.js:applyLighting'}).runInContext(context);
-  return {sun,fill,hemisphere,master,descriptor,renderer,model,apply:mode=>context.apply({sceneMode:mode}),refresh:()=>context.refreshLighting()};
+  return {sun,fill,hemisphere,master,descriptor,renderer,model,camera:context.controller.camera,apply:mode=>context.apply({sceneMode:mode}),refresh:()=>context.refreshLighting()};
 }
 
 test('first exterior lighting bootstraps the zero-intensity point shadow map before sampler reuse',()=>{
@@ -53,4 +53,15 @@ test('the original canvas pointercancel cannot cancel or sync edits during a pre
   const handler=sceneSource.slice(begin+marker.length,finish),counters={cancel:0,sync:0},touchPoints=new Map([[9,{x:1,y:2}]]),context=createContext({presentationPaused:true,touchPoints,pinchDistance:12,cancelDrag:()=>counters.cancel++,onCancel:()=>counters.sync++});
   new Script(`globalThis.handler=${handler};`).runInContext(context);context.handler({pointerId:9});assert.equal(touchPoints.has(9),true);assert.equal(context.pinchDistance,12);assert.deepEqual(counters,{cancel:0,sync:0});
   context.presentationPaused=false;context.handler({pointerId:9});assert.equal(touchPoints.has(9),false);assert.equal(context.pinchDistance,null);assert.deepEqual(counters,{cancel:1,sync:1},'ordinary editor cancellation is unchanged');
+});
+
+
+test('the master shadow uses the active floor light world height and other floors do not contribute duplicate ceiling lighting',()=>{
+  const h=harness(),upperGroup=new THREE.Group();upperGroup.position.y=3.15;
+  const upper={...h.descriptor,id:'ceiling:1:living',storey:1,disc:{visible:false,material:{emissiveIntensity:.8}},light:new THREE.PointLight('#ffe1b8',0,11,2)};upper.light.position.set(0,2.6,0);upperGroup.add(upper.light);
+  h.model.ceilingLights.push(upper);h.model.floorModels=[{storey:0,baseY:0,home:{rooms:[createRoom('living')]},group:new THREE.Group()},{storey:1,baseY:3.15,home:{rooms:[createRoom('living')]},group:upperGroup}];
+  h.apply('in');assert.equal(h.master.position.y,2.6);assert.equal(upper.light.intensity,0);assert.equal(upper.light.visible,false);
+  // The real boundary is supplied through the harness's controller camera.
+  h.camera.position.y=4.6;h.refresh();h.apply('in');
+  assert.equal(h.master.position.y,5.75);assert.equal(h.descriptor.light.intensity,0);assert.equal(upper.light.visible,true);h.master.position.y=0;h.refresh();h.apply('in');assert.equal(h.master.position.y,5.75);
 });

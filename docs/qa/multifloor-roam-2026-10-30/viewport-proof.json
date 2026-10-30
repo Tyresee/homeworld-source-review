@@ -1,0 +1,310 @@
+[
+  {
+    "buttons": [
+      {
+        "label": "Interior",
+        "rect": {
+          "bottom": 559,
+          "height": 88.1875,
+          "left": 299,
+          "right": 363,
+          "top": 470.8125,
+          "width": 64,
+          "x": 299,
+          "y": 470.8125
+        }
+      },
+      {
+        "label": "Outdoors",
+        "rect": {
+          "bottom": 559,
+          "height": 88.1875,
+          "left": 377,
+          "right": 441,
+          "top": 470.8125,
+          "width": 64,
+          "x": 377,
+          "y": 470.8125
+        }
+      },
+      {
+        "label": "House",
+        "rect": {
+          "bottom": 559,
+          "height": 88.1875,
+          "left": 455,
+          "right": 519,
+          "top": 470.8125,
+          "width": 64,
+          "x": 455,
+          "y": 470.8125
+        }
+      },
+      {
+        "label": "Visit",
+        "rect": {
+          "bottom": 559,
+          "height": 88.1875,
+          "left": 533,
+          "right": 597,
+          "top": 470.8125,
+          "width": 64,
+          "x": 533,
+          "y": 470.8125
+        }
+      }
+    ],
+    "scroll": 600,
+    "size": [
+      1024,
+      600
+    ]
+  },
+  {
+    "buttons": [
+      {
+        "label": "Interior",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 299,
+          "right": 363,
+          "top": 770.8125,
+          "width": 64,
+          "x": 299,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Outdoors",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 377,
+          "right": 441,
+          "top": 770.8125,
+          "width": 64,
+          "x": 377,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "House",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 455,
+          "right": 519,
+          "top": 770.8125,
+          "width": 64,
+          "x": 455,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Visit",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 533,
+          "right": 597,
+          "top": 770.8125,
+          "width": 64,
+          "x": 533,
+          "y": 770.8125
+        }
+      }
+    ],
+    "scroll": 900,
+    "size": [
+      1440,
+      900
+    ]
+  },
+  {
+    "buttons": [
+      {
+        "label": "Interior",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 299,
+          "right": 363,
+          "top": 770.8125,
+          "width": 64,
+          "x": 299,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Outdoors",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 377,
+          "right": 441,
+          "top": 770.8125,
+          "width": 64,
+          "x": 377,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "House",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 455,
+          "right": 519,
+          "top": 770.8125,
+          "width": 64,
+          "x": 455,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Visit",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 533,
+          "right": 597,
+          "top": 770.8125,
+          "width": 64,
+          "x": 533,
+          "y": 770.8125
+        }
+      }
+    ],
+    "mode": "normal",
+    "scroll": 900,
+    "size": [
+      1440,
+      900
+    ]
+  },
+  {
+    "buttons": [
+      {
+        "label": "Interior",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 43,
+          "right": 107,
+          "top": 770.8125,
+          "width": 64,
+          "x": 43,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Outdoors",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 121,
+          "right": 185,
+          "top": 770.8125,
+          "width": 64,
+          "x": 121,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "House",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 199,
+          "right": 263,
+          "top": 770.8125,
+          "width": 64,
+          "x": 199,
+          "y": 770.8125
+        }
+      },
+      {
+        "label": "Visit",
+        "rect": {
+          "bottom": 859,
+          "height": 88.1875,
+          "left": 277,
+          "right": 341,
+          "top": 770.8125,
+          "width": 64,
+          "x": 277,
+          "y": 770.8125
+        }
+      }
+    ],
+    "mode": "projection",
+    "scroll": 900,
+    "size": [
+      1440,
+      900
+    ]
+  },
+  {
+    "buttons": [
+      {
+        "label": "Interior",
+        "rect": {
+          "bottom": 601,
+          "height": 88.1875,
+          "left": 43,
+          "right": 107,
+          "top": 512.8125,
+          "width": 64,
+          "x": 43,
+          "y": 512.8125
+        }
+      },
+      {
+        "label": "Outdoors",
+        "rect": {
+          "bottom": 601,
+          "height": 88.1875,
+          "left": 121,
+          "right": 185,
+          "top": 512.8125,
+          "width": 64,
+          "x": 121,
+          "y": 512.8125
+        }
+      },
+      {
+        "label": "House",
+        "rect": {
+          "bottom": 601,
+          "height": 88.1875,
+          "left": 199,
+          "right": 263,
+          "top": 512.8125,
+          "width": 64,
+          "x": 199,
+          "y": 512.8125
+        }
+      },
+      {
+        "label": "Visit",
+        "rect": {
+          "bottom": 601,
+          "height": 88.1875,
+          "left": 277,
+          "right": 341,
+          "top": 512.8125,
+          "width": 64,
+          "x": 277,
+          "y": 512.8125
+        }
+      }
+    ],
+    "mode": "roam",
+    "scroll": 720,
+    "size": [
+      1280,
+      720
+    ]
+  }
+]

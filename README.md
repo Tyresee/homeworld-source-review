@@ -4,11 +4,18 @@ Start here. This is an identity-normalized source-reading package for a browser-
 
 ## Warm free visit candidate
 
-The first-floor free visit is implemented with its own perspective camera, real hollow doorway, indoor lights and 18 reversible local interactions. See [the delivery handoff](docs/ROAM_HANDOFF.md) for exact scope, screenshots, tests and deviations. No production deployment is included.
+Free visit now builds all purchased floors with their own plans and furnishings, real stairs/elevators, upstairs travel and working TV/remote interactions. Bottom controls remain within the viewport. Start with [the latest multi-floor handoff](docs/MULTIFLOOR_ROAM_HANDOFF.md) for the current behavior, tests, limits and synthetic browser fixture. The earlier [free-visit handoff](docs/ROAM_HANDOFF.md) records the original single-floor review tool. This repository contains no production deployment configuration.
 
 ```sh
 node scripts/qa/roam-review.mjs
 # http://127.0.0.1:19550/
+```
+
+For the actual account UI with a disposable fictional two-floor home, also without npm:
+
+```sh
+UI_REVIEW_FIXTURE=multi-floor UI_REVIEW_PORT=19564 node scripts/qa/student-ui-review.mjs
+# http://127.0.0.1:19564/qa/viewport?width=1280&height=720
 ```
 
 This tool works without npm or node_modules through the included Three.js vendor files. It has no account, wallet or saves. The formal account application exposes Visit only under `?theme=warm`; default/Toy baselines remain byte-identical.

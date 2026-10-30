@@ -17,13 +17,15 @@ const english=freezeCopy({
   leave:'Leave',leaveAria:'Leave and return to exterior orbit',spin:'Slow orbit',spinStart:'Start slow orbit',spinStop:'Stop slow orbit',overview:'Overview',
   doorTip:'Click the door to enter',helpAria:'Visit controls',helpClose:'Got it',helpCloseAria:'Close visit controls',
   helpTitleExterior:'Orbit around the house',helpTitleInterior:'Move freely indoors',
-  instructions:'W S forward/back · A D sideways · E Q up/down · Shift faster · Drag to look · Click floor to move · Click taps, toilets, lights, drawers, doors or hobs to use · Pass through walls · Esc to leave',
+  instructions:'W S forward/back · A D sideways · E Q up/down · Shift faster · Drag to look · Click floor to move · Click TVs, remotes, taps, toilets, lights, drawers, doors or hobs to use · Pass through walls · Esc to leave',
   helpNoteExterior:'Click the front door in exterior view. It opens and you walk inside.',
   helpNoteInterior:'There are no collisions: pass through walls or fly. Lights, drawers and water remain temporary for this visit.',
   outsideHelp:[['Left drag','Orbit around the house'],['Wheel','Move closer / farther'],['Right drag','Pan'],['W A S D','Pan the camera'],['Q / E','Orbit left / right'],['Space','Slow orbit'],['R','Overview']],
   insideHelp:[['W / S','Forward / back'],['A / D','Sideways'],['E or Space / Q','Up / down'],['← / →','Turn in place'],['Shift','Move faster'],['Drag','Look around'],['Wheel','Forward / back'],['Click floor','Walk there'],['Click object','Use it'],['Esc','Leave']],
   flush:'Flush',floorLampOn:'Turn floor lamp on',floorLampOff:'Turn floor lamp off',faucetOn:'Turn tap on',faucetOff:'Turn tap off',
   hobOn:'Light hob',hobOff:'Turn hob off',drawerOpen:'Open drawer',drawerClose:'Close drawer',cabinetOpen:'Open cabinet door',cabinetClose:'Close cabinet door',ceilingOn:'Turn light on',ceilingOff:'Turn light off',
+  tvOn:'Turn television on',tvOff:'Turn television off',tvNextChannel:'Change channel · {channel}',tvChannels:['Forest animation','Weather','Sports','Music'],
+  floorLabel:'{floor}F',floorsAria:'Visit a floor',stairsUp:'Walk upstairs',stairsDown:'Walk downstairs',elevatorUp:'Take elevator up',elevatorDown:'Take elevator down',
 });
 
 const chinese=english;

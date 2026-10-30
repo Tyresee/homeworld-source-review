@@ -1,0 +1,38 @@
+{
+  "sourceRelevant": {
+    "tests": 100,
+    "pass": 100,
+    "fail": 0
+  },
+  "sourceFullSnapshot": {
+    "tests": 1006,
+    "pass": 1005,
+    "fail": 1,
+    "knownFailure": "Existing catalog count assertion expects 311 instead of 376; unchanged"
+  },
+  "releaseGate": {
+    "tests": 749,
+    "pass": 749,
+    "fail": 0
+  },
+  "publicCore": {
+    "files": 70,
+    "tests": 495,
+    "pass": 495,
+    "fail": 0,
+    "dependencyEnvironment": "standard dependency environment"
+  },
+  "publicNoInstallFocused": {
+    "tests": 123,
+    "pass": 123,
+    "fail": 0,
+    "vendor": "included licensed Three"
+  },
+  "publicFinalInteractionRepeat": {
+    "tests": 25,
+    "pass": 25,
+    "fail": 0
+  },
+  "noInstallCoreLimitation": "The account-service static vendor route requires the installed Three package. Both standalone review tools resolve bundled vendor/three; no npm is required for those browser tools.",
+  "fullPublicSuite": "Not re-run for this delivery; documented historical display-normalization-sensitive failures remain outside the passing core list. No old assertions were removed."
+}

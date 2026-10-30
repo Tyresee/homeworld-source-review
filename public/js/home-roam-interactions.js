@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {createHomeRoamAudio} from './home-roam-audio.js';
 import {getHomeRoamCopy} from './home-roam-copy.js';
+import {getObjectCapabilities} from './home-object-state.js';
+import {drawTelevisionFrame} from './student-home-object-runtime.js';
 
 const V=()=>new THREE.Vector3(),Y=new THREE.Vector3(0,1,0),HOVER='#3b2a14';
 const smooth=value=>value*value*(3-2*value);
@@ -11,13 +13,15 @@ const materials=mesh=>[].concat(mesh.material??[]);
 
 /** Temporary interaction layer for a cloned real interior. Model builders,
  * collision, navigation, wardrobe and student saves are deliberately absent. */
-export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInvalidate=()=>{},onCeilingLightChange,muted=false,audio=null,locale}={}) {
+export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInvalidate=()=>{},onCeilingLightChange,muted=false,audio=null,locale,storey=0,document:doc=globalThis.document}={}) {
   if(!root?.isObject3D)throw new TypeError('A cloned interior root is required');
+  if(!Number.isSafeInteger(storey)||storey<0)throw new TypeError('A viewing storey must be a nonnegative integer');
   const copy=getHomeRoamCopy(locale);
   const sound=audio??createHomeRoamAudio({muted}),ownsAudio=!audio;
-  const targets=[],byMesh=new WeakMap(),byId=new Map(),animations=new Set(),generated=new Set(),materialOwners=new Map(),transformOwners=new Map(),reparents=[],parentOrders=new Map();
+  const targets=[],byMesh=new WeakMap(),byId=new Map(),animations=new Set(),generated=new Set(),materialOwners=new Map(),transformOwners=new Map(),reparents=[],parentOrders=new Map(),mediaTextures=new Set();
   let hovered=null,clock=0,disposed=false;
   root.updateWorldMatrix(true,true);
+  const floorBaseY=root.getWorldPosition(V()).y;
   root.traverse(parent=>parentOrders.set(parent,parent.children.slice()));
 
   function ownMaterial(mesh) {
@@ -49,7 +53,8 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
   }
   function register(type,group,meshes,behavior) {
     const sourceId=group?.userData.furnitureId??group?.userData.id??group?.userData.kind??'room';
-    const target={id:behavior.id??`${sourceId}:${type}:${targets.length}`,type,kind:group?.userData.kind??'ceiling',sourceId,meshes:[...new Set(meshes)],on:false,progress:0,busy:false,...behavior};
+    const localId=behavior.id??`${sourceId}:${type}:${targets.length}`;
+    const target={type,kind:group?.userData.kind??'ceiling',sourceId,meshes:[...new Set(meshes)],on:false,progress:0,busy:false,...behavior,id:storey?`floor:${storey}:${localId}`:localId,storey};
     for(const mesh of target.meshes)byMesh.set(mesh,target);targets.push(target);byId.set(target.id,target);return target;
   }
   function tween(target,to,duration,apply) {target.tween={from:target.progress,to,elapsed:0,duration,apply};target.on=to===1;animations.add(target);}
@@ -76,6 +81,29 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
     if(Math.abs(forward.x)>Math.abs(forward.z))forward.set(Math.sign(forward.x),0,0);else forward.set(0,0,Math.sign(forward.z));
     const axis=forward.x?'x':'z',lateral=forward.x?'z':'x',sign=forward[axis],gb=new THREE.Box3().setFromObject(group),used=new Set();
     const face=box=>sign>0?box.max[axis]:-box.min[axis],centre=box=>sign*(box.min[axis]+box.max[axis])/2;
+
+    if(getObjectCapabilities(kind)?.type==='television') {
+      const screenMeshes=meshes.filter(mesh=>mesh.userData.objectPart==='tv-screen'),remoteMeshes=meshes.filter(mesh=>{for(let node=mesh;node&&node!==group;node=node.parent)if(node.userData.objectPart==='tv-remote')return true;return false;});
+      const screens=screenMeshes.map(node=>{
+        const canvas=doc?.createElement?.('canvas'),ctx=canvas?.getContext?.('2d');if(!ctx)throw new Error('A television viewing screen requires a 2D canvas');
+        canvas.width=512;canvas.height=288;const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;mediaTextures.add(texture);
+        const original=node.material,clones=[].concat(original).map(()=>new THREE.MeshBasicMaterial({map:texture,toneMapped:false}));materialOwners.set(node,{original,clones,emission:null});node.material=Array.isArray(original)?clones:clones[0];
+        return{node,canvas,ctx,texture};
+      });
+      if(screens.length){
+        // No authoritative settings are read or edited. These private channel
+        // choices disappear with the viewing copy, and share only the existing
+        // original TV drawing helper with the ordinary object runtime.
+        const media={power:false,channel:0,lastStamp:null},remoteSet=new Set(remoteMeshes),powerMeshes=meshes.filter(mesh=>!remoteSet.has(mesh)||part(mesh)==='remote-power');
+        let powerTarget,channelTarget;
+        const draw=force=>{const stamp=media.power?Math.floor(clock/.125):'off';if(!force&&stamp===media.lastStamp)return;for(const screen of screens){drawTelevisionFrame(screen.ctx,media,clock*1000);screen.texture.needsUpdate=true;}media.lastStamp=stamp;};
+        const sync=()=>{powerTarget.on=media.power;if(channelTarget)channelTarget.on=media.power;draw(true);if(media.power&&visible(group))animations.add(powerTarget);else animations.delete(powerTarget);};
+        powerTarget=register('television-power',group,powerMeshes,{media,screens,viewGroup:group,label(){return media.power?copy.tvOff:copy.tvOn;},activate(){media.power=!media.power;sync();sound.play('click');return true;},update(){if(!visible(group))return false;draw(false);return media.power;}});
+        const channelMeshes=remoteMeshes.filter(mesh=>part(mesh)!=='remote-power');
+        if(channelMeshes.length)channelTarget=register('television-channel',group,channelMeshes,{media,screens,label(){return copy.tvNextChannel.replace('{channel}',copy.tvChannels[media.channel]);},activate(){media.channel=(media.channel+1)%copy.tvChannels.length;media.power=true;sync();sound.play('click');return true;}});
+        for(const mesh of remoteMeshes)used.add(mesh);draw(true);
+      }
+    }
 
     if(kind==='compactToilet') {
       const bowl=meshes.find(mesh=>part(mesh)==='toilet-bowl');if(!bowl)continue;
@@ -105,7 +133,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
       register('floor-lamp',group,meshes,{light,floorLight,floorTarget,floorRadius,shade,label(){return this.on?copy.floorLampOff:copy.floorLampOn;},activate(){this.on=!this.on;light.intensity=this.on?16:0;floorLight.intensity=this.on?8:0;setDiffuseOverride(shade,this.on?'#fff4df':null);setEmission(shade,this.on?'#ffc477':'#000000',this.on?1.6:0);sound.play('click');return true;}});continue;
     }
 
-    const taps=meshes.filter(mesh=>part(mesh)==='sink-faucet'||(kind==='mkSingleSink'&&part(mesh)==='body'&&boxes.get(mesh).min.y>1.05)||(kind==='bathroomVanity'&&color(mesh)==='c7d7d5'&&boxes.get(mesh).max.y>1));
+    const taps=meshes.filter(mesh=>part(mesh)==='sink-faucet'||(kind==='mkSingleSink'&&part(mesh)==='body'&&boxes.get(mesh).min.y>floorBaseY+1.05)||(kind==='bathroomVanity'&&color(mesh)==='c7d7d5'&&boxes.get(mesh).max.y>floorBaseY+1));
     if(taps.length) {
       const main=taps.reduce((a,b)=>boxes.get(a).getSize(V()).y>boxes.get(b).getSize(V()).y?a:b),tb=boxes.get(main);
       const basin=meshes.find(mesh=>part(mesh)==='sink-basin-bottom')??meshes.filter(mesh=>color(mesh)==='fff2dc'&&boxes.get(mesh).getSize(V()).y>.1).sort((a,b)=>boxes.get(b).max.y-boxes.get(a).max.y)[0];
@@ -191,7 +219,11 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
     sound.unlock();const changed=target.activate();if(changed!==false){for(const mesh of target.meshes)refreshEmission(mesh);onInvalidate();return true;}return false;
   }
   function tick(delta) {
-    if(disposed)return false;const dt=Number.isFinite(delta)?Math.max(0,Math.min(.1,delta)):0;clock+=dt;const hadAnimation=animations.size>0;
+    if(disposed)return false;const dt=Number.isFinite(delta)?Math.max(0,Math.min(.1,delta)):0;clock+=dt;
+    // The world owner may hide a different floor. Its TV keeps its temporary
+    // channel but does not sample frames until that visible floor returns.
+    for(const target of targets)if(target.type==='television-power'){if(target.media.power&&visible(target.viewGroup))animations.add(target);else animations.delete(target);}
+    const hadAnimation=animations.size>0;
     for(const target of[...animations]) {
       if(target.tween) {
         const tween=target.tween;tween.elapsed=Math.min(tween.duration,tween.elapsed+dt);target.progress=tween.from+(tween.to-tween.from)*smooth(tween.elapsed/tween.duration);tween.apply(target.progress);
@@ -207,7 +239,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
     for(const{mesh,parent}of reparents)parent.add(mesh);
     for(const[mesh,pose]of transformOwners){mesh.position.copy(pose.position);mesh.quaternion.copy(pose.quaternion);mesh.scale.copy(pose.scale);}
     for(const[mesh,row]of materialOwners){mesh.material=row.original;for(const material of row.clones)material.dispose();}materialOwners.clear();
-    const geometries=new Set(),ownedMaterials=new Set(),textures=new Set();
+    const geometries=new Set(),ownedMaterials=new Set(),textures=new Set(mediaTextures);
     for(const object of generated){object.removeFromParent();object.traverse(mesh=>{if(mesh.geometry)geometries.add(mesh.geometry);for(const material of materials(mesh))ownedMaterials.add(material);});}
     for(const target of targets)if(target.texture)textures.add(target.texture);
     for(const geometry of geometries)geometry.dispose();for(const material of ownedMaterials)material.dispose();for(const texture of textures)texture.dispose();
@@ -215,11 +247,11 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
       const original=parentOrders.get(parent)??[],set=new Set(original),children=[...original.filter(child=>child.parent===parent),...parent.children.filter(child=>!set.has(child))];
       parent.children.splice(0,parent.children.length,...children);
     }
-    generated.clear();if(ownsAudio)sound.dispose();
+    generated.clear();mediaTextures.clear();if(ownsAudio)sound.dispose();
   }
   return {targets,getTargets:()=>targets.slice(),pick,hover,clearHover,click:ray=>{const hit=pick(ray);return hit?activate(hit.target):false;},activate,tick,
     unlockAudio:()=>sound.unlock(),setMuted:value=>sound.setMuted(value),getMuted:()=>sound.getMuted?.()??false,
-    getState:()=>({disposed,hovered:hovered?.id??null,activeAnimations:animations.size,counts:targets.reduce((counts,target)=>(counts[target.type]=(counts[target.type]??0)+1,counts),{}),targets:targets.map(target=>({id:target.id,type:target.type,kind:target.kind,on:target.on,progress:target.progress,busy:target.busy,roomId:target.roomId}))}),dispose};
+    getState:()=>({disposed,storey,hovered:hovered?.id??null,activeAnimations:animations.size,counts:targets.reduce((counts,target)=>(counts[target.type]=(counts[target.type]??0)+1,counts),{}),targets:targets.map(target=>({id:target.id,type:target.type,kind:target.kind,storey:target.storey,on:target.on,progress:target.progress,busy:target.busy,roomId:target.roomId,...(target.media?{power:target.media.power,channel:target.media.channel,channelName:copy.tvChannels[target.media.channel]}:{})}))}),dispose};
 }
 
 function spiralTexture() {

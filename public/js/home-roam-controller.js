@@ -16,7 +16,7 @@ export function isHomeRoamInputTarget(target){
   return !!(target?.isContentEditable||/^(INPUT|TEXTAREA|SELECT|OPTION)$/.test(String(target?.tagName).toUpperCase())||target?.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],[role="combobox"],[role="dialog"],[role="menu"]'));
 }
 
-export function createHomeRoamController({element,eventTarget=globalThis.window,bounds,interiorBounds,containsInterior,wallTop=2.85,entrance,onChange=()=>{},onMode=()=>{},onDoorAngle=()=>{},onExit=()=>{},now=()=>performance.now(),controlsFactory=(camera,canvas)=>new OrbitControls(camera,canvas)}={}){
+export function createHomeRoamController({element,eventTarget=globalThis.window,bounds,interiorBounds,containsInterior,wallTop=2.85,entrance,onChange=()=>{},onMode=()=>{},onDoorAngle=()=>{},onExit=()=>{},onRequestLeave,now=()=>performance.now(),controlsFactory=(camera,canvas)=>new OrbitControls(camera,canvas)}={}){
   if(!element)throw new TypeError('A canvas is required for the viewing camera.');
   const camera=new THREE.PerspectiveCamera(HOME_ROAM_CAMERA.fov,1,.05,400);
   const controls=controlsFactory(camera,element);
@@ -53,7 +53,7 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     if(phase==='orbit'){
       const view=displayMode==='auto'?(camera.position.distanceTo(controls.target)>1.55*span?'exterior':'interior'):displayMode;
       setSceneMode(view==='exterior'?'ext':'orbit-in');
-    }else if(phase==='free'||phase==='entering'||phase==='leaving')setSceneMode(isInside()?'in':'ext+in');
+    }else if(phase==='free'||phase==='entering'||phase==='leaving'||steps.length>0)setSceneMode(isInside()?'in':'ext+in');
   }
   function lookFromCamera(){const direction=camera.getWorldDirection(new THREE.Vector3());yaw=Math.atan2(-direction.x,-direction.z);pitch=Math.asin(clamp(direction.y,-1,1));}
   function applyLook(){pitch=clamp(pitch,-1.45,1.45);camera.rotation.set(pitch,yaw,0,'YXZ');}
@@ -86,8 +86,9 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     ],()=>{phase='free';lookFromCamera();applyLook();setFov(68);updateDisplay();publish();});
     return true;
   }
-  function leave(){
+  function leave({direct=false}={}){
     if(!active||phase!=='free'||!door)return false;
+    if(!direct&&onRequestLeave)return onRequestLeave();
     const points=doorPoints(),from=camera.position.clone(),target=camera.getWorldDirection(new THREE.Vector3()).add(from),fov=camera.fov,temp=new THREE.Vector3();
     beginSequence([
       {name:'leaving',duration:1200,begin:()=>{setDoorAngle(1.8);setSceneMode('ext+in');},apply:e=>{camera.position.lerpVectors(from,points.outside,e);camera.lookAt(temp.lerpVectors(target,points.look,e));setFov(fov+(38-fov)*e);updateDisplay();}},
@@ -104,6 +105,14 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     const delta=Math.atan2(Math.sin(targetYaw-yaw),Math.cos(targetYaw-yaw));
     glide={from:camera.position.clone(),to,yaw0:yaw,yaw1:yaw+delta*(floor?1:.6),pitch0:pitch,start:now(),duration:clamp(distance/3*1000,350,2600)};
     invalidate();return true;
+  }
+  function travel(journeys,{onSample=()=>{},onComplete=()=>{}}={}){
+    if(!active||phase!=='free'||!Array.isArray(journeys)||!journeys.length)return false;
+    const sequence=journeys.flatMap(journey=>journey.steps.map(step=>({name:step.name,duration:step.duration,apply:progress=>{
+      const pose=journey.sample(step,progress);camera.position.copy(pose.position);camera.lookAt(pose.lookAt);setFov(68);onSample(journey,pose);updateDisplay();
+    }})));
+    if(!sequence.length)return false;
+    beginSequence(sequence,()=>{phase='free';lookFromCamera();applyLook();updateDisplay();publish();onComplete();});return true;
   }
   function setDisplayMode(value){if(!active||phase!=='orbit'||!['auto','exterior','interior'].includes(value))return false;displayMode=value;updateDisplay();publish();invalidate();return true;}
   function setAutoRotate(value){if(!active||phase!=='orbit')return false;controls.autoRotate=!!value;publish();invalidate();return true;}
@@ -170,5 +179,5 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
   add(element,'pointerup',event=>{if(event.pointerId===drag?.id)releaseDrag();});add(element,'pointercancel',()=>{clearInput();lastPointer=null;});add(element,'lostpointercapture',()=>{drag=null;});
   add(element,'wheel',event=>{if(!active||phase!=='free'||!event.deltaY)return;event.preventDefault();glide=null;camera.position.addScaledVector(camera.getWorldDirection(new THREE.Vector3()),-Math.sign(event.deltaY)*.45);camera.position.y=clamp(camera.position.y,.25,30);updateDisplay();invalidate();},{passive:false});
   const controlsChanged=()=>{if(active&&phase==='orbit')invalidate();};controls.addEventListener?.('change',controlsChanged);
-  return {camera,controls,start,stop,tick,overview,enterDoor,leave,moveTo,setDisplayMode,setAutoRotate,toggleAutoRotate:()=>setAutoRotate(!controls.autoRotate),getState:state,getCameraPose:()=>({position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov,target:controls.target.toArray()}),isPointerClick:event=>!!(active&&lastPointer&&lastPointer.button===0&&event.button===0&&event.pointerId===lastPointer.id&&Math.hypot(event.clientX-lastPointer.x,event.clientY-lastPointer.y)<6),get active(){return active;},resize(width,height){if(width>0&&height>0){camera.aspect=width/height;camera.updateProjectionMatrix();invalidate();}},dispose(){if(disposed)return;stop();disposed=true;for(const remove of listeners)remove();controls.removeEventListener?.('change',controlsChanged);controls.dispose();}};
+  return {camera,controls,start,stop,tick,overview,enterDoor,leave,moveTo,travel,setDisplayMode,setAutoRotate,toggleAutoRotate:()=>setAutoRotate(!controls.autoRotate),getState:state,getCameraPose:()=>({position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov,target:controls.target.toArray()}),isPointerClick:event=>!!(active&&lastPointer&&lastPointer.button===0&&event.button===0&&event.pointerId===lastPointer.id&&Math.hypot(event.clientX-lastPointer.x,event.clientY-lastPointer.y)<6),get active(){return active;},resize(width,height){if(width>0&&height>0){camera.aspect=width/height;camera.updateProjectionMatrix();invalidate();}},dispose(){if(disposed)return;stop();disposed=true;for(const remove of listeners)remove();controls.removeEventListener?.('change',controlsChanged);controls.dispose();}};
 }

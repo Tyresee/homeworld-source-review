@@ -3,7 +3,7 @@ import {getHomeRoamCopy,resolveHomeRoamLocale} from './home-roam-copy.js';
 // Viewing-only controls: callbacks stay with the scene owner. No home/account
 // state or command transport is imported into this temporary interface.
 let nextId=0;
-export function createHomeRoamUI({container,document=container?.ownerDocument,onDisplayMode=()=>{},onAutoRotate=()=>{},onOverview=()=>{},onLeave=()=>{},locale}={}){
+export function createHomeRoamUI({container,document=container?.ownerDocument,onDisplayMode=()=>{},onAutoRotate=()=>{},onOverview=()=>{},onLeave=()=>{},onFloor=()=>{},floorCount=1,locale}={}){
   if(!container||!document)throw new TypeError('A container is required for viewing controls.');
   const resolvedLocale=resolveHomeRoamLocale(locale,{search:document.defaultView?.location?.search}),copy=getHomeRoamCopy(resolvedLocale);
   const listeners=[],buttons=new Map(),id=`home-roam-help-${++nextId}`;
@@ -21,7 +21,9 @@ export function createHomeRoamUI({container,document=container?.ownerDocument,on
   const spin=button(copy.spin,copy.spinStart,()=>onAutoRotate(!snapshot.autoRotate));spin.dataset.roamAction='spin';spin.setAttribute('aria-pressed','false');spin.setAttribute('aria-keyshortcuts','Space');
   const overview=button(copy.overview,copy.overview,onOverview);overview.dataset.roamAction='overview';overview.setAttribute('aria-keyshortcuts','R');
   const helpToggle=button('?',copy.helpAria,()=>setHelp(help.hidden));helpToggle.setAttribute('aria-controls',id);helpToggle.setAttribute('aria-expanded','false');
-  actions.append(leave,spin,overview,helpToggle);bar.append(modes,actions);
+  const floors=make('div','home-roam-floors home-roam-chip');floors.setAttribute('role','group');floors.setAttribute('aria-label',copy.floorsAria);const floorButtons=[];
+  for(let i=0;i<floorCount;i++){const node=button(copy.floorLabel.replace('{floor}',String(i+1)),copy.floorLabel.replace('{floor}',String(i+1)),()=>onFloor(i));node.dataset.roamFloor=String(i);floors.append(node);floorButtons.push(node);}
+  actions.append(leave,spin,overview,helpToggle);bar.append(modes,floors,actions);
   const help=make('section','home-roam-help home-roam-chip');help.id=id;help.hidden=true;help.setAttribute('aria-label',copy.helpAria);
   const helpTitle=make('strong','home-roam-help-title',copy.helpTitleExterior),helpList=make('dl','home-roam-help-keys'),helpNote=make('p','home-roam-help-note',copy.helpNoteExterior);
   const helpClose=button(copy.helpClose,copy.helpCloseAria,()=>setHelp(false,true));help.append(helpTitle,helpList,helpNote,helpClose);
@@ -37,6 +39,7 @@ export function createHomeRoamUI({container,document=container?.ownerDocument,on
     root.hidden=!visible||!snapshot.active;
     const walking=snapshot.phase==='free',moving=!!snapshot.transition;root.dataset.phase=snapshot.phase;root.dataset.view=snapshot.view;
     status.hidden=walking||moving;const label=snapshot.view==='interior'?copy.statusInterior:copy.statusExterior;if(status.textContent!==label)status.textContent=label;
+    floors.hidden=!walking||floorCount<2;for(const[i,node]of floorButtons.entries()){node.setAttribute('aria-pressed',String(i===(snapshot.storey??0)));node.disabled=moving||i===(snapshot.storey??0);}
     bar.hidden=moving;instructions.hidden=!walking||moving;modes.hidden=walking;spin.hidden=overview.hidden=walking;leave.hidden=!walking;
     for(const[value,node]of buttons){node.setAttribute('aria-pressed',String(snapshot.displayMode===value));node.disabled=moving;}
     spin.setAttribute('aria-pressed',String(!!snapshot.autoRotate));spin.setAttribute('aria-label',snapshot.autoRotate?copy.spinStop:copy.spinStart);spin.title=spin.getAttribute('aria-label');

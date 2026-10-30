@@ -1536,7 +1536,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     presentationPaused=true;lastStageCameraFrame=null;avatarActor.setPresentationPaused?.(true);if(renderFrame)cancelAnimationFrame(renderFrame);renderFrame=0;scheduled=false;
     try{
       const {createHomeRoamExperience}=await import('./home-roam-world.js');if(disposed||epoch!==roamEpoch)return false;
-      const experience=createHomeRoamExperience({container,home:groundHome(),theme,maps,robot:activeFloor===0?avatarActor.group:null,
+      const experience=createHomeRoamExperience({container,home:groundHome(),floors:exteriorFloors(),theme,maps,robot:avatarActor.group,robotStorey:activeFloor,
         lighting:{toneMapping:renderer.toneMapping,exposure:renderer.toneMappingExposure,sky:'#'+hemisphere.color.getHexString(),ground:'#'+hemisphere.groundColor.getHexString(),hemisphere:hemisphere.intensity,sunColor:'#'+sun.color.getHexString(),sun:sun.intensity,fillColor:'#'+fill.color.getHexString(),fill:fill.intensity},
         pixelRatio:renderer.getPixelRatio(),...experienceOptions,onExit:exitRoam,onStateChange:snapshot=>{if(epoch===roamEpoch)onRoamChange?.({...snapshot,previousView:view});}});
       if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();if(enterDoor)experience.controller.enterDoor();return experience;

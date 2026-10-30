@@ -98,7 +98,7 @@ test('rebuilds replace the tagged door with the newly selected entrance and reta
   }finally{model.dispose();assert.equal(targets(model).length,0);}
 });
 
-// Captured from the equivalent public 237c565 model before adding picking metadata. All modeled transforms,
+// Captured before adding picking metadata at aa155ec. All modeled transforms,
 // vertex/index data and material values are included; userData is excluded.
 const BEFORE={
   'default-legacy':'0cb47b27123a71530b970206556032cd19ebde8fa613a7cab0fc0aa74164f1da',

@@ -9,14 +9,15 @@ import {createHomeRoamInteractions} from '../public/js/home-roam-interactions.js
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,`${a} != ${b}`);
 const step=(controller,seconds)=>{for(let t=0;t<seconds;t+=.025)controller.tick(.025);};
 function quietAudio() {const calls=[];return {calls,unlock(){calls.push(['unlock']);},play(...args){calls.push(args);},setMuted(value){this.muted=value;},getMuted(){return this.muted??false;}};}
-function fixtureWorld() {
+function fixtureWorld({height=0,storey=0}={}) {
   const fixture=createLookDevFixture('house'),root=new THREE.Group(),audio=quietAudio();
+  root.position.y=height;
   for(const item of fixture.home.furniture) {const model=createLuxuryItem(item),pose=getFurniturePose(fixture.home,item);model.position.set(pose.x,pose.y,pose.z);model.rotation.y=pose.rotation*Math.PI/180;model.userData.furnitureId=item.id;root.add(model);}
   const ceilingLights=fixture.home.rooms.map((room,i)=>{
     const disc=new THREE.Mesh(new THREE.CircleGeometry(.26,24),new THREE.MeshStandardMaterial({emissive:'#ffe1b8',emissiveIntensity:1}));disc.position.set(i*2,2.6,0);disc.rotation.x=Math.PI/2;root.add(disc);
     const light=new THREE.PointLight('#ffe1b8',24,11,2);root.add(light);return {id:'ceiling:'+room.id,roomId:room.id,disc,light,on:true,setEnabled(on){light.intensity=on?24:0;}};
   });
-  const controller=createHomeRoamInteractions({root,rooms:fixture.home.rooms,ceilingLights,audio});
+  const controller=createHomeRoamInteractions({root,rooms:fixture.home.rooms,ceilingLights,audio,storey});
   return {fixture,root,audio,ceilingLights,controller,dispose(){controller.dispose();release(root);}};
 }
 function release(root) {const geometries=new Set(),materials=new Set();root.traverse(mesh=>{if(mesh.geometry)geometries.add(mesh.geometry);for(const material of[].concat(mesh.material??[]))materials.add(material);});for(const geometry of geometries)geometry.dispose();for(const material of materials)material.dispose();}
@@ -42,6 +43,23 @@ test('all real drawers and doors animate to visible open states, reverse, and st
       assert.ok(world.controller.activate(target));step(world.controller,.8);assert.equal(target.progress,0);target.panel.updateWorldMatrix(true,false);target.panel.matrixWorld.elements.forEach((value,i)=>near(value,initial.elements[i]));assert.equal(world.controller.tick(.1),false);
     }
   }finally{world.dispose();}
+});
+
+test('upper floor House effects preserve faucet recognition and every real interaction height',()=>{
+  const low=fixtureWorld(),high=fixtureWorld({height:6.7,storey:2});
+  try{
+    assert.equal(high.controller.targets.length,18);assert.deepEqual(high.controller.getState().counts,low.controller.getState().counts);
+    for(let i=0;i<low.controller.targets.length;i++){
+      const a=low.controller.targets[i],b=high.controller.targets[i];assert.equal(b.id,'floor:2:'+a.id);assert.equal(b.type,a.type);assert.equal(b.meshes.length,a.meshes.length,'moving to an upper floor must not classify extra counter meshes as taps');
+      for(const key of ['water','stream','ripple','flame','light','floorLight','floorTarget'])if(a[key]?.isObject3D){const ap=a[key].getWorldPosition(new THREE.Vector3()),bp=b[key].getWorldPosition(new THREE.Vector3());near(bp.x,ap.x);near(bp.z,ap.z);near(bp.y-ap.y,6.7);}
+      low.controller.activate(a);high.controller.activate(b);
+    }
+    step(low.controller,.8);step(high.controller,.8);low.root.updateMatrixWorld(true);high.root.updateMatrixWorld(true);
+    for(let i=0;i<low.controller.targets.length;i++){
+      const a=low.controller.targets[i],b=high.controller.targets[i];
+      for(const key of ['water','stream','ripple','flame','panel'])if(a[key]?.isObject3D){const ap=a[key].getWorldPosition(new THREE.Vector3()),bp=b[key].getWorldPosition(new THREE.Vector3());near(bp.x,ap.x);near(bp.z,ap.z);near(bp.y-ap.y,6.7);}
+    }
+  }finally{low.dispose();high.dispose();}
 });
 
 test('both faucets, both fourteen-flame hobs, room lights and floor lamp toggle with bounded resources',()=>{

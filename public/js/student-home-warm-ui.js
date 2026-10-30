@@ -73,7 +73,7 @@ export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({
   const stageCamera=button("DisplayText3762",'warm-stage-camera',()=>{if(ready&&!busy)onStageCamera();});stageCamera.hidden=true;
   const cameraDock=make('div','warm-camera-dock');cameraDock.setAttribute('role','group');cameraDock.setAttribute('aria-label',"DisplayText4757");
   for(const[id,label,action]of [['plus',"DisplayText4758",()=>onZoom(1)],['minus',"DisplayText4759",()=>onZoom(-1)],['reset',"DisplayText4760",onReset]]){const b=button(label,'warm-camera-button',()=>{if(ready&&!busy)action();});b.dataset.warmCamera=id;b.append(icon(id));if(id==='reset')b.setAttribute('aria-keyshortcuts','0');buttons.set(id,b);cameraDock.append(b);}
-  home.append(viewDock,show,stageCamera,cameraDock);
+  const bottomTools=make('div','warm-bottom-tools'),stageTools=make('div','warm-stage-tools');stageTools.append(stageCamera,show);bottomTools.append(viewDock,stageTools);home.append(bottomTools,cameraDock);
   const feedback=document.querySelector('.feedback');feedback.classList.add('warm-status-toast');
   const toast=createWarmToast({setTimer,clearTimer,show(persistent){feedback.classList.add('is-visible');feedback.classList.toggle('is-persistent',persistent);},hide(){feedback.classList.remove('is-visible');feedback.classList.remove('is-persistent');}});
   const balance=$('balance'),balanceGroup=make('span','warm-balance-group');balance.parentElement.insertBefore(balanceGroup,balance);balanceGroup.append(icon('coin','warm-coin'),balance);
@@ -108,6 +108,7 @@ export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({
     viewDock.hidden=!ready||moving;show.hidden=cameraDock.hidden=!ready||roaming;
     show.disabled=!ready||busy||state.view!=='interior';show.setAttribute('aria-pressed',String(!!state.stageActive));show.querySelector('.warm-show-label').textContent=state.stageActive?"DisplayText3771":"Showtime";show.setAttribute('aria-label',state.stageActive?"DisplayText3771":"Showtime");show.title=show.getAttribute('aria-label');
     const camera=state.stageCamera??{};stageCamera.hidden=!ready||roaming||state.view!=='interior'||!(camera.available||camera.active||camera.returning);stageCamera.disabled=busy||camera.returning||stageCamera.hidden;stageCamera.textContent=camera.returning?"DisplayText4762…":camera.active?"DisplayText3761":"DisplayText3762";stageCamera.setAttribute('aria-label',stageCamera.textContent);stageCamera.title=stageCamera.textContent;stageCamera.setAttribute('aria-pressed',String(!!camera.active));
+    stageTools.hidden=show.hidden&&stageCamera.hidden;
     syncStudents(state.students,state.selectedId);
   }
   add(picker,'change',async()=>{if(busy)return refresh();const id=picker.value;picker.disabled=true;try{await onSelectStudent(id);}catch(error){onError(error);}finally{refresh();}});

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHomeRoamUI} from '../public/js/home-roam-ui.js';
 import {getHomeRoamCopy} from '../public/js/home-roam-copy.js';
 
-function fixture({locale,search}={}){
+function fixture({locale,search,floorCount=1}={}){
   let document;
   class Node{
     constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.parentNode=null;this.className='';this.dataset={};this.style={};this.attributes={};this.events=new Map();this.hidden=false;this.textContent='';this.ownerDocument=document;this.classList={add:name=>{this.className+=' '+name;}};}
@@ -22,7 +22,7 @@ function fixture({locale,search}={}){
     getBoundingClientRect(){return {width:100,height:30};}
   }
   document=new Node('document');document.createElement=tag=>new Node(tag);document.defaultView={innerWidth:1440,innerHeight:900,location:{search:search??''}};
-  const container=new Node(),calls=[],ui=createHomeRoamUI({container,document,locale,onDisplayMode:mode=>calls.push(['mode',mode]),onAutoRotate:value=>calls.push(['spin',value]),onOverview:()=>calls.push(['overview']),onLeave:()=>calls.push(['leave'])});
+  const container=new Node(),calls=[],ui=createHomeRoamUI({container,document,locale,floorCount,onFloor:index=>calls.push(['floor',index]),onDisplayMode:mode=>calls.push(['mode',mode]),onAutoRotate:value=>calls.push(['spin',value]),onOverview:()=>calls.push(['overview']),onLeave:()=>calls.push(['leave'])});
   return {ui,container,document,calls,root:ui.element,find:name=>ui.element.find(name),button:text=>ui.element.all().find(node=>node.tagName==='BUTTON'&&node.textContent===text)};
 }
 
@@ -59,4 +59,14 @@ test('the shared locale configures all controls and both help modes without chan
     assert.deepEqual(f.find('home-roam-help-keys').children.map(n=>n.textContent),copy.insideHelp.flat());
     f.button(copy.leave).dispatch('click');assert.deepEqual(f.calls,[['leave']]);f.ui.dispose();
   }
+});
+
+
+test('actual purchased floor buttons stay hidden outside walking, acknowledge the current storey and disable during travel',()=>{
+  const f=fixture({locale:'en',floorCount:2});f.ui.setVisible(true);f.ui.update({active:true,phase:'orbit'});
+  assert.equal(f.find('home-roam-floors').hidden,true);
+  f.ui.update({phase:'free',storey:0});assert.equal(f.find('home-roam-floors').hidden,false);assert.equal(f.button('1F').disabled,true);assert.equal(f.button('2F').disabled,false);
+  f.button('2F').dispatch('click');assert.deepEqual(f.calls,[['floor',1]]);assert.equal(f.button('1F').getAttribute('aria-pressed'),'true','a request does not optimistically change floors');
+  f.ui.update({phase:'elevator-ride',transition:true});assert.equal(f.find('home-roam-bar').hidden,true);assert.equal(f.button('2F').disabled,true);
+  f.ui.update({phase:'free',transition:false,storey:1});assert.equal(f.button('2F').getAttribute('aria-pressed'),'true');assert.equal(f.button('1F').disabled,false);f.ui.dispose();
 });

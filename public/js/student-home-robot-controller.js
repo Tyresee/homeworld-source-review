@@ -35,7 +35,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   let dancing=null,danceRequested=false,danceRequestSerial=0,danceStartCallback=null,danceTarget=null,danceFacing=null;
   const footballBall=createFootballBall(group);
   let home=null,floors=null,floor=0,point=null,safePoint=null,route=null,pendingAction=null,stairJourney=null;
-  let action='idle',angle=.25,elapsed=0,remaining=0,lastTime=0,frame=0,visible=true,disposed=false,equipmentKey='';
+  let action='idle',angle=.25,elapsed=0,remaining=0,lastTime=0,frame=0,visible=true,disposed=false,equipmentKey='',presentationPaused=false;
   let sequence=null,visual=null,activeFurniture=null,exitRequested=false,afterExit=null,stairMotion=null,stairFrame=null,stairRig=null;
   let elevatorJourney=null,elevatorMotion=null,elevatorFrame=null;
   let savedActivity=null,activityKnown=false,suspended=false,restoring=false,lastActivityAt=0,lastActivityPhase='',activeAction=null;
@@ -65,7 +65,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   }
   calibrate();
   function present(){
-    group.visible=visible&&!!point&&!disposed;if(!point||disposed)return;
+    group.visible=visible&&!!point&&!disposed;if(presentationPaused||!point||disposed)return;
     robot.position.set(point.x,point.y??FLOOR_Y,point.z);robot.rotation.y=angle;
     if(dancing){
       if(dancing.turn&&dancing.blend===0){const progress=dancing.turn.elapsed/dancing.turn.duration;poseRobotTransition(robot,{from:{action:'idle'},to:{action:'walk',time:elapsed},progress:Math.sin(Math.PI*progress)*.3,time:elapsed});}
@@ -259,15 +259,26 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     return false;
   }
   function pauseActivity(){
-    if(suspended||disposed)return;
+    if(presentationPaused||suspended||disposed)return;
     if(point&&activityKnown)captureActivity();
     resetToSafePoint();suspended=true;
   }
   function resumeActivity(){
-    if(!suspended)return;
+    if(presentationPaused||!suspended)return;
     suspended=false;if(!restoreSavedActivity()){present();publishActivity(true);}
   }
-  function schedule(){if(!frame&&visible&&!disposed&&!document.hidden){lastTime=performance.now();frame=requestAnimationFrame(tick);}}
+  const hasFrameWork=()=>route||sequence||stairMotion||elevatorMotion||swimming||football||dancing||remaining||televisionNeedsFrame();
+  function schedule(){if(!frame&&visible&&!disposed&&!presentationPaused&&!document.hidden){lastTime=performance.now();frame=requestAnimationFrame(tick);}}
+  // A scene presentation borrows the exact rendered rig. Unlike the account
+  // lifecycle pause, it must not checkpoint, cancel motion or rebuild a pose.
+  function setPresentationPaused(value){
+    if(disposed)return presentationPaused;
+    const next=Boolean(value);if(next===presentationPaused)return presentationPaused;
+    presentationPaused=next;
+    if(next){if(frame)cancelAnimationFrame(frame);frame=0;}
+    else{lastTime=performance.now();if(hasFrameWork())schedule();}
+    return presentationPaused;
+  }
   function startSequence(steps,mode,descriptor){
     sequence={steps,index:0,elapsed:0,mode,descriptor,startRotation:angle,startTime:elapsed};action=mode==='enter'?'entering':'exiting';
     visual=sampleRobotMotionStep(steps[0],0,0);status(steps[0].label);publishActivity(true);schedule();
@@ -398,7 +409,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     }
   }
   function tick(now){
-    frame=0;if(disposed||!visible||document.hidden)return;
+    frame=0;if(disposed||presentationPaused||!visible||document.hidden)return;
     const dt=Math.min(.05,Math.max(0,(now-lastTime)/1000));lastTime=now;elapsed+=dt;if(swimming?.mode==='loop')elapsed=cycleTime(elapsed,SWIM_ANIMATION_PERIOD);
     if(dancing)advanceDance(dt);
     else if(football)advanceFootball(dt);
@@ -717,15 +728,15 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     current.time=cycleTime(next,FOOTBALL_PERIOD);footballFrame=sampleRobotFootballMotion(current.descriptor,current.time);point={...footballFrame.point};const target=footballFrame.rotation*Math.PI/180;
     if(current.time<.35){const u=current.time/.35,s=u*u*(3-2*u),delta=Math.atan2(Math.sin(target-current.originRotation),Math.cos(target-current.originRotation));angle=current.originRotation+delta*s;}else angle=target;
   }
-  function visibilityChanged(){if(document.hidden)pauseActivity();else if(visible)resumeActivity();}document.addEventListener('visibilitychange',visibilityChanged);
-  return {group,supportsOutdoor:true,setWorld,setOutdoorWorld,setEnvironment,setAvatar,setObjectContext:value=>{objectContext=value;},changeTelevisionChannel,captureActivity,clearAccountBinding,stand,walk:to=>travel(to),interactions,useStairs,wave,dance,stopDance,setDanceFacing,getStageState,
+  function visibilityChanged(){if(presentationPaused)return;if(document.hidden)pauseActivity();else if(visible){resumeActivity();if(!suspended&&hasFrameWork())schedule();}}document.addEventListener('visibilitychange',visibilityChanged);
+  return {group,supportsOutdoor:true,setWorld,setOutdoorWorld,setEnvironment,setAvatar,setObjectContext:value=>{objectContext=value;},changeTelevisionChannel,captureActivity,clearAccountBinding,stand,walk:to=>travel(to),interactions,useStairs,wave,dance,stopDance,setDanceFacing,getStageState,setPresentationPaused,
     listStairs:()=>(environment==='interior'?getHomeStairs(home):[]).map(row=>({id:row.id,type:row.type??'stairs',direction:row.direction,label:row.type==='elevator'?(row.direction==='up'?"DisplayText4026":"DisplayText4027"):(row.direction==='up'?"DisplayText4028":"DisplayText4029")})),
     targetLabel:id=>environment==='estate'?interactions(id)[0]?.label??null:home?getAvatarInteractionTargetLabel(home,id):null,
     interact(targetId,id){if(id==='watch')return startTelevision(targetId);if(elevatorMotion)return elevatorBusy();const descriptor=interactions(targetId).find(item=>item.id===id);return descriptor?travel(descriptor.approach,descriptor):{ok:false,error:"DisplayText4030, DisplayText4031."};},
-    setVisible(value){const becameVisible=!visible&&Boolean(value);if(!value)pauseActivity();visible=Boolean(value);if(becameVisible&&!document.hidden)resumeActivity();present();},
+    setVisible(value){const becameVisible=!visible&&Boolean(value);if(!value)pauseActivity();visible=Boolean(value);if(becameVisible&&!document.hidden){resumeActivity();if(!suspended&&hasFrameWork())schedule();}present();},
     hit(raycaster){if(!group.visible)return null;const meshes=[];robot.traverseVisible(n=>{if(n.isMesh)meshes.push(n);});return raycaster.intersectObjects(meshes,false)[0]??null;},
     getAnchor:()=>point?{x:point.x,y:(point.y??FLOOR_Y)+navigation.height*.65,z:point.z}:null,
-    getState:()=>({point:point?{...point}:null,safePoint:safePoint?{...safePoint}:null,floor,action,visible,disposed,navigation:{...navigation},scheduled:!!frame,dance:dancing?{time:dancing.time,blend:dancing.blend,exitRequested:dancing.exitRequested}:null,
+    getState:()=>({point:point?{...point}:null,safePoint:safePoint?{...safePoint}:null,floor,action,visible,disposed,presentationPaused,navigation:{...navigation},scheduled:!!frame,dance:dancing?{time:dancing.time,blend:dancing.blend,exitRequested:dancing.exitRequested}:null,
       inTransition:!!television&&television.phase!=='watch'||!!elevatorMotion||!!sequence||!!swimming&&swimming.mode!=='loop',phase:footballFrame?.phase??television?.phase??elevatorFrame?.phase??swimFrame?.phase??stairFrame?.phase??sequence?.steps[sequence.index].phase??(action==='sit'?'seated':action==='lie'?'lying':action),phaseLabel:footballFrame?footballFrame.label:television?televisionLabels[television.phase]:elevatorFrame?.phaseLabel??swimFrame?.phaseLabel??stairFrame?.phaseLabel??sequence?.steps[sequence.index].label??'',transitionProgress:television?(television.motion?television.motion.elapsed/television.motion.steps[television.motion.index].duration:Math.min(1,television.elapsed/TELEVISION_REACH_DURATION)):elevatorMotion?elevatorMotion.elapsed/elevatorMotion.steps[elevatorMotion.index].duration:stairMotion?stairMotion.elapsed/stairMotion.steps[stairMotion.index].duration:sequence?sequence.elapsed/sequence.steps[sequence.index].duration:1,
       stairStep:stairFrame?.stairStep?structuredClone(stairFrame.stairStep):null,
       elevatorFrame:elevatorFrame?structuredClone(elevatorFrame):null,elevatorDirection:elevatorJourney?.direction??null,

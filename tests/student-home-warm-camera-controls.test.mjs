@@ -19,7 +19,7 @@ function fixture(view='interior',size={width:1440,height:900}){
   const bounds=new THREE.Box3(new THREE.Vector3(-6,0,-4),new THREE.Vector3(8,view==='building'?9:3,7));
   const camera=new THREE.OrthographicCamera(),pan=new THREE.Vector3();let renders=0,exits=0,interruptions=0;
   const context={THREE,frameHomeCamera,boundedZoom,camera,container:{clientWidth:size.width,clientHeight:size.height},view,houseMode:'exterior',houseOverview:null,outdoorState:null,
-    zoom:1,angle:Math.PI/4,cameraPan:pan,lastCameraBounds:null,cameraBounds:()=>bounds,
+    zoom:1,angle:Math.PI/4,cameraPan:pan,lastCameraBounds:null,cameraBounds:()=>bounds,presentationPaused:false,
     renderer:{domElement:{width:0,height:0},getPixelRatio:()=>1,setSize(w,h){this.domElement.width=w;this.domElement.height=h;}},
     requestRender:()=>renders++,stageCamera:{exit(options){assert.deepEqual({...options},{restore:false});exits++;}},interruptCameraMotion:()=>interruptions++,
   };
@@ -47,5 +47,15 @@ test('actual frame method refits resized viewports without resetting current zoo
     assert.equal(f.context.zoom,zoom);assert.deepEqual(f.pan.toArray(),pan);assert.equal(f.counts().exits,before.exits,'Resize must not exit an active performance camera');
     assert.equal(f.context.renderer.domElement.width,1920);assert.equal(f.context.renderer.domElement.height,1080);assert.ok(f.counts().renders>before.renders);
     for(const x of [f.bounds.min.x,f.bounds.max.x])for(const y of [f.bounds.min.y,f.bounds.max.y])for(const z of [f.bounds.min.z,f.bounds.max.z])assert.ok(Math.abs(ndc(f.camera,new THREE.Vector3(x,y,z)).z)<=1,'Depth range stays valid after resize');
+  }
+});
+
+test('a paused presentation ignores hidden-main resize without changing its camera or canvas',()=>{
+  for(const view of ['interior','estate','building']){
+    const f=fixture(view);f.controls.zoom(1);f.pan.set(2,0,-1);f.controls.refit();
+    const pose=JSON.stringify(f.camera.toJSON()),counts=f.counts(),canvas={...f.context.renderer.domElement},bounds=f.context.lastCameraBounds.clone();
+    f.context.presentationPaused=true;Object.assign(f.context.container,{clientWidth:1920,clientHeight:1080});f.controls.refit();
+    assert.equal(JSON.stringify(f.camera.toJSON()),pose,'The hidden orthographic camera must retain its complete saved projection and pose');assert.deepEqual(f.context.renderer.domElement,canvas);assert.deepEqual(f.counts(),counts);assert.ok(f.context.lastCameraBounds.equals(bounds));
+    f.context.presentationPaused=false;f.controls.refit();assert.equal(f.context.renderer.domElement.width,1920);assert.equal(f.context.renderer.domElement.height,1080);assert.ok(f.counts().renders>counts.renders);
   }
 });

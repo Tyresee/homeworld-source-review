@@ -152,7 +152,7 @@
 :root[data-theme="warm"] .warm-show {
   position: absolute;
   z-index: 6;
-  left: 330px;
+  left: 408px;
   bottom: 28px;
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@
 :root[data-theme="warm"] .warm-show svg { display: block; width: 40px; height: 40px; }
 :root[data-theme="warm"] .warm-show:hover:not(:disabled),
 :root[data-theme="warm"] .warm-show[aria-pressed="true"] { background: #443a32; border-color: var(--warm-coin); }
-:root[data-theme="warm"] .warm-stage-camera { position: absolute; z-index: 6; left: 330px; bottom: 104px; min-height: 40px; background: var(--warm-panel); border-color: var(--warm-line); font-size: 16px; }
+:root[data-theme="warm"] .warm-stage-camera { position: absolute; z-index: 6; left: 408px; bottom: 104px; min-height: 40px; background: var(--warm-panel); border-color: var(--warm-line); font-size: 16px; }
 :root[data-theme="warm"] .warm-camera-dock { position: absolute; z-index: 6; right: 28px; bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
 :root[data-theme="warm"] .warm-camera-button { display: grid; place-items: center; flex: none; width: 52px; height: 52px; min-width: 52px; min-height: 52px; margin: 0; padding: 0; border: 1px solid var(--warm-line); border-radius: 16px; background: var(--warm-panel); color: var(--warm-ink); box-shadow: 0 6px 18px #5a463014; }
 :root[data-theme="warm"] .warm-camera-button svg { display: block; width: 26px; height: 26px; }
@@ -438,9 +438,9 @@
   :root[data-theme="warm"] .home-heading > div:first-child { max-width: calc(100% - 218px); }
   :root[data-theme="warm"] .wallet { min-width: 202px; max-width: 218px; padding: 12px; }
   :root[data-theme="warm"] .warm-view-dock { left: 20px; bottom: 20px; gap: 10px; padding: 10px; }
-  :root[data-theme="warm"] .warm-show { left: 292px; bottom: 20px; padding-right: 15px; gap: 5px; }
+  :root[data-theme="warm"] .warm-show { left: 368px; bottom: 20px; padding-right: 15px; gap: 5px; }
   :root[data-theme="warm"] .warm-camera-dock { right: 20px; bottom: 20px; }
-  :root[data-theme="warm"] .warm-stage-camera { left: 292px; bottom: 96px; }
+  :root[data-theme="warm"] .warm-stage-camera { left: 368px; bottom: 96px; }
   :root[data-theme="warm"] .warm-status-toast { max-width: calc(100% - 40px); }
   :root[data-theme="warm"] .home-quick-remote { right: 84px; }
 }
@@ -477,4 +477,30 @@
   :root[data-theme="warm"] .warm-view-icon,
   :root[data-theme="warm"] .warm-status-toast { transition: none; }
   :root[data-theme="warm"] .warm-view-option:hover:not(:disabled) .warm-view-icon { transform: none; }
+}
+
+/* Viewing is a temporary, full-window layer. The prior projection/presentation
+   preference and URL are retained for the return to editing. */
+:root[data-theme="warm"] body.home-roam-active { overflow:hidden; }
+:root[data-theme="warm"] body.home-roam-active > .topbar,
+:root[data-theme="warm"] body.home-roam-active > .skip,
+:root[data-theme="warm"] body.home-roam-active .roster { display:none; }
+:root[data-theme="warm"] body.home-roam-active main { display:block; min-height:100dvh; }
+:root[data-theme="warm"] body.home-roam-active .home { width:100%; height:100dvh; min-height:100dvh; }
+:root[data-theme="warm"] body.home-roam-active .wallet,
+:root[data-theme="warm"] body.home-roam-active .warm-heading-actions,
+:root[data-theme="warm"] body.home-roam-active .warm-student-picker,
+:root[data-theme="warm"] body.home-roam-active #home-caption,
+:root[data-theme="warm"] body.home-roam-active .home-heading .eyebrow,
+:root[data-theme="warm"] body.home-roam-active .warm-status-toast,
+:root[data-theme="warm"] body.home-roam-active .warm-show,
+:root[data-theme="warm"] body.home-roam-active .warm-camera-dock,
+:root[data-theme="warm"] body.home-roam-active .warm-stage-camera,
+:root[data-theme="warm"] body.home-roam-active .home-quick-remote,
+:root[data-theme="warm"] body.home-roam-active #palette { display:none !important; }
+:root[data-theme="warm"] body.home-roam-active .home-heading { z-index:34; }
+:root[data-theme="warm"] body.home-roam-active .home:not([data-roam-phase="orbit"]) .home-heading { display:none; }
+:root[data-theme="warm"] body.home-roam-active .warm-view-dock { z-index:36; bottom:106px; }
+@media(max-width:600px) {
+  :root[data-theme="warm"] body.home-roam-active .warm-view-dock { bottom:100px; }
 }

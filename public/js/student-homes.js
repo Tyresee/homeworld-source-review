@@ -20,13 +20,13 @@ const contextMenu=createStudentHomeContextMenu({
   onWave:()=>{if(home)scene?.wave();},onReset:()=>{if(home)scene?.reset();},
 });
 const warmUI=homeTheme.id==='warm'?createStudentHomeWarmUI({document,window,themeId:homeTheme.id,
-  getState:()=>({ready:!!home&&!$('home-tools').hidden,busy:writing||changingStudent,view:scene?.getView()??'interior',stageActive:$('stage-toggle').getAttribute('aria-pressed')==='true',stageCamera:stageCameraState,students,selectedId:selected?.id}),
-  onView:view=>$('view-'+view).click(),onStage:()=>$('stage-toggle').click(),onStageCamera:()=>$('stage-camera-toggle').click(),
+  getState:()=>({ready:!!home&&!$('home-tools').hidden,busy:writing||changingStudent,view:scene?.getView()??'interior',roam:scene?.getRoamState?.(),stageActive:$('stage-toggle').getAttribute('aria-pressed')==='true',stageCamera:stageCameraState,students,selectedId:selected?.id}),
+  onView:view=>{if(view==='roam'){if(!home||writing||changingStudent)return;$('palette').hidden=true;contextMenu.close();void scene?.setView('roam');}else $('view-'+view).click();},onStage:()=>$('stage-toggle').click(),onStageCamera:()=>$('stage-camera-toggle').click(),
   onZoom:direction=>scene?.zoom?.(direction),onReset:()=>scene?.reset(),onRefit:()=>scene?.refit?.(),onSelectStudent:id=>selectStudent(students.find(student=>student.id===id)),onError:error=>errorStatus(error),
 }):null;
 function showBalance(value){if(warmUI)warmUI.setBalance(value,session?.actor?.id+':'+selected?.id);else $('balance').textContent=value.toLocaleString('en');}
 function clearBalance(){if(warmUI)warmUI.clearBalance();else $('balance').textContent='—';}
-function openContextMenu(context){if(!home||writing)return;$('palette').hidden=true;contextMenu.open(context);}
+function openContextMenu(context){if(!home||writing||scene?.isRoaming?.())return;$('palette').hidden=true;contextMenu.open(context);}
 function status(message,retry=null,retryLabel="DisplayText3806",{persistent=false}={}){$('status').textContent=message;retryAction=retry;$('retry').hidden=!retry;$('retry').textContent=retryLabel;warmUI?.notify({persistent:persistent||!!retry||!$('login').hidden});}
 function errorStatus(error,retry=null){if(error.status===401){$('login').hidden=false;$('login').href='/login/?next='+encodeURIComponent(preserveHomeTheme('/games/homeworld/student-homes.html'));}status(error.message,error.status===401?null:retry,"DisplayText3806",{persistent:true});}
 function message(text){$('scene-message').textContent=text;$('scene-message').hidden=!text;}
@@ -72,7 +72,7 @@ async function drawHome(own){
   if(own!==selection)return;$('welcome').hidden=!!home;$('home-tools').hidden=true;$('scene-hint').hidden=true;warmUI?.refresh();
   if(!home){message('');$('home-caption').textContent="DisplayText4225";status("DisplayText4226, DisplayText4227.");return;}
   $('home-caption').textContent=`${home.house.floors.length} DisplayText4228 · ${home.commerce?.owned.filter(item=>item.status!=='sold').length??0} DisplayText4229 · DisplayText0006`;message("DisplayText4230…");syncPalette();
-  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onStageChange:syncStage,onStageCameraChange:syncStageCamera,warmUI:homeTheme.id==='warm',onRobotPalette:openPalette});
+  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onRoamChange:()=>warmUI?.refresh(),onStageChange:syncStage,onStageCameraChange:syncStageCamera,warmUI:homeTheme.id==='warm',onRobotPalette:openPalette});
     const restored=await scene.replayRobotActivity?.({actorId:session.actor.id,studentId:selected.id,home,robotActivity});if(own!==selection)return;
     if(restored?.home){home=restored.home;robotActivity=restored.robotActivity??null;}
     await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;if(latestWallet)scene.setWallet?.(latestWallet);syncView(scene.getView());message('');$('home-tools').hidden=false;$('scene-hint').hidden=false;warmUI?.refresh();status(restored?.pending?"DisplayText4231, DisplayText3811.":homeTheme.id==='warm'?"DisplayText4232 · DisplayText4763, DisplayText4764.":"DisplayText4232 · DisplayText4233 / Outdoors, DisplayText4202.");}
@@ -94,7 +94,7 @@ async function executeCommand(command,commandId,options={}){
   const bound=['setRobotActivity','setObjectState'].includes(command?.type)&&options.actorId&&options.studentId;
   const actorId=bound?options.actorId:session?.actor?.id,studentId=bound?options.studentId:selected?.id;
   if(session?.authenticated!==true||!actorId||actorId!==session.actor?.id||!students.some(row=>row.id===studentId))throw Object.assign(new Error("DisplayText4249, DisplayText4239."),{code:'identity_changed',status:409});
-  if(!bound&&(!home||!selected||writing))throw new Error("DisplayText4250, DisplayText4016.");
+  if(!bound&&(!home||!selected||writing||scene?.isRoaming?.()||scene?.getRoamState?.()?.entering))throw new Error("DisplayText4250, DisplayText4016.");
   const expectedRevision=bound?options.expectedRevision:home.revision,own=selection;
   const active=()=>own===selection&&selected?.id===studentId&&session?.actor?.id===actorId;
   const lock=command?.type!=='setRobotActivity'&&active();
@@ -137,12 +137,12 @@ async function selectStudent(student){
 async function claim(){if(!selected||home||writing||!session)return;const own=selection;busy(true);status("DisplayText4256…");
   try{const result=await request(`/students/${selected.id}/home/init`,{expectedUserId:session.actor.id},'POST');if(own!==selection)return;home=result.home;robotActivity=result.robotActivity??null;await drawHome(own);}
   catch(error){if(own===selection){if(error.code==='identity_changed')await reloadIdentity();else errorStatus(error,claim);}}finally{busy(false);}}
-function openPalette(point){if(!home||!scene)return;contextMenu.close();$('palette').hidden=false;const b=$('stage').getBoundingClientRect(),panel=$('palette');
+function openPalette(point){if(!home||!scene||scene.isRoaming?.()||scene.getRoamState?.()?.entering)return;contextMenu.close();$('palette').hidden=false;const b=$('stage').getBoundingClientRect(),panel=$('palette');
   panel.style.top=point?.y?`${Math.max(155,Math.min(b.height-panel.offsetHeight-70,point.y-b.top))}px`:'';
   panel.style.left=point?.x?`${Math.max(12,Math.min(b.width-panel.offsetWidth-12,point.x-b.left+12))}px`:'';panel.style.right=point?.x?'auto':'';
   $('palette-close').focus({preventScroll:true});}
 async function changeColor(key,color){
-  if(!home||writing||home.avatar.colors[key]===color)return;const own=selection,student=selected,previous=home.avatar.colors,next={...previous,[key]:color};busy(true);scene.palette(next);
+  if(!home||writing||scene?.isRoaming?.()||scene?.getRoamState?.()?.entering||home.avatar.colors[key]===color)return;const own=selection,student=selected,previous=home.avatar.colors,next={...previous,[key]:color};busy(true);scene.palette(next);
   home={...home,avatar:{...home.avatar,colors:next}};syncPalette();status("DisplayText4257…");
   try{const result=await request(`/students/${student.id}/home/avatar`,{expectedUserId:session.actor.id,expectedRevision:home.revision,colors:next},'PATCH');if(own!==selection)return;home=result.home;robotActivity=result.robotActivity??null;await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;scene.palette(home.avatar.colors);syncPalette();status("DisplayText4258, DisplayText4259.");}
   catch(error){if(own!==selection)return;

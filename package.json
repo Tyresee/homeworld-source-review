@@ -13,7 +13,8 @@
     "review:dance": "node scripts/qa/robot-dance-review.mjs",
     "start:service": "node server/student-homes/cli.mjs",
     "test:all": "node --test tests/*.test.mjs",
-    "review:look-dev": "node scripts/qa/look-dev-review.mjs"
+    "review:look-dev": "node scripts/qa/look-dev-review.mjs",
+    "review:roam": "node scripts/qa/roam-review.mjs"
   },
   "dependencies": {
     "@fontsource/nunito": "5.3.0",

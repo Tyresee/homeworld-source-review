@@ -25,13 +25,14 @@ import {getObjectQuickActions,getQuickActionOwned} from './student-home-quick-ac
 
 /** Formal account editor. Cart and placement previews are ephemeral; every
  * owned object, payment and structural edit is acknowledged by the server. */
-export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot,warmUI=false,onCommand,onStatus=()=>{},onViewChange=()=>{},onStageChange=()=>{},onStageCameraChange=()=>{}}={}){
+export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot,warmUI=false,onCommand,onStatus=()=>{},onViewChange=()=>{},onRoamChange=()=>{},onStageChange=()=>{},onStageCameraChange=()=>{}}={}){
   let world,home,wallet=null,cart=[],floor=0,placing=null,busy=false,pending=null,disposed=false,opening;
   let robotActivity=null,activityIntent=null,activitySerial=0,identityEpoch=0,desiredActivity=null,activityRetry=null,activitySaving=null;
   let actorId=null,binding=null,commandInFlight=null,leaving=false,leaveCount=0,suppressActivity=false,savedDeparture=null;
   const bindings=new Map(),commerceWaiters=new Map(),outbox=createStudentHomeRobotOutbox();
   const objectOutbox=createStudentHomeObjectOutbox(),objectFlights=new Set();
   let resaleSource=null,resaleBalance=null,resaleQuotes=new Map();
+  let roamEntering=false,roamSerial=0;
   const copyActivity=cloneRobotActivity,sameActivity=sameRobotActivity;
   const bindingKey=(actor,student)=>JSON.stringify([actor,student]);
   function checkpoint(value){return outbox&&actorId&&home?outbox.enqueue({actorId,studentId:home.studentId,home,robotActivity},value):null;}
@@ -101,7 +102,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   }
   function openQuickActions(request){
     menu.close({restoreFocus:false});
-    if(!home||isCommerceBusy()||placing||!request.data){closeQuickActions();return;}
+    if(!home||isCommerceBusy()||world?.isRoaming?.()||roamEntering||placing||!request.data){closeQuickActions();return;}
     quickRobotPage='main';quickSelection={data:{...request.data},view:request.view,floor,epoch:identityEpoch};refreshQuickActions();
   }
   async function runQuickAction(id,targetId){
@@ -130,6 +131,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   function isCommerceBusy(){return busy&&pending?.value?.type!=='setRobotActivity';}
   function toggleStage(){
     if(!world||!home||isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
+    if(world.isRoaming?.()||roamEntering)return {ok:false,error:"DisplayText4766, DisplayText4767."};
     if(world.getStageState?.().requested){world.stopAvatarDance();return {ok:true};}
     if(world.getView()!=='interior'){const error="DisplayText3758, DisplayText3784.";onStatus(error);return {ok:false,error};}
     menu.close({restoreFocus:false});quickSelection={data:{surfaceId:'avatar'},view:'interior',floor,epoch:identityEpoch};refreshQuickActions();
@@ -171,9 +173,24 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     if(result?.error)onStatus(result.error);return result??{ok:true};
   }
   function switchFloor(index){if(isCommerceBusy())return;closeQuickActions();floor=index;world.setView('interior');sync();onStageChange(world.getStageState?.().requested===true);}
-  function setView(view){if(!world||!home||isCommerceBusy()||!['interior','estate','building'].includes(view))return;menu.close({restoreFocus:false});closeQuickActions();world.cancelDrag();world.cancelPlacement();placing=null;world.setView(view);onStageChange(world.getStageState?.().requested===true);}
+  async function enterRoam(){
+    if(!warmUI||disposed||!home||!world)return {ok:false,error:"DisplayText4768."};
+    if(isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
+    if(world.isRoaming?.())return {ok:true,unchanged:true};
+    if(roamEntering)return {ok:false,error:"DisplayText4769, DisplayText3345."};
+    const epoch=identityEpoch,serial=++roamSerial;roamEntering=true;
+    menu.close({restoreFocus:false});closeQuickActions();shop.close();wardrobe.close();floorPlanner.close();roomPlanner.close();world.cancelDrag();world.cancelPlacement();placing=null;
+    onRoamChange({active:false,phase:'loading',entering:true});
+    try{const result=await world.enterRoam?.();if(disposed||epoch!==identityEpoch||serial!==roamSerial)return {ok:false,detached:true};
+      if(result===false||result===undefined||result?.ok===false){const error=result?.error??"DisplayText4770, DisplayText4016.";onStatus(error);return {ok:false,error};}
+      return {ok:true};
+    }catch(error){if(!disposed&&epoch===identityEpoch&&serial===roamSerial)onStatus(error.message??"DisplayText4771.");return {ok:false,error:error.message};}
+    finally{if(serial===roamSerial){roamEntering=false;onRoamChange(world?.getRoamState?.()??{active:false,phase:'inactive'});}}
+  }
+  function setView(view){if(view==='roam')return enterRoam();if(!world||!home||isCommerceBusy()||!['interior','estate','building'].includes(view))return;roamSerial++;roamEntering=false;menu.close({restoreFocus:false});closeQuickActions();world.cancelDrag();world.cancelPlacement();placing=null;world.setView(view);onStageChange(world.getStageState?.().requested===true);}
   async function command(value,{activity=false,intentSerial=activitySerial,job=null,keepalive=false}={}){
     if(!home||disposed)return {ok:false,error:"DisplayText3795."};
+    if(!activity&&(world?.isRoaming?.()||roamEntering))return {ok:false,error:"DisplayText4772, DisplayText4766."};
     if(!activity&&busy&&pending?.value.type==='setRobotActivity'&&commandInFlight){
       const queuedEpoch=identityEpoch,flight=commandInFlight;commerceWaiters.set(queuedEpoch,(commerceWaiters.get(queuedEpoch)??0)+1);
       try{await flight.promise;}finally{const remaining=(commerceWaiters.get(queuedEpoch)??1)-1;if(remaining)commerceWaiters.set(queuedEpoch,remaining);else commerceWaiters.delete(queuedEpoch);}
@@ -302,7 +319,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     return {...snapshot,pending:remains};
   }
   function openShop(tab='shop',options){menu.close({restoreFocus:false});wardrobe.close();if(options)shop.open(tab,undefined,options);else shop.open(tab);}
-  function openWardrobe(options){if(!home||isCommerceBusy())return;menu.close({restoreFocus:false});shop.close();wardrobe.open(options);}
+  function openWardrobe(options){if(!home||isCommerceBusy()||world?.isRoaming?.()||roamEntering)return;menu.close({restoreFocus:false});shop.close();wardrobe.open(options);}
   function addToCart(skuId,quantity=1){const result=setCartQuantity(state(),skuId,quantity);if(result.ok)cart=result.state.cart;return result;}
   function openFloor(index=floor){menu.close({restoreFocus:false});floorPlanner.open(index);}
   function openRooms(index=floor,kitId){menu.close({restoreFocus:false});roomPlanner.open(index,{kitId});}
@@ -367,7 +384,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     })();
     try{return await token.promise;}finally{objectFlights.delete(token);}
   }
-  function openContext(request){closeQuickActions();if(!home?.commerce||isCommerceBusy())return;const data=request.data??{},id=data.furnitureId??(data.surfaceId?.startsWith('furniture:')?data.surfaceId.slice(10):null),outdoorId=data.outdoorOwnedId,owned=home.commerce.owned.find(r=>r.id===(id??outdoorId)),product=products.get(owned?.skuId);
+  function openContext(request){closeQuickActions();if(!home?.commerce||isCommerceBusy()||world?.isRoaming?.()||roamEntering)return;const data=request.data??{},id=data.furnitureId??(data.surfaceId?.startsWith('furniture:')?data.surfaceId.slice(10):null),outdoorId=data.outdoorOwnedId,owned=home.commerce.owned.find(r=>r.id===(id??outdoorId)),product=products.get(owned?.skuId);
     const items=getHomeObjectMenu(home.commerce,owned,{change:changeObjectState,
       demonstrate:ownedId=>{void world?.unlockObjectAudio?.();world?.demonstrateObject?.(ownedId);},
       robotChannel:ownedId=>{void world?.unlockObjectAudio?.();const result=world?.changeAvatarTelevisionChannel?.(ownedId);if(result?.error)onStatus(result.error);return result;}});
@@ -434,8 +451,9 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   const wardrobe=createStudentHomeWardrobe({getState:state,getColors:()=>home?.avatar.colors,getThumbnail:thumbnails.image,onEquip:(skuId,slot)=>command({type:'equipClothing',skuId,slot}),onAddToCart:addToCart,onShop:()=>openShop('clothing')});
   const floorPlanner=createFloorPlanner({getFloors:()=>getFloorHomes(home.commerce),getBalance:()=>wallet?.balance??0,quote:s=>quoteFloorConstruction(state(),s),purchase:s=>command({type:'constructFloor',selection:s}),onBuilt:index=>switchFloor(index),onRoomPlanning:index=>openRooms(index)});
   const roomPlanner=createRoomPlanner({getFloors:()=>getFloorHomes(home.commerce),getBalance:()=>wallet?.balance??0,getStock:()=>home.commerce.owned.filter(row=>row.status==='stored'&&products.get(row.skuId)?.productType==='room').map(row=>({...row,label:products.get(row.skuId).name})),getSlots:(id,index)=>{const row=home.commerce.owned.find(r=>r.id===id);if(!row)return[];const r=roomRect(row.item)??products.get(row.skuId);return getStoreyRoomSlots(state(),row.item.kind,index,{width:r.width,depth:r.depth});},quote:(id,pose,index)=>quoteOwnedRoomPlacement(state(),id,pose,{storey:index}),place:(id,pose,index)=>command({type:'placeRoom',id,pose,storey:index}),onBuilt:index=>switchFloor(index),onShop:index=>{switchFloor(index);openShop('rooms');},onFloorExpansion:openFloor});
-  async function init(){world=await createStudentHomeWorld({container,onObjectClick:openQuickActions,onPanStart:closeQuickActions,onStageCameraChange:stageCameraChanged,onViewChange:view=>{closeQuickActions();onViewChange(view);},onRobotActivityChange:queueRobotActivity,onObjectAction:({id,storey,patch})=>changeObjectState(id,patch,storey),onCancel:()=>sync(),onContextMenu:openContext,onPalette:onRobot,onStatus:result=>{onStageChange(world?.getStageState?.().requested===true);const message=result.message??result;onStatus(message);const model=quickModel(),currentStatus=model?quickActivityStatus(model):null;quickActions.updateStatus(result.error?message:currentStatus??(typeof message==='string'?message.split(" · DisplayText3901")[0]:message),{error:result.error===true});},onStoreyChange:switchFloor,onObjectEdit:request=>openContext({...request,data:{surfaceId:request.surfaceId},view:'interior'}),onOutdoorMove:(id,patch)=>command({type:'updateOutdoor',id,patch}),onDrag(change,commit){if(isCommerceBusy())return;if(change.type!=='furniture'){sync();return;}if(!commit){const probe=applyChange(getFloorHome(home.commerce,floor),change);if(probe.ok)world.setPreview(probe.state);return;}const patch=Object.fromEntries(['x','z','rotation','mount'].filter(k=>change[k]!==undefined).map(k=>[k,change[k]]));void command({type:'updateItem',id:change.id,patch,storey:floor});},onPlacementPreview(pose){if(!placing||isCommerceBusy())return {ok:false,error:"DisplayText3902."};const row=home.commerce.owned.find(r=>r.id===placing);const result=products.get(row.skuId)?.productType==='outdoor'?placeOwnedOutdoor(state(),placing,pose):placeOwnedItem(state(),placing,pose,{storey:floor});onStatus(result.ok?"DisplayText3903, DisplayText3835.":result.error);return {ok:result.ok,error:result.error};},onPlacementCommit:pose=>place(placing,pose),onPlacementCancel(){placing=null;},onPlacementReject:result=>onStatus(result?.error??"DisplayText3904, DisplayText0615.")});if(disposed){world.dispose();return;}thumbnails.setRobotSource(world.getRobotSource());}
+  async function init(){world=await createStudentHomeWorld({container,warmUI,onRoamChange:value=>onRoamChange({...value,entering:roamEntering}),onObjectClick:openQuickActions,onPanStart:closeQuickActions,onStageCameraChange:stageCameraChanged,onViewChange:view=>{closeQuickActions();onViewChange(view);},onRobotActivityChange:queueRobotActivity,onObjectAction:({id,storey,patch})=>changeObjectState(id,patch,storey),onCancel:()=>sync(),onContextMenu:openContext,onPalette:onRobot,onStatus:result=>{onStageChange(world?.getStageState?.().requested===true);const message=result.message??result;onStatus(message);const model=quickModel(),currentStatus=model?quickActivityStatus(model):null;quickActions.updateStatus(result.error?message:currentStatus??(typeof message==='string'?message.split(" · DisplayText3901")[0]:message),{error:result.error===true});},onStoreyChange:switchFloor,onObjectEdit:request=>openContext({...request,data:{surfaceId:request.surfaceId},view:'interior'}),onOutdoorMove:(id,patch)=>command({type:'updateOutdoor',id,patch}),onDrag(change,commit){if(isCommerceBusy())return;if(change.type!=='furniture'){sync();return;}if(!commit){const probe=applyChange(getFloorHome(home.commerce,floor),change);if(probe.ok)world.setPreview(probe.state);return;}const patch=Object.fromEntries(['x','z','rotation','mount'].filter(k=>change[k]!==undefined).map(k=>[k,change[k]]));void command({type:'updateItem',id:change.id,patch,storey:floor});},onPlacementPreview(pose){if(!placing||isCommerceBusy())return {ok:false,error:"DisplayText3902."};const row=home.commerce.owned.find(r=>r.id===placing);const result=products.get(row.skuId)?.productType==='outdoor'?placeOwnedOutdoor(state(),placing,pose):placeOwnedItem(state(),placing,pose,{storey:floor});onStatus(result.ok?"DisplayText3903, DisplayText3835.":result.error);return {ok:result.ok,error:result.error};},onPlacementCommit:pose=>place(placing,pose),onPlacementCancel(){placing=null;},onPlacementReject:result=>onStatus(result?.error??"DisplayText3904, DisplayText0615.")});if(disposed){world.dispose();return;}thumbnails.setRobotSource(world.getRobotSource());}
   function clear(){
+    roamSerial++;roamEntering=false;world?.exitRoam?.();onRoamChange({active:false,phase:'inactive',entering:false});
     closeQuickActions();
     // Capture while the old account still owns the controller. clear() is also
     // safe for callers that cannot await navigation; the checkpoint is durable.
@@ -466,10 +484,10 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
       try{if(changed)world.setView(['swim','football'].includes(activity?.kind)||activity?.kind==='stand'&&activity.environment==='estate'?'estate':'interior');sync();}
       finally{suppressActivity=false;onStageChange(world?.getStageState?.().requested===true);stageCameraChanged(world?.getStageCameraState?.()??emptyStageCamera());}
     },prepareLeave:flushBeforeLeave,flushRobotActivity:flushBeforeLeave,replayRobotActivity,
-    openWardrobe,toggleStage,toggleStageCamera,setWallet(value){wallet=value;shop.refresh();},palette:colors=>world?.palette(colors),wave:()=>world?.waveAvatar?.(),moveTo:point=>world?.walkAvatar(point),reset:()=>world?.reset(),
-    zoom(direction){if(disposed||!home||!world||isCommerceBusy()||!Number.isFinite(direction))return false;world.zoom?.(direction);return true;},
-    refit(){if(disposed||!home||!world)return false;world.refit?.();return true;},
-    openRobotQuickActions(){if(disposed||!home||!world||isCommerceBusy())return false;openQuickActions({view:world.getView(),data:{surfaceId:'avatar'}});return true;},
+    openWardrobe,toggleStage,toggleStageCamera,enterRoam,exitRoam(){roamSerial++;roamEntering=false;world?.exitRoam?.();onRoamChange(world?.getRoamState?.()??{active:false,phase:'inactive'});},getRoamState:()=>({...world?.getRoamState?.(),active:world?.isRoaming?.()===true,entering:roamEntering}),isRoaming:()=>world?.isRoaming?.()===true,getRoamDiagnostics:()=>world?.getRoamDiagnostics?.(),getCameraSnapshot:()=>world?.getCameraSnapshot?.(),setWallet(value){wallet=value;shop.refresh();},palette:colors=>{if(!world?.isRoaming?.()&&!roamEntering)return world?.palette(colors);},wave:()=>{if(!world?.isRoaming?.()&&!roamEntering)return world?.waveAvatar?.();},moveTo:point=>{if(!world?.isRoaming?.()&&!roamEntering)return world?.walkAvatar(point);return false;},reset:()=>{if(!world?.isRoaming?.()&&!roamEntering)return world?.reset();},
+    zoom(direction){if(disposed||!home||!world||isCommerceBusy()||world.isRoaming?.()||roamEntering||!Number.isFinite(direction))return false;world.zoom?.(direction);return true;},
+    refit(){if(disposed||!home||!world||world.isRoaming?.()||roamEntering)return false;world.refit?.();return true;},
+    openRobotQuickActions(){if(disposed||!home||!world||isCommerceBusy()||world.isRoaming?.()||roamEntering)return false;openQuickActions({view:world.getView(),data:{surfaceId:'avatar'}});return true;},
     setView,getView:()=>world?.getView()??'interior',clear,
-    dispose(){if(disposed)return;const wasLeaving=leaving;leaving=true;captureRobotActivity();leaving=wasLeaving;globalThis.removeEventListener?.('pagehide',lifecycle);globalThis.document?.removeEventListener?.('visibilitychange',hidden);globalThis.document?.removeEventListener?.('keydown',quickEscape);disposed=true;identityEpoch++;desiredActivity=null;activityRetry=null;quickActions.dispose();menu.dispose();shop.dispose();wardrobe.dispose();floorPlanner.dispose();roomPlanner.dispose();thumbnails.dispose();world?.dispose();}};
+    dispose(){if(disposed)return;roamSerial++;roamEntering=false;world?.exitRoam?.();const wasLeaving=leaving;leaving=true;captureRobotActivity();leaving=wasLeaving;globalThis.removeEventListener?.('pagehide',lifecycle);globalThis.document?.removeEventListener?.('visibilitychange',hidden);globalThis.document?.removeEventListener?.('keydown',quickEscape);disposed=true;identityEpoch++;desiredActivity=null;activityRetry=null;quickActions.dispose();menu.dispose();shop.dispose();wardrobe.dispose();floorPlanner.dispose();roomPlanner.dispose();thumbnails.dispose();world?.dispose();}};
 }

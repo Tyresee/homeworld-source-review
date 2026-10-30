@@ -1,0 +1,601 @@
+{
+  "tool": "read-only-roam-review",
+  "case": "12-living-ceiling-lamp-switched-off",
+  "reviewClockMs": 4900,
+  "clockPlaying": false,
+  "size": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 1
+  },
+  "fixtureId": "house",
+  "accounts": false,
+  "wallet": false,
+  "persistence": false,
+  "fixtureDataUnchanged": true,
+  "controller": {
+    "active": true,
+    "phase": "free",
+    "walking": true,
+    "transition": false,
+    "view": "interior",
+    "sceneMode": "in",
+    "displayMode": "exterior",
+    "autoRotate": false,
+    "doorAngle": 1.8
+  },
+  "camera": {
+    "position": [
+      1.8,
+      1.5,
+      1.7
+    ],
+    "quaternion": [
+      -0.033114170608560076,
+      0.32666444571378467,
+      0.01145296884193954,
+      0.9444906675643325
+    ],
+    "fov": 68,
+    "target": [
+      1.3999999999999988,
+      2.050000005438924,
+      3.0774999272823327
+    ]
+  },
+  "interactions": {
+    "disposed": false,
+    "hovered": null,
+    "activeAnimations": 0,
+    "counts": {
+      "floor-lamp": 1,
+      "hob": 2,
+      "drawer": 6,
+      "faucet": 2,
+      "cabinet-door": 2,
+      "toilet": 1,
+      "ceiling-light": 4
+    },
+    "targets": [
+      {
+        "id": "lookdev:h-lamp:floor-lamp:0",
+        "type": "floor-lamp",
+        "kind": "hhTripodLamp",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-cooker:hob:1",
+        "type": "hob",
+        "kind": "mkDoubleGas",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-cooker:hob:2",
+        "type": "hob",
+        "kind": "mkDoubleGas",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-cooker:drawer:3",
+        "type": "drawer",
+        "kind": "mkDoubleGas",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-cooker:drawer:4",
+        "type": "drawer",
+        "kind": "mkDoubleGas",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-sink:faucet:5",
+        "type": "faucet",
+        "kind": "mkSingleSink",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-sink:cabinet-door:6",
+        "type": "cabinet-door",
+        "kind": "mkSingleSink",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-sink:cabinet-door:7",
+        "type": "cabinet-door",
+        "kind": "mkSingleSink",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-dining:drawer:8",
+        "type": "drawer",
+        "kind": "hhDropLeafTable",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-bedside:drawer:9",
+        "type": "drawer",
+        "kind": "bedsideCabinet",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-toilet:toilet:10",
+        "type": "toilet",
+        "kind": "compactToilet",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-vanity:faucet:11",
+        "type": "faucet",
+        "kind": "bathroomVanity",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-vanity:drawer:12",
+        "type": "drawer",
+        "kind": "bathroomVanity",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "lookdev:h-vanity:drawer:13",
+        "type": "drawer",
+        "kind": "bathroomVanity",
+        "on": false,
+        "progress": 0,
+        "busy": false
+      },
+      {
+        "id": "ceiling:living",
+        "type": "ceiling-light",
+        "kind": "ceiling",
+        "on": false,
+        "progress": 0,
+        "busy": false,
+        "roomId": "living"
+      },
+      {
+        "id": "ceiling:lookdev-kitchen",
+        "type": "ceiling-light",
+        "kind": "ceiling",
+        "on": true,
+        "progress": 0,
+        "busy": false,
+        "roomId": "lookdev-kitchen"
+      },
+      {
+        "id": "ceiling:lookdev-bedroom",
+        "type": "ceiling-light",
+        "kind": "ceiling",
+        "on": true,
+        "progress": 0,
+        "busy": false,
+        "roomId": "lookdev-bedroom"
+      },
+      {
+        "id": "ceiling:lookdev-bathroom",
+        "type": "ceiling-light",
+        "kind": "ceiling",
+        "on": true,
+        "progress": 0,
+        "busy": false,
+        "roomId": "lookdev-bathroom"
+      }
+    ]
+  },
+  "actualExperience": {
+    "active": true,
+    "phase": {
+      "active": true,
+      "phase": "free",
+      "walking": true,
+      "transition": false,
+      "view": "interior",
+      "sceneMode": "in",
+      "displayMode": "exterior",
+      "autoRotate": false,
+      "doorAngle": 1.8
+    },
+    "camera": {
+      "position": [
+        1.8,
+        1.5,
+        1.7
+      ],
+      "quaternion": [
+        -0.033114170608560076,
+        0.32666444571378467,
+        0.01145296884193954,
+        0.9444906675643325
+      ],
+      "fov": 68,
+      "target": [
+        1.3999999999999988,
+        2.050000005438924,
+        3.0774999272823327
+      ]
+    },
+    "entrance": {
+      "roomId": "lookdev-bathroom",
+      "center": {
+        "x": 4.199999999999999,
+        "y": 0.96,
+        "z": 7.5699999999999985
+      },
+      "outward": {
+        "x": 0,
+        "y": 0,
+        "z": 1
+      },
+      "width": 1.16,
+      "height": 1.76
+    },
+    "walls": [
+      {
+        "id": "roam:perimeter:x:-2.6:-2.8:5.6",
+        "cut": false,
+        "axis": "z",
+        "plane": -2.6,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:perimeter:x:7.8:-2.8:5.6",
+        "cut": false,
+        "axis": "z",
+        "plane": 7.8,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:perimeter:z:-2.8:-2.6:7.8",
+        "cut": false,
+        "axis": "x",
+        "plane": -2.8,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:perimeter:z:5.6:-2.6:7.8",
+        "cut": false,
+        "axis": "x",
+        "plane": 5.6,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:partition:x:2.6:-2.8:2.8",
+        "cut": false,
+        "axis": "z",
+        "plane": 2.6,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:partition:z:2.8:-2.6:2.6",
+        "cut": false,
+        "axis": "x",
+        "plane": 2.8,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:partition:x:2.6:2.8:5.6",
+        "cut": false,
+        "axis": "z",
+        "plane": 2.6,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      },
+      {
+        "id": "roam:partition:z:2.8:2.6:7.8",
+        "cut": false,
+        "axis": "x",
+        "plane": 2.8,
+        "capHeight": 0.045,
+        "bodyHeight": 0.5
+      }
+    ],
+    "interactions": {
+      "disposed": false,
+      "hovered": null,
+      "activeAnimations": 0,
+      "counts": {
+        "floor-lamp": 1,
+        "hob": 2,
+        "drawer": 6,
+        "faucet": 2,
+        "cabinet-door": 2,
+        "toilet": 1,
+        "ceiling-light": 4
+      },
+      "targets": [
+        {
+          "id": "lookdev:h-lamp:floor-lamp:0",
+          "type": "floor-lamp",
+          "kind": "hhTripodLamp",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-cooker:hob:1",
+          "type": "hob",
+          "kind": "mkDoubleGas",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-cooker:hob:2",
+          "type": "hob",
+          "kind": "mkDoubleGas",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-cooker:drawer:3",
+          "type": "drawer",
+          "kind": "mkDoubleGas",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-cooker:drawer:4",
+          "type": "drawer",
+          "kind": "mkDoubleGas",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-sink:faucet:5",
+          "type": "faucet",
+          "kind": "mkSingleSink",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-sink:cabinet-door:6",
+          "type": "cabinet-door",
+          "kind": "mkSingleSink",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-sink:cabinet-door:7",
+          "type": "cabinet-door",
+          "kind": "mkSingleSink",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-dining:drawer:8",
+          "type": "drawer",
+          "kind": "hhDropLeafTable",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-bedside:drawer:9",
+          "type": "drawer",
+          "kind": "bedsideCabinet",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-toilet:toilet:10",
+          "type": "toilet",
+          "kind": "compactToilet",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-vanity:faucet:11",
+          "type": "faucet",
+          "kind": "bathroomVanity",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-vanity:drawer:12",
+          "type": "drawer",
+          "kind": "bathroomVanity",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "lookdev:h-vanity:drawer:13",
+          "type": "drawer",
+          "kind": "bathroomVanity",
+          "on": false,
+          "progress": 0,
+          "busy": false
+        },
+        {
+          "id": "ceiling:living",
+          "type": "ceiling-light",
+          "kind": "ceiling",
+          "on": false,
+          "progress": 0,
+          "busy": false,
+          "roomId": "living"
+        },
+        {
+          "id": "ceiling:lookdev-kitchen",
+          "type": "ceiling-light",
+          "kind": "ceiling",
+          "on": true,
+          "progress": 0,
+          "busy": false,
+          "roomId": "lookdev-kitchen"
+        },
+        {
+          "id": "ceiling:lookdev-bedroom",
+          "type": "ceiling-light",
+          "kind": "ceiling",
+          "on": true,
+          "progress": 0,
+          "busy": false,
+          "roomId": "lookdev-bedroom"
+        },
+        {
+          "id": "ceiling:lookdev-bathroom",
+          "type": "ceiling-light",
+          "kind": "ceiling",
+          "on": true,
+          "progress": 0,
+          "busy": false,
+          "roomId": "lookdev-bathroom"
+        }
+      ]
+    },
+    "lights": {
+      "sun": 0,
+      "fill": 0,
+      "hemisphere": 1.05,
+      "exposure": 1.22,
+      "master": 0,
+      "masterRoom": "living",
+      "shadowAutoUpdate": true,
+      "ceilings": [
+        {
+          "id": "ceiling:living",
+          "on": false,
+          "intensity": 0
+        },
+        {
+          "id": "ceiling:lookdev-kitchen",
+          "on": true,
+          "intensity": 18
+        },
+        {
+          "id": "ceiling:lookdev-bedroom",
+          "on": true,
+          "intensity": 18
+        },
+        {
+          "id": "ceiling:lookdev-bathroom",
+          "on": true,
+          "intensity": 18
+        }
+      ]
+    },
+    "render": {
+      "frame": 313,
+      "calls": 355,
+      "triangles": 83094,
+      "points": 0,
+      "lines": 0,
+      "geometries": 339,
+      "textures": 13,
+      "frames": 313,
+      "lastCpuMs": 0.800000011920929,
+      "manualClock": true,
+      "meanFrameIntervalMs": null,
+      "fps": null,
+      "width": 1440,
+      "height": 900,
+      "dpr": 1
+    },
+    "rendererIdentity": {
+      "vendor": "Google Inc. (Apple)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+    }
+  },
+  "frameRateStats": null,
+  "machine": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "logicalProcessors": 10,
+    "deviceMemoryGiB": 16,
+    "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+    "webglVendor": "Google Inc. (Apple)",
+    "physicalClassroomHardwareValidated": false
+  },
+  "cameraRestoration": {
+    "beforeEnter": {
+      "position": [
+        8.411067814398672,
+        8.462499996870756,
+        9.611067814398673
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260623,
+        0.11626808663848794,
+        0.880206311539509
+      ],
+      "projection": [
+        0.09643219906189231,
+        0,
+        0,
+        0,
+        0,
+        0.15429151849902772,
+        0,
+        0,
+        0,
+        0,
+        -0.1174431524034575,
+        0,
+        0,
+        -2.7407679414719817e-16,
+        -1.440343429022506,
+        1
+      ],
+      "left": -10.369980252738797,
+      "right": 10.369980252738797,
+      "top": 6.481237657961749,
+      "bottom": -6.481237657961746,
+      "near": 3.749417654507223,
+      "far": 20.778933288839944,
+      "cameraZoom": 1,
+      "zoom": 0.94,
+      "angle": 0.7853981633974483,
+      "pan": [
+        0,
+        0,
+        0
+      ],
+      "view": "interior",
+      "activeFloor": 0
+    },
+    "afterExit": null,
+    "exactlyRestored": null
+  }
+}

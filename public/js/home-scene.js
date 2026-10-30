@@ -78,7 +78,7 @@ export function applyFloorElevatorFrame(group, frame) {
 }
 
 // Each editable part owns its material. Appearance changes never mutate a shared asset.
-export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
+export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, onRoamChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
   const lighting=theme.lighting.editor??{};
   const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
   const wallTextures=theme.id==='warm'?createHomeWallTextureManager():null;
@@ -131,6 +131,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const exteriorFloors = () => floorHomes ?? [state ?? {rooms}];
   let dragging = null, scheduled = false, disposed = false, renderFrame = 0;
   let view = 'interior', estateFocus = null, requestedFocus = null, estateLevels = {manor:3};
+  let roamExperience=null,roamLoading=false,roamEpoch=0,presentationPaused=false,roamCamera=null,roamCanvasVisibility='';
   const usesInteriorCutaway = () => theme.id === 'warm' && view === 'interior' && !capturingHouse;
   const estatePan = new THREE.Vector3();
   const cameraPan = estatePan;
@@ -147,7 +148,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
 
   let stageLighting=null,stageCamera=null,stageCameraTime=0,lastStageCameraFrame=null,stageFacingBound=false;
   function render() {
-    scheduled=false;renderFrame=0;if(disposed)return;
+    scheduled=false;renderFrame=0;if(disposed||presentationPaused)return;
     const now=performance.now();
     let stage=view==='interior'?avatarActor.getStageState?.():{active:false,requested:false};
     if(!document.hidden){
@@ -168,7 +169,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     renderer.render(scene,camera);selection.visible=oldSelection;updateHouseLabels();
     if((fading||filming)&&!document.hidden)requestRender();
   }
-  function requestRender() { if (!scheduled&&!disposed) { scheduled = true; renderFrame=requestAnimationFrame(render); } }
+  function requestRender() { if (!scheduled&&!disposed&&!presentationPaused) { scheduled = true; renderFrame=requestAnimationFrame(render); } }
   function markShadowsDirty() { renderer.shadowMap.needsUpdate = true; }
   function setDragQuality(reduced) {
     if (dragQualityReduced === reduced) return;
@@ -816,6 +817,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     return bounds;
   }
   function frameCamera(boundsOverride = null) {
+    if(presentationPaused)return;
     const width = container.clientWidth || 800, height = container.clientHeight || 600;
     // ResizeObserver passes an entry when used as a callback; only a real
     // Box3 is a valid cached-bounds override.
@@ -1160,6 +1162,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     refreshPlacement(); return true;
   }
   function placementKeydown(event) {
+    if(presentationPaused)return;
     if (event.key === 'Escape' && furniturePlacement) { event.preventDefault(); clearFurniturePlacement(true); }
   }
   function syncPointerCursor() {
@@ -1173,6 +1176,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       || document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]:not([hidden])');
   }
   function startSpacePan(event) {
+    if(presentationPaused)return;
     if (event.defaultPrevented || (event.code !== 'Space' && event.key !== ' ') || event.altKey || event.ctrlKey || event.metaKey || keyboardBelongsToControl(event)) return;
     // A focused menu/color button still owns its native Space activation.
     // Arm the temporary hand without closing that menu; pointerDown on the
@@ -1195,6 +1199,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     syncPointerCursor();
   }
   function stopSpacePan(event) {
+    if(presentationPaused)return;
     if (event?.type === 'keyup' && event.code !== 'Space' && event.key !== ' ') return;
     if (spaceUsedForPan) event?.preventDefault();
     spaceUsedForPan = false;
@@ -1214,6 +1219,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   window.addEventListener('blur', releaseInput);
   document.addEventListener('visibilitychange', visibilityChanged);
   function contextMenuAt(event, data, { select = false } = {}) {
+    if(presentationPaused)return false;
     if (!onContextMenu || spaceHeld || dragging?.spacePan || furniturePlacement) return false;
     if (select && data && !data.stairId) {
       if (view === 'estate') onEstateSelect?.(data.estateFeature);
@@ -1264,6 +1270,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     syncPointerCursor();
   }
   function pointerDown(event) {
+    if(presentationPaused)return;
     // macOS Control-click also belongs to the secondary-click menu gesture.
     if (event.button !== 0 || event.ctrlKey) return;
     // Freeze before capturing any drag anchor. Manual input must never fight
@@ -1345,6 +1352,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     }
   }
   function pointerMove(event) {
+    if(presentationPaused)return;
     lastPointerEvent = { clientX:event.clientX, clientY:event.clientY, pointerId:event.pointerId };
     if(touchPoints.has(event.pointerId))touchPoints.set(event.pointerId,{x:event.clientX,y:event.clientY});
     if(touchPoints.size===2 && pinchDistance!==null) {
@@ -1400,6 +1408,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     dragging.last = change; updateCollisionGuide(change); onDrag(change, false);
   }
   function pointerUp(event) {
+    if(presentationPaused)return;
     touchPoints.delete(event.pointerId);
     if(pinchDistance!==null) {pinchDistance=null;cancelDrag();return;}
     if (!dragging || dragging.pointerId!==event.pointerId) return;
@@ -1467,8 +1476,9 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     dragging = null; hideCollisionGuide(); if (view !== 'interior') setDragQuality(false); syncPointerCursor();
   }
   renderer.domElement.addEventListener('pointerdown', pointerDown); renderer.domElement.addEventListener('pointermove', pointerMove);
-  renderer.domElement.addEventListener('pointerup', pointerUp); renderer.domElement.addEventListener('pointercancel', event => {touchPoints.delete(event.pointerId);pinchDistance=null;cancelDrag();onCancel?.();});
+  renderer.domElement.addEventListener('pointerup', pointerUp); renderer.domElement.addEventListener('pointercancel', event => {if(presentationPaused)return;touchPoints.delete(event.pointerId);pinchDistance=null;cancelDrag();onCancel?.();});
   renderer.domElement.addEventListener('dblclick', event => {
+    if(presentationPaused)return;
     if (spaceHeld || dragging?.spacePan) return;
     if (view !== 'estate') return;
     if (performance.now()-lastPanAt<350) return;
@@ -1477,6 +1487,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     onEstateFocus?.(hit?.object.userData.estateFeature ?? null);
   });
   renderer.domElement.addEventListener('contextmenu', event => {
+    if(presentationPaused){event.preventDefault();return;}
     stageCamera?.exit({restore:false});
     if (spaceHeld || dragging?.spacePan || furniturePlacement) { event.preventDefault(); return; }
     if(view==='building'){event.preventDefault();cancelDrag();contextMenuAt(event,null);return;}
@@ -1492,6 +1503,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if (view === 'interior' && (furniturePlacement || editFurniture(event))) event.preventDefault();
   });
   renderer.domElement.addEventListener('wheel', event => {
+    if(presentationPaused)return;
     event.preventDefault();stageCamera?.exit({restore:false});onPanStart?.();interruptCameraMotion();
     if(event.ctrlKey || event.deltaMode!==0) zoom=wheelZoom(zoom,event.deltaY,event.deltaMode,view);
     else {
@@ -1505,8 +1517,28 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   // Optional presentation adapter for isolated look development. The ordinary
   // account editor supplies neither option; its lighting and input stay owned
   // by this renderer. No account state or persistence capability is exposed.
+  function getCameraSnapshot(){return {position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),projection:camera.projectionMatrix.toArray(),left:camera.left,right:camera.right,top:camera.top,bottom:camera.bottom,near:camera.near,far:camera.far,cameraZoom:camera.zoom,zoom,angle,pan:cameraPan.toArray(),view,activeFloor};}
+  function restoreRoamCamera(){if(!roamCamera)return;const p=roamCamera;camera.position.fromArray(p.position);camera.quaternion.fromArray(p.quaternion);for(const k of['left','right','top','bottom','near','far'])camera[k]=p[k];camera.zoom=p.cameraZoom;zoom=p.zoom;angle=p.angle;cameraPan.fromArray(p.pan);camera.projectionMatrix.fromArray(p.projection);camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();camera.updateMatrixWorld(true);roamCamera=null;}
+  function exitRoam(){
+    const wasActive=!!roamExperience||roamLoading||presentationPaused;roamEpoch++;roamLoading=false;const old=roamExperience;roamExperience=null;old?.dispose();
+    if(wasActive){renderer.domElement.style.visibility=roamCanvasVisibility;presentationPaused=false;restoreRoamCamera();avatarActor.setPresentationPaused?.(false);onRoamChange?.({active:false,phase:'inactive',previousView:view});requestRender();}return wasActive;
+  }
+  async function enterRoam(options={}){
+    if(theme.id!=='warm'||disposed||!state)return false;if(roamExperience)return roamExperience;
+    releaseInput();stopCameraMotion();
+    const epoch=++roamEpoch;roamLoading=true;roamCamera=getCameraSnapshot();roamCanvasVisibility=renderer.domElement.style.visibility;
+    presentationPaused=true;lastStageCameraFrame=null;avatarActor.setPresentationPaused?.(true);if(renderFrame)cancelAnimationFrame(renderFrame);renderFrame=0;scheduled=false;
+    try{
+      const {createHomeRoamExperience}=await import('./home-roam-world.js');if(disposed||epoch!==roamEpoch)return false;
+      const experience=createHomeRoamExperience({container,home:groundHome(),theme,maps,robot:activeFloor===0?avatarActor.group:null,
+        lighting:{toneMapping:renderer.toneMapping,exposure:renderer.toneMappingExposure,sky:'#'+hemisphere.color.getHexString(),ground:'#'+hemisphere.groundColor.getHexString(),hemisphere:hemisphere.intensity,sunColor:'#'+sun.color.getHexString(),sun:sun.intensity,fillColor:'#'+fill.color.getHexString(),fill:fill.intensity},
+        pixelRatio:renderer.getPixelRatio(),...options,onExit:exitRoam,onStateChange:snapshot=>{if(epoch===roamEpoch)onRoamChange?.({...snapshot,previousView:view});}});
+      if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();return experience;
+    }catch(error){if(epoch===roamEpoch)exitRoam();throw error;}
+  }
   onRenderSetup?.({scene,renderer,camera,hemisphere,sun,fill,maps,requestRender,markShadowsDirty});
   return {
+    enterRoam,exitRoam,isRoaming:()=>!!roamExperience,getRoamState:()=>({...roamExperience?.controller.getState()??{active:false,phase:roamLoading?'loading':'inactive'},loading:roamLoading,previousView:view}),getRoamDiagnostics:()=>roamExperience?.getDiagnostics()??null,getCameraSnapshot,
     setState, setOutdoorState, beginOutdoorPlacement, flashOutdoor,
     setAvatar:value=>avatarActor.setAvatar(value),
     captureRobotActivity:options=>avatarActor.captureActivity?.(options)??null,
@@ -1574,6 +1606,6 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     refit() { frameCamera(); },
     showCollision(volume) { showWallBlock(volume, true); },
     getStats() { return { ...renderer.info.render, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, surfaceCount: parts.size }; },
-    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose();wallTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
+    dispose() { exitRoam();disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose();wallTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
   };
 }

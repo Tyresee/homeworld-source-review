@@ -8,9 +8,10 @@ test('teacher shortcuts resolve only unmodified keys outside text editing and me
   assert.deepEqual(resolveWarmShortcut(key('1')),{type:'view',view:'interior'});
   assert.deepEqual(resolveWarmShortcut(key('2')),{type:'view',view:'estate'});
   assert.deepEqual(resolveWarmShortcut(key('3')),{type:'view',view:'building'});
+  assert.deepEqual(resolveWarmShortcut(key('4')),{type:'view',view:'roam'});
   assert.deepEqual(resolveWarmShortcut(key('0')),{type:'reset'});
   assert.deepEqual(resolveWarmShortcut(key('P')),{type:'present'});
-  for(const tagName of ['INPUT','TEXTAREA','SELECT','OPTION'])for(const char of ['1','2','3','0','P'])assert.equal(resolveWarmShortcut(key(char,{tagName})),null);
+  for(const tagName of ['INPUT','TEXTAREA','SELECT','OPTION'])for(const char of ['1','2','3','4','0','P'])assert.equal(resolveWarmShortcut(key(char,{tagName})),null);
   assert.equal(resolveWarmShortcut(key('1',{isContentEditable:true})),null);
   assert.equal(resolveWarmShortcut(key('P'),{activeElement:{tagName:'INPUT'}}),null);
   assert.equal(resolveWarmShortcut(key('1'),{modalOpen:true}),null);
@@ -89,4 +90,14 @@ test('presentation URL/button/key use one reversible state and a scoped student 
 test('student dropdown stays disabled until its existing selection handler settles and restores rejected selection',async()=>{
   let finish;const f=shell({selectStudent:()=>new Promise(resolve=>{finish=resolve;})});f.picker.value='B';const pending=f.picker.dispatch('change');assert.equal(f.picker.disabled,true);assert.equal(f.state.selectedId,'A');finish();await pending;assert.equal(f.picker.value,'A','a rejected/no-op selection cannot pretend another student is selected');assert.equal(f.picker.disabled,false);
   f.ui.dispose();const bad=shell({selectStudent:async()=>{throw Error('selection failed');}});bad.picker.value='B';await bad.picker.dispatch('change');assert.deepEqual(bad.errors,['selection failed']);assert.equal(bad.picker.value,'A');bad.ui.dispose();
+});
+
+test('fourth dock and physical view shortcut open a temporary full-window view while preserving presentation preference',async()=>{
+  const f=shell({search:'?theme=warm&view=present'}),dock=f.body.querySelector('.warm-view-dock'),roam=dock.children.find(node=>node.dataset.warmView==='roam');
+  assert.equal(dock.children.length,4);assert.equal(roam.getAttribute('aria-label'),"Visit");assert.equal(roam.getAttribute('aria-keyshortcuts'),'4');await f.doc.dispatch('keydown',{key:'4',preventDefault(){}});assert.deepEqual(f.actions,[['view','roam']]);
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit',transition:false};f.ui.refresh();assert.equal(f.body.classList.contains('home-roam-active'),true);assert.equal(f.doc.querySelector('.home').dataset.roamPhase,'orbit');assert.equal(roam.getAttribute('aria-pressed'),'true');assert.equal(f.body.querySelector('.warm-camera-dock').hidden,true);assert.equal(f.body.querySelector('.warm-show').hidden,true);assert.equal(dock.hidden,false);
+  for(const key of ['P','0'])await f.doc.dispatch('keydown',{key,preventDefault(){throw Error('The normal camera/presentation shortcut must be left alone while viewing');}});assert.equal(f.ui.getPresentation(),true);
+  f.state.roam={active:true,phase:'opening',transition:true};f.ui.refresh();assert.equal(dock.hidden,true);const before=f.actions.length;await f.doc.dispatch('keydown',{key:'1',preventDefault(){}});assert.equal(f.actions.length,before);
+  f.state.roam={active:true,phase:'free',transition:false};f.ui.refresh();assert.equal(dock.hidden,false);await f.doc.dispatch('keydown',{key:'2',preventDefault(){}});assert.deepEqual(f.actions.at(-1),['view','estate']);
+  f.state.roam={active:false,phase:'inactive'};f.state.view='estate';f.ui.refresh();assert.equal(f.body.classList.contains('home-roam-active'),false);assert.equal(f.body.classList.contains('warm-present'),true);assert.equal(f.ui.getPresentation(),true);assert.equal(f.body.querySelector('.warm-camera-dock').hidden,false);f.ui.dispose();
 });

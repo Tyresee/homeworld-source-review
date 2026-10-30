@@ -1,0 +1,42 @@
+{
+  "inputSize": [
+    2880,
+    1800
+  ],
+  "comparison": "Decoded RGBA values; no scaling, registration, threshold or color correction",
+  "fullImage": {
+    "changedPixels": 76,
+    "changedChannels": 225,
+    "differenceBounds": [
+      16,
+      224,
+      32,
+      232
+    ]
+  },
+  "coordinateSpace": "Original PNG pixels; crops selected from visible stage bounds",
+  "stage": {
+    "crop": [
+      254,
+      60,
+      1186,
+      840
+    ],
+    "changedPixels": 0,
+    "changedChannels": 0,
+    "identicalDecodedPixels": true,
+    "decodedRGBA_SHA256": "6b19e5bd40c35ea9a66c0cece11c43eb839adca426137dbe79aeb0333fe86aef"
+  },
+  "sceneOnly": {
+    "crop": [
+      350,
+      230,
+      1000,
+      500
+    ],
+    "changedPixels": 0,
+    "changedChannels": 0,
+    "identicalDecodedPixels": true,
+    "decodedRGBA_SHA256": "561c087b0bd0d73c5537decb971a486cabf8aa87895995ccd4cecf21f9e7a063"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "method": "Real browser pointer at the visible kitchen tap; QA +100 ms only refreshes diagnostics",
+  "before": true,
+  "firstClick": false,
+  "secondClick": true,
+  "persistence": false
+}

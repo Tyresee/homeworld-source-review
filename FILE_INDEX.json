@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 547,
+  "totalFiles": 626,
   "files": [
     {
       "path": ".gitignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": "CORE_TESTS.json",
-      "bytes": 2369
+      "bytes": 2756
     },
     {
       "path": "docs/look-dev-captures/default--bathroom.png",
@@ -133,6 +133,106 @@
     {
       "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-8--bedroom.png",
       "bytes": 1104904
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/CODEX_TASK.md",
+      "bytes": 17274
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/IMPORT_PROVENANCE.json",
+      "bytes": 7806
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/look-dev-hooks/0001-Local-look-dev-experiments-perspective-showcase-came.patch",
+      "bytes": 2014
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/look-dev-hooks/0002-Local-look-dev-experiments-full-height-wall-mode-and.patch",
+      "bytes": 4933
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/house.b64.txt",
+      "bytes": 6984140
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/index.html",
+      "bytes": 5335
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/LICENSE.three",
+      "bytes": 1081
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/OrbitControls.js",
+      "bytes": 40755
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/roam.js",
+      "bytes": 45977
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/test.html",
+      "bytes": 5480
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/three.core.js",
+      "bytes": 1458113
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/three.module.js",
+      "bytes": 662772
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/tools/export-house.js",
+      "bytes": 1648
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/01-exterior-orbit.png",
+      "bytes": 629322
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/02-orbit-auto-interior-cutaway.png",
+      "bytes": 1208123
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/03-door-hover.png",
+      "bytes": 641359
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/04-door-opening.png",
+      "bytes": 376209
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/05-just-entered-living-room.png",
+      "bytes": 706930
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/06-lamp-lit-interior-through-doorway.png",
+      "bytes": 690860
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/07-look-back-at-open-front-door.png",
+      "bytes": 751213
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/08-kitchen-tap-hob-drawers-doors.png",
+      "bytes": 833747
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/09-bathroom-tap-flush-drawers.png",
+      "bytes": 759417
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/10-bedside-drawer.png",
+      "bytes": 1174714
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/11-floor-lamp-on.png",
+      "bytes": 911859
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/reference/12-living-ceiling-lamp-switched-off.png",
+      "bytes": 1197854
     },
     {
       "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/CODEX_TASK.md",
@@ -581,6 +681,138 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/verification.json",
       "bytes": 3557
+    },
+    {
+      "path": "docs/ROAM_HANDOFF.md",
+      "bytes": 11129
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/01-exterior-orbit.json",
+      "bytes": 14009
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/02-orbit-auto-interior-cutaway.json",
+      "bytes": 13910
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/03-door-hover.json",
+      "bytes": 13981
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/04-door-opening.json",
+      "bytes": 13989
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/05-just-entered-living-room.json",
+      "bytes": 13932
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/06-lamp-lit-interior-through-doorway.json",
+      "bytes": 13946
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/07-look-back-at-open-front-door.json",
+      "bytes": 14004
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/08-kitchen-tap-hob-drawers-doors.json",
+      "bytes": 13869
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/09-bathroom-tap-flush-drawers.json",
+      "bytes": 13862
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/10-bedside-drawer.json",
+      "bytes": 13843
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/11-floor-lamp-on.json",
+      "bytes": 13924
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/12-living-ceiling-lamp-switched-off.json",
+      "bytes": 13944
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/application-pixel-comparison.json",
+      "bytes": 901
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/application-read-only.json",
+      "bytes": 796
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/baseline-regression.json",
+      "bytes": 8937
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/camera-restoration.json",
+      "bytes": 1773
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/performance-entry-final.json",
+      "bytes": 22744
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/performance-kitchen-final.json",
+      "bytes": 22715
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/pointer-faucet-roundtrip.json",
+      "bytes": 192
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/test-summary.json",
+      "bytes": 8375
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/01-exterior-orbit.png",
+      "bytes": 1105401
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/02-orbit-auto-interior-cutaway.png",
+      "bytes": 1110929
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/03-door-hover.png",
+      "bytes": 377109
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/04-door-opening.png",
+      "bytes": 457701
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/05-just-entered-living-room.png",
+      "bytes": 502974
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/06-lamp-lit-interior-through-doorway.png",
+      "bytes": 538316
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/07-look-back-at-open-front-door.png",
+      "bytes": 478813
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/08-kitchen-tap-hob-drawers-doors.png",
+      "bytes": 758542
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/09-bathroom-tap-flush-drawers.png",
+      "bytes": 630943
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/10-bedside-drawer.png",
+      "bytes": 865461
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/11-floor-lamp-on.png",
+      "bytes": 655104
+    },
+    {
+      "path": "docs/roam-2026-10-30/renders/12-living-ceiling-lamp-switched-off.png",
+      "bytes": 1038749
     },
     {
       "path": "docs/ui-review-2026-10-30/CODEX_TASK.md",
@@ -1108,7 +1340,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 55016
+      "bytes": 63848
     },
     {
       "path": "game.manifest.json",
@@ -1128,7 +1360,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 6511
+      "bytes": 10936
     },
     {
       "path": "package-lock.json",
@@ -1136,7 +1368,7 @@
     },
     {
       "path": "package.json",
-      "bytes": 749
+      "bytes": 803
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -1165,6 +1397,10 @@
     {
       "path": "public/home-floor-planner.css",
       "bytes": 8163
+    },
+    {
+      "path": "public/home-roam.css",
+      "bytes": 3616
     },
     {
       "path": "public/home-room-planner.css",
@@ -1252,7 +1488,7 @@
     },
     {
       "path": "public/js/home-estate-manor.js",
-      "bytes": 29346
+      "bytes": 33557
     },
     {
       "path": "public/js/home-estate-outdoor.js",
@@ -1387,6 +1623,30 @@
       "bytes": 29573
     },
     {
+      "path": "public/js/home-roam-audio.js",
+      "bytes": 3805
+    },
+    {
+      "path": "public/js/home-roam-controller.js",
+      "bytes": 16952
+    },
+    {
+      "path": "public/js/home-roam-geometry.js",
+      "bytes": 4397
+    },
+    {
+      "path": "public/js/home-roam-interactions.js",
+      "bytes": 21069
+    },
+    {
+      "path": "public/js/home-roam-ui.js",
+      "bytes": 7297
+    },
+    {
+      "path": "public/js/home-roam-world.js",
+      "bytes": 20501
+    },
+    {
       "path": "public/js/home-roof-candidates.js",
       "bytes": 10563
     },
@@ -1396,7 +1656,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 34245
+      "bytes": 42495
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -1420,7 +1680,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 111137
+      "bytes": 114831
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -1524,7 +1784,7 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 54200
+      "bytes": 56892
     },
     {
       "path": "public/js/student-home-floor-menu.js",
@@ -1556,7 +1816,7 @@
     },
     {
       "path": "public/js/student-home-robot-controller.js",
-      "bytes": 74436
+      "bytes": 75370
     },
     {
       "path": "public/js/student-home-robot-dance.js",
@@ -1620,15 +1880,15 @@
     },
     {
       "path": "public/js/student-home-warm-ui.js",
-      "bytes": 14932
+      "bytes": 15944
     },
     {
       "path": "public/js/student-home-world.js",
-      "bytes": 6111
+      "bytes": 7203
     },
     {
       "path": "public/js/student-homes.js",
-      "bytes": 20983
+      "bytes": 21380
     },
     {
       "path": "public/roof-review.css",
@@ -1652,7 +1912,7 @@
     },
     {
       "path": "public/student-home-warm.css",
-      "bytes": 34885
+      "bytes": 36615
     },
     {
       "path": "public/student-homes.css",
@@ -1660,15 +1920,15 @@
     },
     {
       "path": "public/student-homes.html",
-      "bytes": 4509
+      "bytes": 4554
     },
     {
       "path": "README.md",
-      "bytes": 7815
+      "bytes": 8473
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
-      "bytes": 2291
+      "bytes": 2832
     },
     {
       "path": "scripts/qa/look-dev-backdrop.mjs",
@@ -1729,6 +1989,22 @@
     {
       "path": "scripts/qa/look-dev-zip.mjs",
       "bytes": 1636
+    },
+    {
+      "path": "scripts/qa/roam-review-cases.mjs",
+      "bytes": 2341
+    },
+    {
+      "path": "scripts/qa/roam-review-ui.mjs",
+      "bytes": 14877
+    },
+    {
+      "path": "scripts/qa/roam-review.html",
+      "bytes": 4876
+    },
+    {
+      "path": "scripts/qa/roam-review.mjs",
+      "bytes": 4589
     },
     {
       "path": "scripts/qa/robot-dance-review.mjs",
@@ -1803,6 +2079,38 @@
       "bytes": 10422
     },
     {
+      "path": "tests/home-roam-audio.test.mjs",
+      "bytes": 3684
+    },
+    {
+      "path": "tests/home-roam-controller.test.mjs",
+      "bytes": 11054
+    },
+    {
+      "path": "tests/home-roam-geometry.test.mjs",
+      "bytes": 14724
+    },
+    {
+      "path": "tests/home-roam-idle.test.mjs",
+      "bytes": 3855
+    },
+    {
+      "path": "tests/home-roam-interactions.test.mjs",
+      "bytes": 13009
+    },
+    {
+      "path": "tests/home-roam-shadow-bootstrap.test.mjs",
+      "bytes": 6211
+    },
+    {
+      "path": "tests/home-roam-ui.test.mjs",
+      "bytes": 6005
+    },
+    {
+      "path": "tests/home-roam-world.test.mjs",
+      "bytes": 11969
+    },
+    {
       "path": "tests/home-theme-rooms.test.mjs",
       "bytes": 10917
     },
@@ -1845,6 +2153,10 @@
     {
       "path": "tests/look-dev-warm-walls.test.mjs",
       "bytes": 3099
+    },
+    {
+      "path": "tests/roam-review.test.mjs",
+      "bytes": 5492
     },
     {
       "path": "tests/student-home-account-world.test.mjs",
@@ -1923,6 +2235,10 @@
       "bytes": 12473
     },
     {
+      "path": "tests/student-home-roam-freeze.test.mjs",
+      "bytes": 8954
+    },
+    {
       "path": "tests/student-home-robot-controller.test.mjs",
       "bytes": 34036
     },
@@ -1936,7 +2252,7 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 69642
+      "bytes": 73215
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
@@ -2028,7 +2344,7 @@
     },
     {
       "path": "tests/student-home-stage-scene.test.mjs",
-      "bytes": 11397
+      "bytes": 12362
     },
     {
       "path": "tests/student-home-toilets.test.mjs",
@@ -2044,15 +2360,15 @@
     },
     {
       "path": "tests/student-home-warm-camera-controls.test.mjs",
-      "bytes": 4120
+      "bytes": 5175
     },
     {
       "path": "tests/student-home-warm-ui.test.mjs",
-      "bytes": 12133
+      "bytes": 14229
     },
     {
       "path": "tests/student-home-world-view.test.mjs",
-      "bytes": 4566
+      "bytes": 7357
     },
     {
       "path": "tests/student-homes-catalog-compat.test.mjs",
@@ -2132,7 +2448,7 @@
     },
     {
       "path": "tests/student-homes-ui.test.mjs",
-      "bytes": 38934
+      "bytes": 40350
     },
     {
       "path": "tests/student-homes-wall-finishes.test.mjs",

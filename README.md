@@ -1,6 +1,17 @@
 # Homeworld - Account Game Source Review
 
-Start here. This is an identity-normalized source-reading package for a browser-based AI collaborator. It contains the real account game's frontend, server, model builders, interaction logic and isolated tests, plus two local animation review tools. It is not a production deployment archive.
+Start here. This is an identity-normalized source-reading package for a browser-based AI collaborator. It contains the real account game's frontend, server, model builders, interaction logic and isolated tests, plus local animation, finish, interface and free-visit review tools. It is not a production deployment archive.
+
+## Warm free visit candidate
+
+The first-floor free visit is implemented with its own perspective camera, real hollow doorway, indoor lights and 18 reversible local interactions. See [the delivery handoff](docs/ROAM_HANDOFF.md) for exact scope, screenshots, tests and deviations. No production deployment is included.
+
+```sh
+node scripts/qa/roam-review.mjs
+# http://127.0.0.1:19550/
+```
+
+This tool works without npm or node_modules through the included Three.js vendor files. It has no account, wallet or saves. The formal account application exposes Visit only under `?theme=warm`; default/Toy baselines remain byte-identical.
 
 ## Real-render look development, no package installation
 

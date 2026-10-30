@@ -34,22 +34,26 @@ function ownedHome(studentId=A){
   const home=createStudentHome(studentId),prepared=prepareCommerceCommand(home.commerce,{type:'checkout',lines:[{skuId:outfit,quantity:1},{skuId:'bed-classic',quantity:1}]},'robot-editor-fixture-buy');
   return {...home,commerce:prepared.commerce,house:houseFromCommerce(prepared.commerce),revision:1};
 }
-function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false}={}){
+function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,delayRoam=false}={}){
   let saved=clone(initial),savedActivity=null,balance=46_440,serial=0;
   const bindings={},requests=[],statuses=[],retries=[],frames=[],listeners=new Map(),calls={activity:[],commerce:[],interactions:[],stairs:[],placements:[],views:[],stage:[],stageCamera:[],danceRequests:[],exitCamera:0,resumeCamera:0,dance:0,stopDance:0,clear:0,stand:0};
   let stageState={requested:false,active:false},stageFloor=0;
   let stageCameraState={active:false,returning:false,available:false,suppressed:false};
+  let roamActive=false,roamEpoch=0,roamPrevious='interior',finishRoam;
   const setStageCamera=value=>{stageCameraState={...value};bindings.world?.onStageCameraChange?.(stageCameraState);};
   const document={modalOpen:false,querySelector(){return this.modalOpen?{}:null;},addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);}};
   const ui=name=>{const calls={open:[],raw:[],close:0,refresh:0,dispose:0};return {calls,open(...args){calls.open.push(clone(args));calls.raw.push(args);},close(){calls.close++;},refresh(){calls.refresh++;},dispose(){calls.dispose++;}};};
   const shop=ui('shop'),wardrobe=ui('wardrobe'),menu=ui('menu'),floorPlanner=ui('floor'),roomPlanner=ui('room');
   const robotSource={fixtureSource:true},thumbnails={sources:[],image:()=> 'fixture-thumbnail',setRobotSource(value){this.sources.push(value);},dispose(){}};
   const world={
+    async enterRoam(){const epoch=++roamEpoch;roamPrevious=this.getView();if(delayRoam)await new Promise(resolve=>{finishRoam=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;calls.views.push('roam');bindings.world.onRoamChange?.({active:true,phase:'orbit',previousView:roamPrevious});bindings.world.onViewChange?.('roam');return true;},
+    exitRoam(){roamEpoch++;if(roamActive){roamActive=false;calls.views.push(roamPrevious);bindings.world.onRoamChange?.({active:false,phase:'inactive',previousView:roamPrevious});bindings.world.onViewChange?.(roamPrevious);}},
+    isRoaming:()=>roamActive,getRoamState:()=>({active:roamActive,phase:roamActive?'orbit':'inactive',previousView:roamPrevious}),
     setCommerce(value,avatar,floor,robotActivity){calls.commerce.push(clone({commerce:value,avatar,floor,robotActivity}));if(floor!==stageFloor)stageState={requested:false,active:false};stageFloor=floor;if(robotActivity?.kind==='dance'&&robotActivity.storey===floor)stageState={requested:true,active:true};},
     setRobotActivity(value){calls.activity.push(clone(value));},
     zoom(direction){(calls.zooms??=[]).push(direction);},refit(){calls.refits=(calls.refits??0)+1;},
     setObjectStates(value){(calls.objectStates??=[]).push(clone(value));},unlockObjectAudio(){calls.unlock=(calls.unlock??0)+1;},
-    getRobotSource:()=>robotSource,setView(value){calls.views.push(value);if(value!=='interior')stageState={requested:false,active:false};},getView:()=>calls.views.at(-1)??'interior',
+    getRobotSource:()=>robotSource,setView(value){this.exitRoam();calls.views.push(value);if(value!=='interior')stageState={requested:false,active:false};},getView:()=>calls.views.at(-1)??'interior',
     getStageState:()=>({...stageState}),
     getStageCameraState:()=>({...stageCameraState}),
     exitStageCamera(){calls.exitCamera++;setStageCamera({active:false,returning:true,available:true,suppressed:true});return {ok:true};},
@@ -66,7 +70,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false}={}
     useAvatarStairs(id){calls.stairs.push(id);return {ok:true};},
     beginFurniturePlacement(item){calls.placements.push({type:'furniture',item:clone(item)});},
     beginOutdoorPlacement(item){calls.placements.push({type:'outdoor',item:clone(item)});},
-    clear(){calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;},dispose(){},
+    clear(){this.exitRoam();calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;},dispose(){},
   };
   const capture=(name,instance)=>options=>{bindings[name]=options;return instance;};
   const getKitchenPair=jsonCall(areKitchenModulesCompatible),getDockPose=jsonCall(getKitchenDockPose);
@@ -101,7 +105,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false}={}
       reject(message='Isolated command rejected',status=422){reject(Object.assign(new Error(message),{status}));},
     }));},
   });
-  return {editor,bindings,requests,statuses,retries,frames,calls,shop,wardrobe,menu,thumbnails,robotSource,document,listeners,
+  return {editor,bindings,requests,statuses,retries,frames,calls,shop,wardrobe,menu,floorPlanner,roomPlanner,thumbnails,robotSource,document,listeners,finishRoam:()=>finishRoam?.(),
     saved:()=>clone(saved),async show(value=initial,activity=null,actorId){saved=clone(value);savedActivity=clone(activity);await editor.show(clone(value),{robotActivity:clone(activity),actorId});editor.setWallet({currency:'platform-points',balance});},
     state:()=>clone(bindings.shop.getState()),owned:sku=>saved.commerce.owned.find(item=>item.skuId===sku),stage:()=>({...stageState}),setStageCamera,
   };
@@ -647,4 +651,23 @@ test('camera toolbar adapters forward real zoom and refit for each view without 
   for(const view of ['interior','estate','building']){f.editor.setView(view);assert.equal(f.editor.zoom(1),true);assert.equal(f.editor.zoom(-1),true);assert.equal(f.editor.refit(),true);}
   assert.deepEqual(f.calls.zooms,[1,-1,1,-1,1,-1]);assert.equal(f.calls.refits,3);assert.equal(f.editor.zoom(NaN),false);assert.equal(f.editor.zoom(Infinity),false);
   assert.deepEqual(f.saved(),before);assert.equal(f.requests.length,0);f.editor.clear();assert.equal(f.editor.zoom(1),false);assert.equal(f.editor.refit(),false);f.editor.dispose();assert.equal(f.editor.openRobotQuickActions(),false);
+});
+
+test('Warm viewing closes editing surfaces and blocks stale edits without writing commerce or robot state',async()=>{
+  const legacy=fixture();await legacy.show();assert.equal((await legacy.editor.enterRoam()).ok,false);assert.equal(legacy.requests.length,0);legacy.editor.dispose();
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();const before=f.saved();f.editor.openRobotQuickActions();
+  for(const ui of[f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner])ui.open({});const oldCloses=[f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner].map(ui=>ui.calls.close);
+  assert.equal((await f.editor.setView('roam')).ok,true);assert.equal(f.editor.getView(),'roam');assert.equal(f.editor.isRoaming(),true);assert.equal(f.calls.quick,null);
+  [f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner].forEach((ui,index)=>assert.equal(ui.calls.close,oldCloses[index]+1));
+  assert.equal(f.editor.zoom(1),false);assert.equal(f.editor.refit(),false);assert.equal(f.editor.openRobotQuickActions(),false);const openCount=f.menu.calls.open.length;
+  f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'floor.main'}});assert.equal(f.menu.calls.open.length,openCount);
+  const wear=await f.bindings.shop.onPlace(f.owned(outfit).id);assert.equal(wear.ok,false);assert.match(wear.error,/DisplayText4772/);assert.equal((await f.bindings.shop.onCheckout()).ok,false);
+  assert.equal(f.requests.length,0);assert.deepEqual(f.saved(),before);f.editor.exitRoam();assert.equal(f.editor.getView(),'interior');assert.equal(f.editor.getRoamState().active,false);assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('view entry honors the existing write lock and a student switch cancels an asynchronous load',async()=>{
+  const locked=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await locked.show();const wearing=locked.bindings.shop.onPlace(locked.owned(outfit).id);assert.equal(locked.requests.length,1);
+  assert.equal((await locked.editor.enterRoam()).ok,false);assert.equal(locked.editor.isRoaming(),false);locked.requests[0].accept();await wearing;locked.editor.dispose();
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true,delayRoam:true});await f.show();const opening=f.editor.enterRoam();assert.equal(f.editor.getRoamState().entering,true);assert.equal((await f.editor.enterRoam()).ok,false);
+  await f.show(ownedHome(B),null,'other-actor');f.finishRoam();assert.equal((await opening).detached,true);assert.equal(f.editor.isRoaming(),false);assert.equal(f.editor.getRoamState().entering,false);assert.equal(f.editor.getView(),'interior');assert.equal(f.saved().studentId,B);assert.equal(f.requests.length,0);f.editor.dispose();
 });

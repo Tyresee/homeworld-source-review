@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { getHomeTheme } from './home-theme.js';
 import { getRoomTierDefinition, describeRooms, WALL_HEIGHT } from './home-room-expansion.js';
-import { getRoomKind, roomRect, roomOuterFaces, CELL, getFloorRects, getFloorBounds } from './home-layout.js';
+import { getRoomKind, roomRect, roomOuterFaces, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments } from './home-layout.js';
 import { getManorFacadeLayout, getManorDoorWidth, getManorEntranceSteps, MANOR_FACADE_OFFSET } from './home-manor-layout.js';
 import { STOREY_HEIGHT } from './home-staircase.js';
 import { createWarmGableRoof, WARM_GABLE_COLOR } from './home-roof-gable.js';
+import {getHomeRoamEntrance,createRoamArchShape,createRoamArchRingGeometry,createRoamWallGeometry,entryMatchesEdge,ROAM_WALL_THICKNESS,ROAM_DOOR_DEPTH,ROAM_DOOR_FRAME_OFFSET,ROAM_DOOR_PANEL_OFFSET} from './home-roam-geometry.js';
 
 const DEFAULT_ROOF = WARM_GABLE_COLOR;
 // A was approved as a complete cottage: plain pale walls,
@@ -55,13 +56,15 @@ function exposedRoofPatches(room, covered) {
  * `plans` are independent routes: structure (porch and cornice), material
  * (facade), decor (shutters, planters, crowns) and detail (lamps, finials).
  */
-export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {}, color = DEFAULT_ROOF, theme = getHomeTheme() } = {}) {
+export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {}, color = DEFAULT_ROOF, theme = getHomeTheme(), roam = false } = {}) {
   const root = new THREE.Group();
   root.name = 'estate-manor';
   root.userData.estateFeature = 'manor';
   const geometries = new Set();
   const materials = new Map();
   let definition, layout, floorLayouts = [], disposed = false, currentRoom = null, currentStorey = 0;
+  const roaming = roam === true && theme.id === 'warm';
+  let roamEntrance=null,roamDoor=null;
   let customization = { plans: normalizePlans(plans), color: normalizeColor(color) };
   let colors = {};
   function refreshColors() {
@@ -165,9 +168,28 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
   }
   function door(group, wallH, structure, decor, detail, facadeLength) {
     const doorH = structure === 3 ? 2.45 : structure === 2 ? 2.05 : 1.76, doorW = getManorDoorWidth(structure);
-    add(new THREE.ExtrudeGeometry(arch(doorW + .36, doorH + .20), { depth: .24, bevelEnabled: true, bevelSize: .035, bevelThickness: .035, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, 0, .02], group);
-    add(new THREE.ShapeGeometry(arch(doorW, doorH), 16), colors.wood, [0, .08, .31], group);
-    for (const sign of [-1, 1]) { box([.045, doorH * .72, .045], colors.gold, [sign * doorW * .34, doorH * .40 + .16, .34], .01, group); ball(colors.gold, [sign * .15, doorH * .44 + .11, .38], [.055, .075, .06], group); }
+    if(roaming) {
+      const frame=add(createRoamArchRingGeometry(doorW,doorH),colors.trim,[0,0,ROAM_DOOR_FRAME_OFFSET],group);
+      frame.userData.buildingPart='entrance-frame';frame.userData.roamDoorFrame=true;
+      const hinge=new THREE.Group();hinge.name='roam-door-hinge';hinge.position.set(-doorW/2,.08,ROAM_DOOR_PANEL_OFFSET);group.add(hinge);
+      const geometry=new THREE.ExtrudeGeometry(createRoamArchShape(doorW,doorH),{depth:ROAM_DOOR_DEPTH,bevelEnabled:false,curveSegments:24});geometry.translate(0,0,-ROAM_DOOR_DEPTH/2);
+      const leaf=add(geometry,colors.wood,[doorW/2,0,0],hinge,{side:THREE.DoubleSide});
+      leaf.name='roam-door-leaf';leaf.userData.buildingPart='door-leaf';leaf.userData.roamDoor=true;
+      const handles=[];
+      for(const sign of [-1,1]) {
+        handles.push(box([.045,doorH*.72,.045],colors.gold,[sign*doorW*.34+doorW/2,doorH*.40+.08,.03],.01,hinge));
+        handles.push(ball(colors.gold,[sign*.15+doorW/2,doorH*.44+.03,.07],[.055,.075,.06],hinge));
+      }
+      for(const mesh of[leaf,...handles]) {
+        mesh.material=mesh.material.clone();materials.set(mesh.uuid,mesh.material);
+        mesh.userData.roamDoor=true;
+      }
+      roamDoor={hinge,leaf,handles,frame,parts:[leaf,...handles]};
+    } else {
+      add(new THREE.ExtrudeGeometry(arch(doorW + .36, doorH + .20), { depth: .24, bevelEnabled: true, bevelSize: .035, bevelThickness: .035, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, 0, .02], group);
+      add(new THREE.ShapeGeometry(arch(doorW, doorH), 16), colors.wood, [0, .08, .31], group);
+      for (const sign of [-1, 1]) { box([.045, doorH * .72, .045], colors.gold, [sign * doorW * .34, doorH * .40 + .16, .34], .01, group); ball(colors.gold, [sign * .15, doorH * .44 + .11, .38], [.055, .075, .06], group); }
+    }
     for (const step of getManorEntranceSteps(structure)) {
       const model = box([step.width, step.height, step.depth], colors.trim, [step.x, step.y, step.z], .045, group);
       model.userData.buildingPart = 'entrance-step';
@@ -178,7 +200,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       const porch = gableRoof(columnX*2+.55, 1.45, structure === 3 ? .46 : .34, [0, 0, 0]); root.remove(porch); group.add(porch); porch.position.set(0, 2.58, .85);
       porch.userData.buildingPart = 'porch'; porch.traverse(node=>{if(node.isMesh)node.userData.buildingPart='porch';});
     }
-    if (decor >= 3) {
+    if (decor >= 3 && !roaming) {
       const crown = add(new THREE.ExtrudeGeometry(arch(Math.min(doorW + 1.3, 3.15), 1.28), { depth: .10, bevelEnabled: true, bevelSize: .03, bevelThickness: .03, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, wallH * .55, .09], group);
       crown.scale.set(1, .82, 1); ball(colors.gold, [0, wallH * .9, .17], [.29, .36, .09], group);
       for (const sign of [-1, 1]) { ball(colors.leaf, [sign * doorW * .9, wallH * .5, .13], [.15, .36, .12], group); ball(colors.leaf, [sign * doorW * .95, wallH * .76, .13], [.13, .30, .11], group); }
@@ -200,9 +222,9 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       const x = (nx === 0 ? mid : (nx > 0 ? rect.maxX : rect.minX)) + ox, z = (nz === 0 ? mid : (nz > 0 ? rect.maxZ : rect.minZ)) + oz;
       const group = facadeGroup(x + nx * MANOR_FACADE_OFFSET, baseY, z + nz * MANOR_FACADE_OFFSET, face.side);
       group.userData = { roomId: room.id, storey: currentStorey, buildingPart: 'facade', side: face.side };
-      facadePattern(group, length, wallH, materialPlan);
       const isEntrance = !!entrance && entrance.room === room && entrance.face.side === face.side && entrance.face.from === face.from;
-      if (isEntrance) { door(group, wallH, structure, decor, detail, length); continue; }
+      if(!roaming||!isEntrance)facadePattern(group, length, wallH, materialPlan);
+      if (isEntrance) { door(group, wallH, structure, decor, detail, length);if(roaming)group.userData.entrance=true;continue; }
       const front = face.side === 'front' || face.side === 'right';
       if ((kind.baseKind ?? kind.id) === 'sunroom') {
         for (let i = 0; i < 3; i++) box([length / 3 - .12, wallH - .7, .06], colors.skylight, [-length / 3 + i * length / 3, wallH / 2 + .05, .04], .02, group, { transparent: true, opacity: .7, roughness: .18 });
@@ -230,7 +252,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
     for(const rect of getFloorRects(home)) {
       const width=rect.maxX-rect.minX,depth=rect.maxZ-rect.minZ,x=(rect.minX+rect.maxX)/2+ox,z=(rect.minZ+rect.maxZ)/2+oz;
       const slab=box([width,SLAB_THICKNESS,depth],currentStorey===0?colors.base:colors.trim,[x,baseY-SLAB_THICKNESS/2,z],.025);slab.userData.buildingPart='floor-slab';
-      const body=box([width,WALL_HEIGHT,depth],wallColor,[x,baseY+WALL_HEIGHT/2,z],.025);body.userData.buildingPart='shell-volume';
+      if(!roaming){const body=box([width,WALL_HEIGHT,depth],wallColor,[x,baseY+WALL_HEIGHT/2,z],.025);body.userData.buildingPart='shell-volume';}
       for(const patch of exposedRoofPatches(rect,covered)) {
         const px=patch.x+ox,pz=patch.z+oz,roofH=Math.min(1.34,Math.min(patch.rect.maxX-patch.rect.minX,patch.rect.maxZ-patch.rect.minZ)*.24),roofBase=baseY+WALL_HEIGHT+.08;
         const rotate=patch.depth>patch.width,roof=gableRoof(rotate?patch.depth:patch.width,rotate?patch.width:patch.depth,roofH,[px,roofBase,pz],rotate);
@@ -240,21 +262,37 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
     }
     const layout = getManorFacadeLayout(home);
     const entrance = currentStorey === 0 ? layout.entrance?.face : null;
+    if(roaming)buildRoamShellWalls(home,{baseY,ox,oz,wallColor});
     for(const { face } of layout.faces) {
       const [nx,nz]=FACE_NORMALS[face.side],length=face.to-face.from,mid=(face.from+face.to)/2;
       const x=(nx===0?mid:face.at)+ox,z=(nz===0?mid:face.at)+oz;
       const group=facadeGroup(x+nx*MANOR_FACADE_OFFSET,baseY,z+nz*MANOR_FACADE_OFFSET,face.side);
       group.userData={roomId:null,storey:currentStorey,buildingPart:'facade',side:face.side,shell:true};
-      facadePattern(group,length,WALL_HEIGHT,materialPlan);
+      if(!roaming||face!==entrance)facadePattern(group,length,WALL_HEIGHT,materialPlan);
       if(face===entrance){door(group,WALL_HEIGHT,structure,decor,detail,length);group.userData.entrance=true;}
       else if(length>=.7) {
         const scale=Math.min(structure===3?.88:structure===2?.78:.7,(length-.12)/(decor>=2?1.67:1.30));
         windowAt(group,scale,{shutters:decor>=2}).position.set(0,.72,0);
       }
-      box([length,.13,.12],colors.trim,[0,.075,.015],.025,group);
+      if(roaming&&face===entrance) {
+        const gap=getManorDoorWidth(structure),stub=(length-gap)/2;
+        if(stub>0)for(const sign of[-1,1])box([stub,.13,.12],colors.trim,[sign*(gap+stub)/2,.075,.015],.025,group);
+      } else box([length,.13,.12],colors.trim,[0,.075,.015],.025,group);
       box([length,.15,.16],colors.trim,[0,WALL_HEIGHT-.04,.015],.025,group);
       if(face!==entrance&&decor>=2&&(face.side==='front'||face.side==='right'))planter(group,Math.min(1.7,length*.5),.35,.38);
       if(face!==entrance&&detail>=2&&length>1)wallLamp(group,-length/2+.35,WALL_HEIGHT*.62,detail>=3);
+    }
+  }
+  function buildRoamShellWalls(home,{baseY,ox,oz,wallColor}) {
+    currentRoom=null;
+    for(const edge of getFloorBoundarySegments(home)) {
+      const alongX=edge.side==='back'||edge.side==='front',[nx,nz]=FACE_NORMALS[edge.side],mid=(edge.from+edge.to)/2;
+      const hasDoor=currentStorey===0&&entryMatchesEdge(roamEntrance,edge),alongDoor=alongX?roamEntrance?.wallCenter.x:roamEntrance?.wallCenter.z;
+      const geometry=createRoamWallGeometry({length:edge.to-edge.from,height:WALL_HEIGHT,thickness:ROAM_WALL_THICKNESS,
+        opening:hasDoor?{width:roamEntrance.width,top:roamEntrance.top-baseY,center:alongX?alongDoor-mid:mid-alongDoor}:null});
+      const wall=add(geometry,wallColor,alongX?[mid+ox,baseY,edge.at+oz-nz*ROAM_WALL_THICKNESS/2]:[edge.at+ox-nx*ROAM_WALL_THICKNESS/2,baseY,mid+oz]);
+      if(!alongX)wall.rotation.y=Math.PI/2;
+      wall.userData.buildingPart='roam-wall';wall.userData.roamWall={side:edge.side,alongAxis:alongX?'x':'z',normalAxis:alongX?'z':'x',axis:alongX?'z':'x',plane:edge.at,from:edge.from,to:edge.to,thickness:ROAM_WALL_THICKNESS,minY:baseY,maxY:baseY+WALL_HEIGHT,entrance:hasDoor};
     }
   }
   function build(value, nextFloors) {
@@ -264,7 +302,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       }
       floorLayouts = nextFloors.map(home => {const bounds=getFloorBounds(home);return {...describeRooms(home.rooms),home,bounds,width:bounds.width,depth:bounds.depth};});
     } else {const legacy=describeRooms(value);floorLayouts=[{...legacy,home:{rooms:legacy.rooms}}];}
-    geometries.forEach(geometry => geometry.dispose()); geometries.clear(); materials.forEach(material => material.dispose()); materials.clear(); root.clear(); refreshColors();
+    geometries.forEach(geometry => geometry.dispose()); geometries.clear(); materials.forEach(material => material.dispose()); materials.clear(); root.clear(); refreshColors();roamDoor=null;
     layout = floorLayouts[0];
     const totalRooms = floorLayouts.reduce((sum, floor) => sum + floor.rooms.length, 0);
     const id = totalRooms >= 5 ? 'mansion' : totalRooms >= 3 ? 'atrium' : totalRooms >= 2 ? 'suite' : 'starter';
@@ -274,6 +312,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
     const wallH = WALL_HEIGHT;
     const wallColor = materialPlan === 1 ? colors.woodWall : materialPlan === 2 ? colors.stoneWall : colors.marbleWall;
     const entrance = getManorFacadeLayout(layout.home).entrance;
+    roamEntrance=roaming?getHomeRoamEntrance(layout.home,{structure}):null;
     let highest = { y: 0, x: 0, z: 0, room: layout.rooms[0], storey: 0 };
     const provenance = [];
     for (let storey = 0; storey < floorLayouts.length; storey++) {
@@ -295,10 +334,12 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
         // There is deliberately no full-house bounding-box foundation or belt.
         const slab = box([rect.width + .14, SLAB_THICKNESS, rect.depth + .14], storey === 0 ? colors.base : colors.trim, [x, baseY - SLAB_THICKNESS / 2, z], .06);
         slab.userData.buildingPart = 'floor-slab';
-        const volume = box([rw, wallH, rd], wallColor, [x, baseY + wallH / 2, z], .05);
-        volume.userData.buildingPart = 'wall-volume';
-        box([rw + .08, .13, rd + .08], colors.trim, [x, baseY + .075, z], .035);
-        box([rw + .10, structure === 3 ? .22 : .13, rd + .10], colors.trim, [x, baseY + wallH - .045, z], .035);
+        if(!roaming) {
+          const volume = box([rw, wallH, rd], wallColor, [x, baseY + wallH / 2, z], .05);
+          volume.userData.buildingPart = 'wall-volume';
+          box([rw + .08, .13, rd + .08], colors.trim, [x, baseY + .075, z], .035);
+          box([rw + .10, structure === 3 ? .22 : .13, rd + .10], colors.trim, [x, baseY + wallH - .045, z], .035);
+        }
         const patches = exposedRoofPatches(room, covered);
         for (const patch of patches) {
           const px = patch.x + ox, pz = patch.z + oz;
@@ -340,6 +381,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
           belt.userData.buildingPart = 'cornice';
         }
       }
+      if(roaming)buildRoamShellWalls(floorLayouts[storey].home,{baseY,ox,oz,wallColor});
     }
     currentRoom = highest.room; currentStorey = highest.storey;
     if (detail >= 3) {
@@ -362,6 +404,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
     root.traverse(node=>{if(node.isMesh&&node.userData.paintSurface==='roof')roofMaterials.add(node.material);});
     root.userData.paintMaterials = { roof:[...roofMaterials], wall:[...materials.values()].filter(m=>`#${m.color.getHexString()}`===wallColor) };
     root.userData.estateFeature = 'manor';
+    if(roaming)root.userData.roamEntrance=roamEntrance;
     root.traverse(o=>{if(o.isMesh)o.userData.estateFeature='manor';});
   }
   build(rooms ?? tier, floors);
@@ -378,7 +421,17 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
   };
   root.getCustomization = () => ({ tier: definition.id, plans: { ...customization.plans }, color: customization.color });
   root.getDefinition = () => definition;
-  root.dispose = () => { if (disposed) return; disposed = true; geometries.forEach(geometry => geometry.dispose()); materials.forEach(material => material.dispose()); geometries.clear(); materials.clear(); root.clear(); };
+  root.getRoamWalls = () => {
+    if(disposed||!roaming)return [];
+    const walls=[];root.traverse(mesh=>{if(mesh.isMesh&&mesh.userData.buildingPart==='roam-wall')walls.push(mesh);});return walls;
+  };
+  root.getRoamEntry = () => {
+    if(disposed||!roaming||!roamEntrance||!roamDoor)return null;
+    root.updateWorldMatrix(true,true);
+    const offset=roamEntrance.homeToModelOffset,point=value=>root.localToWorld(new THREE.Vector3(value.x+offset.x,value.y,value.z+offset.z));
+    return {...roamEntrance,center:point(roamEntrance.center),wallCenter:point(roamEntrance.wallCenter),outward:new THREE.Vector3(roamEntrance.outward.x,0,roamEntrance.outward.z).transformDirection(root.matrixWorld),...roamDoor};
+  };
+  root.dispose = () => { if (disposed) return; disposed = true; geometries.forEach(geometry => geometry.dispose()); materials.forEach(material => material.dispose()); geometries.clear(); materials.clear(); root.clear();roamDoor=null;roamEntrance=null; };
   return root;
 }
 

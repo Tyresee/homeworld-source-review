@@ -1,0 +1,29 @@
+{
+  "environment": "Disposable local integration platform and real account service",
+  "productionData": false,
+  "fictionalHomes": [
+    {
+      "label": "A",
+      "rooms": 3,
+      "revision": 25,
+      "beforeAfterBytesIdentical": true
+    },
+    {
+      "label": "B",
+      "rooms": 1,
+      "revision": 1,
+      "beforeAfterBytesIdentical": true
+    }
+  ],
+  "browserActions": [
+    "Enter Warm viewing through fourth dock icon",
+    "Click actual modeled door",
+    "Wait for opening and entry sequence",
+    "Move with physical key",
+    "Escape to leave through door",
+    "Escape from orbit to restore editor",
+    "Switch to fictional student B and enter/exit a fresh view"
+  ],
+  "browserConsoleErrors": 0,
+  "scope": "No actual student records or production services were written"
+}

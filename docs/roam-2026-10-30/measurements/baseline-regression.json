@@ -1,0 +1,267 @@
+{
+  "status": "PASS",
+  "baselineRepository": "Tyresee/homeworld-source-review",
+  "baselineCommit": "0b353a0f61f7d1ddaa7b4c66ef8d395c5a18961a",
+  "baselineTask": "Completed 0.5 m cutaway delivery",
+  "comparedCommittedReferenceViewsPerTheme": 5,
+  "extractedImages": 12,
+  "committedBaselineComparisons": 10,
+  "allCommittedPNGsByteIdentical": true,
+  "allCommittedDecodedRGBAIdentical": true,
+  "archives": [
+    {
+      "file": "baseline-default.zip",
+      "sha256": "41b196a6a1746acc332c211a5209c03fbdd39877ac0ef37cab61b80d22355587"
+    },
+    {
+      "file": "baseline-toy.zip",
+      "sha256": "7a68f56d471de5b6b2dddc704e0e360ed72a9eb9398fb92d1a2006d08a9aa71c"
+    }
+  ],
+  "checks": [
+    {
+      "file": "default--living.png",
+      "actual": "output/qa/roam/regression/default/default--living.png",
+      "baselineGitPath": "docs/look-dev-captures/default--living.png",
+      "byteIdentical": true,
+      "actualSHA256": "6534a2f8758ae5b0d8464d8aab1b10568ec5844bea8deca7e4f959962f6cba7d",
+      "baselineSHA256": "6534a2f8758ae5b0d8464d8aab1b10568ec5844bea8deca7e4f959962f6cba7d",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "default--bedroom.png",
+      "actual": "output/qa/roam/regression/default/default--bedroom.png",
+      "baselineGitPath": "docs/look-dev-captures/default--bedroom.png",
+      "byteIdentical": true,
+      "actualSHA256": "37bb1cca6af9fba7c9ea46c6780c895f61ea0b143f7ef1d1932100dfd0704e75",
+      "baselineSHA256": "37bb1cca6af9fba7c9ea46c6780c895f61ea0b143f7ef1d1932100dfd0704e75",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "default--kitchen.png",
+      "actual": "output/qa/roam/regression/default/default--kitchen.png",
+      "baselineGitPath": "docs/look-dev-captures/default--kitchen.png",
+      "byteIdentical": true,
+      "actualSHA256": "f97022f9cae60f1cb91203fd0149771cf3699af0e54ad7c2a23b9e0e3357ff90",
+      "baselineSHA256": "f97022f9cae60f1cb91203fd0149771cf3699af0e54ad7c2a23b9e0e3357ff90",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "default--bathroom.png",
+      "actual": "output/qa/roam/regression/default/default--bathroom.png",
+      "baselineGitPath": "docs/look-dev-captures/default--bathroom.png",
+      "byteIdentical": true,
+      "actualSHA256": "28066b88b5444aa03efb41a2c5f6be532740680aa959038d0e973c28ac31c933",
+      "baselineSHA256": "28066b88b5444aa03efb41a2c5f6be532740680aa959038d0e973c28ac31c933",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "default--exterior.png",
+      "actual": "output/qa/roam/regression/default/default--exterior.png",
+      "baselineGitPath": "docs/look-dev-captures/default--exterior.png",
+      "byteIdentical": true,
+      "actualSHA256": "dbb2392bb08233a23cedbcd30676f115fca75f15f7152887b62b3886d5728e8f",
+      "baselineSHA256": "dbb2392bb08233a23cedbcd30676f115fca75f15f7152887b62b3886d5728e8f",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--living.png",
+      "actual": "output/qa/roam/regression/toy-v1/toy-v1--living.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--living.png",
+      "byteIdentical": true,
+      "actualSHA256": "610f56b8c662c8c3fcb65f1f466da0f743b1c44c440f75e7b6bf3c22014ca0bf",
+      "baselineSHA256": "610f56b8c662c8c3fcb65f1f466da0f743b1c44c440f75e7b6bf3c22014ca0bf",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--bedroom.png",
+      "actual": "output/qa/roam/regression/toy-v1/toy-v1--bedroom.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--bedroom.png",
+      "byteIdentical": true,
+      "actualSHA256": "8f42615f80e69b15f285ccce749a52117aa6e8978bbe40558c378cc8f421572c",
+      "baselineSHA256": "8f42615f80e69b15f285ccce749a52117aa6e8978bbe40558c378cc8f421572c",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--kitchen.png",
+      "actual": "output/qa/roam/regression/toy-v1/toy-v1--kitchen.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--kitchen.png",
+      "byteIdentical": true,
+      "actualSHA256": "049d9f6f6855e2a4bd503015d9cdb5b8abf090d8518add45f9e146c4a5443053",
+      "baselineSHA256": "049d9f6f6855e2a4bd503015d9cdb5b8abf090d8518add45f9e146c4a5443053",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--bathroom.png",
+      "actual": "output/qa/roam/regression/toy-v1/toy-v1--bathroom.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--bathroom.png",
+      "byteIdentical": true,
+      "actualSHA256": "72155f48a709a04a25cbd3b81fb978a1f34c579724aa1da2a3e208ceba907506",
+      "baselineSHA256": "72155f48a709a04a25cbd3b81fb978a1f34c579724aa1da2a3e208ceba907506",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--exterior.png",
+      "actual": "output/qa/roam/regression/toy-v1/toy-v1--exterior.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--exterior.png",
+      "byteIdentical": true,
+      "actualSHA256": "c15444b59cdd8996e2676e9042026c35420683b0abaf622d4df83230cf0b41e1",
+      "baselineSHA256": "c15444b59cdd8996e2676e9042026c35420683b0abaf622d4df83230cf0b41e1",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    }
+  ],
+  "additionalHouseChecks": [
+    {
+      "file": "default--house.png",
+      "baselineType": "Previous local cutaway QA capture; not a committed golden image",
+      "baselineLocalPath": "output/qa/wall-cutaway/default/default--house.png",
+      "byteIdentical": true,
+      "actualSHA256": "f6b8654ba5c206b77d5e0886e9169c44ac4e10318c225c2d4249e12505ed24df",
+      "baselineSHA256": "f6b8654ba5c206b77d5e0886e9169c44ac4e10318c225c2d4249e12505ed24df",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "file": "toy-v1--house.png",
+      "baselineType": "Previous local cutaway QA capture; not a committed golden image",
+      "baselineLocalPath": "output/qa/wall-cutaway/toy-v1/toy-v1--house.png",
+      "byteIdentical": true,
+      "actualSHA256": "b604d10f170e15cd68d44389b72d5917909966793be4440b935004dfbd0f3c23",
+      "baselineSHA256": "b604d10f170e15cd68d44389b72d5917909966793be4440b935004dfbd0f3c23",
+      "actualSize": [
+        1440,
+        900
+      ],
+      "baselineSize": [
+        1440,
+        900
+      ],
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maximumChannelDifference": 0
+    }
+  ],
+  "method": "Read baseline PNG bytes directly from the committed Git blobs; decode both inputs to RGBA and compare without scaling, registration, threshold or color correction. House is the sixth view and is excluded from the original five-view committed-baseline claim.",
+  "scope": "No source code, original baseline file, browser state, account, wallet or deployment changed."
+}

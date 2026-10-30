@@ -4,6 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {createStudentHome} from '../server/student-homes/profile.mjs';
+import {getFloorHomes} from '../public/js/home-commerce.js';
 
 const moduleUrl=new URL('../public/js/student-home-world.js',import.meta.url);
 const source=await readFile(moduleUrl,'utf8');
@@ -11,19 +13,23 @@ const source=await readFile(moduleUrl,'utf8');
 // Exercise the production adapter and the callbacks wired to the 3D scene.
 // Only WebGL and the robot asset loader are replaced, so these tests need no
 // browser, saved home, student account, network access or GPU.
-async function fixture() {
-  const calls={views:[],notifications:[],focus:[],floors:[],dispose:0};
+async function fixture({warmUI=false,delayRoam=false}={}) {
+  const calls={views:[],notifications:[],focus:[],floors:[],dispose:0,roam:[],runtimeVisible:[]};
   let handlers;
+  let roamActive=false,roamEpoch=0,finishEntry,previousView='interior';
   const canvas={hidden:false,setAttribute(){}};
   const robot={traverse(){}};
   const scene={
     setView(view){calls.views.push(view);},
     focusEstate(id){calls.focus.push(id);},
     dispose(){calls.dispose++;},
+    setObjectContext(){},setState(){},setOutdoorState(){},setAvatar(){},selectSurface(){},setTool(){},cancelDrag(){},cancelPlacement(){},hideAvatar(){},
+    async enterRoam(){const epoch=++roamEpoch;previousView=calls.views.at(-1)??'interior';if(delayRoam)await new Promise(resolve=>{finishEntry=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;handlers.onRoamChange({active:true,phase:'orbit',previousView});return true;},
+    exitRoam(){roamEpoch++;if(roamActive){roamActive=false;handlers.onRoamChange({active:false,phase:'inactive',previousView});}},
   };
-  const context={createCushionPresentation,createStudentHomeObjectRuntime,URL,
+  const context={createCushionPresentation,createStudentHomeObjectRuntime:options=>{const runtime=createStudentHomeObjectRuntime(options);return {...runtime,setVisible(value){calls.runtimeVisible.push(value);runtime.setVisible(value);}};},URL,
     GLTFLoader:class {async loadAsync(){return {scene:robot};}},
-    getFloorHomes:()=>[],
+    getFloorHomes,
     createStudentHomeRobotController:()=>({}),
     createHomeScene(options){handlers=options;return scene;},
   };
@@ -32,11 +38,12 @@ async function fixture() {
     .replaceAll('import.meta.url',JSON.stringify(moduleUrl.href));
   runInNewContext(executable+'\nglobalThis.createWorld=createStudentHomeWorld;',context,{filename:'student-home-world.js'});
   const world=await context.createWorld({
+    warmUI,onRoamChange:value=>calls.roam.push({...value}),
     container:{querySelector:selector=>selector==='canvas'?canvas:null},
     onViewChange:view=>calls.notifications.push(view),
     onStoreyChange:index=>calls.floors.push(index),
   });
-  return {world,handlers,calls};
+  return {world,handlers,calls,finishEntry:()=>finishEntry?.()};
 }
 
 test('explicit view controls synchronize renderer, world state and selected-view notification',async()=>{
@@ -109,4 +116,16 @@ test('disposed world ignores late view-control changes',async()=>{
   assert.deepEqual(calls.views,['building']);
   assert.deepEqual(calls.notifications,['building']);
   assert.equal(calls.dispose,1);
+});
+
+test('Warm roaming suspends the object runtime and returns to the exact prior view without resetting its camera',async()=>{
+  const {world,calls}=await fixture({warmUI:true});const home=createStudentHome('11111111-1111-4111-8111-111111111111');world.setCommerce(home.commerce,home.avatar);world.setView('estate');const before=JSON.stringify(home);
+  assert.equal(await world.enterRoam(),true);assert.equal(world.getView(),'roam');assert.equal(world.isRoaming(),true);assert.equal(calls.runtimeVisible.at(-1),false);assert.equal(calls.notifications.at(-1),'roam');
+  world.exitRoam();assert.equal(world.getView(),'estate');assert.deepEqual(calls.views,['estate'],'Exit must not call the normal camera-resetting setView');assert.equal(calls.runtimeVisible.at(-1),false);assert.equal(calls.notifications.at(-1),'estate');assert.equal(JSON.stringify(home),before);
+  world.setView('interior');await world.enterRoam();world.exitRoam();assert.equal(calls.runtimeVisible.at(-1),true);world.dispose();
+});
+
+test('read-only entry is Warm-only and an identity clear cancels an asynchronous load before it can reopen',async()=>{
+  const legacy=await fixture(),home=createStudentHome('11111111-1111-4111-8111-111111111111');legacy.world.setCommerce(home.commerce,home.avatar);assert.equal(await legacy.world.enterRoam(),false);assert.equal(legacy.world.getView(),'interior');legacy.world.dispose();
+  const f=await fixture({warmUI:true,delayRoam:true});f.world.setCommerce(home.commerce,home.avatar);const loading=f.world.enterRoam();f.world.clear();f.finishEntry();assert.equal(await loading,false);assert.equal(f.world.isRoaming(),false);assert.equal(f.calls.roam.some(value=>value.active),false);f.world.dispose();
 });

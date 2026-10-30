@@ -1,0 +1,135 @@
+{
+  "state": "Verified review candidate; delivery commits are recorded in Git history",
+  "normalizedSourceFiles": 267,
+  "publishedLegacySeedFiles": 246,
+  "stablePreviouslyPublishedLabels": 4765,
+  "shortNavigation": "Visit",
+  "roamPresentation": "60 scoped semantic English mappings; all three presentation/hover modules have no DisplayText placeholders",
+  "sourceFull": {
+    "counts": {
+      "tests": 932,
+      "pass": 931,
+      "fail": 1
+    },
+    "failureNames": [
+      "furniture bounds use the actual rotated model footprint and reject overlapping instances"
+    ]
+  },
+  "sourceBuild": "PASS: independent preview",
+  "sourceHomesBuild": "PASS: account-only release, 499 files; 5,154,203 browser bytes / 1,254,560 Brotli / 1,522,859 gzip",
+  "newBuildStyleTests": 2,
+  "sourceBuildOnlyTestsExcludedFromPublic": "Public review has no build/deploy pipeline; scripts/release-style-dependencies.mjs and tests/student-homes-build-styles.test.mjs stay source-only",
+  "publicCore": {
+    "counts": {
+      "tests": 436,
+      "pass": 436,
+      "fail": 0
+    },
+    "failureNames": []
+  },
+  "publicFocused": {
+    "counts": {
+      "tests": 67,
+      "pass": 67,
+      "fail": 0
+    },
+    "failureNames": []
+  },
+  "publicFull": {
+    "counts": {
+      "tests": 845,
+      "pass": 790,
+      "fail": 55
+    },
+    "failureNames": [
+      "DisplayText4610 may exit and resume through the top control without stopping the robot or saving an activity",
+      "HTTP 200 with authenticated false does not fetch students or allow a claim",
+      "HTTP old storefront checkout is rejected without payment; current catalog checkout uses the displayed price",
+      "TV power acknowledgement and scene refresh keep the watch status on either linked TV or sofa",
+      "a definite rejected resale retains owned furniture and wallet and a new retry can succeed",
+      "a desk carrying a placed ornament shows the actual disabled reason before any sale request",
+      "a failed initial home read cannot display the free-claim affordance or create a replacement save",
+      "a rejected elevator purchase preserves the staircase and wallet and allows a normal retry",
+      "a remembered selection is not restored for an HTTP 200 unauthenticated session",
+      "a selection entirely on built floor costs zero and clearing only removes the draft",
+      "a supporting desk cannot be sold while its mounted goods remain placed",
+      "a unconfirmed sale keeps its real card, ownership and wallet balance",
+      "ambiguous 503 after a successful color write confirms the saved revision without another PATCH",
+      "ambiguous network after a successful color write confirms the saved revision without another PATCH",
+      "an unhandled floor switch restores the safe stair entry and replaces the moving status with an error",
+      "an unknown sleep write retries its original command before a newer wake, without overwriting live motion",
+      "camera button shows exit during automatic shots and follow after returning, independently of stopping the dance",
+      "catalog change preserves the selected house and offers a page refresh without retrying payment",
+      "commerce revision conflict reloads authoritative home without replaying purchase",
+      "doorway clearance covers both landings and refuses a furnishing outside the old reserved footprint",
+      "floor expansion refuses to move its new entrance steps through a placed object",
+      "floor right-click starts dancing at the exact frozen coordinates without a second selection or purchase",
+      "football target and period survive service restart and invalid ownership never grants play",
+      "full-height upper cabin rejects an existing chandelier without charging or moving any goods",
+      "gifts and structural or clothing ownership cannot be exchanged for points",
+      "late equip response cannot reopen a closed wardrobe and slot controls exclude unowned SKUs",
+      "left-clicking the robot exposes its dance action and starts the stage without a purchase or furniture mutation",
+      "lost starter reply shows an unconfirmed outcome and retries the same fixed program",
+      "missing, ordinary, misaligned and blocked elevator peers reject before any motion",
+      "new placements and moves keep the strict entrance rule and failed attempts preserve ownership and money",
+      "new sofa/tabledesk work stays account-owned, persists through restart and does not spend points",
+      "old overlapping saves remain readable without mutation and can move their object out",
+      "optional frame callback does not prevent a complete ride, and an unhandled floor callback returns safely to the source door",
+      "owned clothes wait for server acknowledgement, block repeat clicks and preserve equipment on rejection",
+      "placed furniture is removed atomically and sold tombstones survive unrelated edits",
+      "queued checkpoints only rebase across unrelated revisions when the saved activity base still matches",
+      "resale transaction IDs are reserved across purchases, area and construction actions",
+      "right-clicking either landing offers one priced elevator installation and waits for the authoritative paired receipt",
+      "robot shortcut distinguishes arriving and turning toward the camera from already dancing",
+      "robot shortcut shows exit/follow camera state, disables the return transition and clears on a different student",
+      "room enlargement charges only real area difference; client cannot obtain a refund or free resize",
+      "same transaction replays once, another sale cannot credit a sold item",
+      "starter identity mismatch clears the previous teacher and never replays that student write",
+      "stored and placed outdoor purchases sell without creating indoor furniture",
+      "the authored door and cabin clearances reject oversized future clothes before walking",
+      "the reproduced lamp overlap is rejected while the side and outer edge stay usable",
+      "the watch choice explains absent, backwards or blocked seating and never places a robot through the television",
+      "tidy completion to null does not retain its in-progress quick-menu status",
+      "tidy completion to stand does not retain its in-progress quick-menu status",
+      "top stage toggle is interior-only and a second click cancels a requested stage before the dance has begun",
+      "unavailable local storage is explicit and does not prevent a successful server save",
+      "warehouse resale callback uses owned stock and the second-hand menu opens the resale shop",
+      "watch launched from a sofa always uses that sofa, and unavailable TV gives a reason",
+      "wipe completion to null does not retain its in-progress quick-menu status",
+      "wipe completion to stand does not retain its in-progress quick-menu status"
+    ]
+  },
+  "same55BaselineFailureNames": true,
+  "newPublicFailureNames": [],
+  "resolvedPublicFailureNames": [],
+  "privacy": {
+    "status": "PASS",
+    "scannedFiles": 593,
+    "uniqueRawArchiveFiles": 101,
+    "allRawArchivePathsVerifiedSha256": true,
+    "separatelyApprovedMetadataPaths": [
+      "docs/look-dev-captures/review-2026-10-29/IMPORT_PROVENANCE.json",
+      "docs/look-dev-captures/review-walls-2026-10-30/IMPORT_PROVENANCE.json"
+    ],
+    "rawArchivePathsOutsideDocs": [
+      "scripts/qa/look-dev-presets/warm-v6.json"
+    ],
+    "findings": []
+  },
+  "newArchive": {
+    "status": "PASS",
+    "archiveSha256": "3451eccc5e3d66677c99b57906862ab1ee29f92dfa349b0873dfaf8956e6ba58",
+    "verifiedRawFiles": 23
+  },
+  "vendorThree": "0.186.1, 9 licensed files, complete import closure and matching SHA-256",
+  "temporaryPublicThreeTestLinkRemoved": true,
+  "existingPhosphorPreserved": true,
+  "publicBuild": "No build script exists by review-repo design; vendor/import closure and real review startup remain the validation path",
+  "publicCoreIncludesRoamTests": true,
+  "finalExport": "hinge-final-written.json; exactly 3 runtime/test file updates; CORE_TESTS.json/package.json preserved byte-identical",
+  "postSuiteQAUpdate": {
+    "file": "scripts/qa/roam-review-ui.mjs",
+    "change": "Release synthetic QA look through the controller blur path rather than an uncaptured OrbitControls pointercancel",
+    "tests": "4/4 review-tool checks pass; final fresh-clone browser matrix follows"
+  }
+}

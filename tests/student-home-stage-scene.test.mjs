@@ -32,7 +32,7 @@ function fixture(){
   const pose={pan:{x:2,y:0,z:-1},zoom:.9,angle:.7},original=clone(pose),focus=createStageFraming();
   const frames=new Map();let serial=0;
   const context={
-    scheduled:false,renderFrame:0,disposed:false,view:'interior',document:{hidden:false},
+    scheduled:false,renderFrame:0,disposed:false,presentationPaused:false,view:'interior',document:{hidden:false},
     stageCameraTime:0,lastStageCameraFrame:null,stageFacingBound:false,facingCalls:[],performance:{now:()=>now},
     scene:new THREE.Scene(),camera,selection:{visible:true},container:{dataset:{}},
     stage:{active:true,requested:true,point:{x:point.x,y:.08,z:point.z},time:0,storey:0},
@@ -136,6 +136,14 @@ test('long frame gaps are bounded even if the browser suspends before rendering 
   x.context.document.hidden=false;x.renderAt(x.now+60000);
   assert.ok(x.context.stageCameraTime-clock<=64);
   assert.ok(projection(x.camera).distanceTo(before)<.01,'returning from background must not jump to a distant orbit');
+});
+
+test('a temporary viewing presentation neither advances the main dance scene nor accepts its pan input',()=>{
+  const x=fixture();x.advance();const pose=clone(x.pose),clock=x.context.stageCameraTime,draws=x.draws,facing=[...x.context.facingCalls];
+  x.context.presentationPaused=true;x.context.lastStageCameraFrame=null;x.frames.clear();x.renderAt(x.now+60000);x.context.requestRender();
+  x.context.pointerDown({button:0,ctrlKey:false,pointerType:'mouse',pointerId:9,clientX:400,clientY:300});
+  assert.deepEqual(x.pose,pose);assert.equal(x.context.stageCameraTime,clock);assert.equal(x.draws,draws);assert.deepEqual(x.context.facingCalls,facing);assert.equal(x.frames.size,0);assert.equal(x.anchor,null);
+  x.context.presentationPaused=false;x.renderAt(x.now+16);assert.equal(x.draws,draws+1);assert.equal(x.context.stageCameraTime,clock,'The restored scene starts with no elapsed hidden-camera time');assert.deepEqual(x.pose,pose);
 });
 
 for(const method of ['clearRobotAccountBinding','hideAvatar'])test(`${method} clears old camera ownership before another student starts`,()=>{

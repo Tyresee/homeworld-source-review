@@ -507,3 +507,13 @@ test('Warm 401 login errors stay visible even without a retry action and chrome 
   const f=fixture({warm:true});const task=f.app.boot();(await f.next('/session')).reply(failure('unauthenticated'),401);await task;
   assert.equal(f.$('login').hidden,false);assert.equal(f.$('retry').hidden,true);assert.equal(f.warmCalls.notices.at(-1).persistent,true);f.events.pagehide({persisted:false});assert.equal(f.warmCalls.disposed,1);
 });
+
+test('Warm viewing routes through the existing scene and prevents manual account writes until navigation clears it',async()=>{
+  const f=fixture({warm:true});await f.boot();await f.open(A,savedHome(A),99);const count=f.calls.length;
+  f.scene.isRoaming=()=>f.scene.getView()==='roam';f.scene.getRoamState=()=>({active:f.scene.isRoaming(),phase:f.scene.isRoaming()?'orbit':'inactive'});
+  f.warmOptions.onView('roam');assert.equal(f.scene.getView(),'roam');assert.equal(f.warmOptions.getState().roam.active,true);assert.equal(f.calls.length,count);
+  await f.app.changeColor('shell','#a7c7cf');await assert.rejects(f.app.executeCommand({type:'checkout',lines:[]},'should-never-send'),/DisplayText4250/);assert.equal(f.calls.length,count);
+  const clear=f.scene.clear;f.scene.clear=()=>{f.scene.setView('interior');clear();};
+  const opening=f.warmOptions.onSelectStudent(B.id);const read=await f.next(`/students/${B.id}/home`);assert.equal(f.scene.isRoaming(),false);const views=f.sceneCalls.views.length;f.warmOptions.onView('roam');assert.equal(f.sceneCalls.views.length,views,'No entry while the new student home is not loaded');
+  read.reply({home:savedHome(B)});(await f.next(`/students/${B.id}/wallet/starter-grant`)).reply(wallet(B,27));await opening;assert.equal(f.snapshot().home.studentId,B.id);assert.equal(f.calls.some(call=>call.url.endsWith('/commands')||call.url.endsWith('/home/avatar')),false);
+});

@@ -130,6 +130,13 @@
   "postSuiteQAUpdate": {
     "file": "scripts/qa/roam-review-ui.mjs",
     "change": "Release synthetic QA look through the controller blur path rather than an uncaptured OrbitControls pointercancel",
-    "tests": "4/4 review-tool checks pass; final fresh-clone browser matrix follows"
+    "tests": "4/4 review-tool checks pass; final fresh-clone browser matrix follows",
+    "finalBrowser": "PASS: fresh GitHub clone, all 12 cases, zero errors and byte-identical PNGs"
+  },
+  "finalPrivacy": {
+    "status": "PASS",
+    "files": 634,
+    "findings": [],
+    "changedApprovedReferenceFiles": []
   }
 }

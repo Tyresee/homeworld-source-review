@@ -1,0 +1,11 @@
+{
+  "codeCommit": "bcbfd4c2ddf3439328a853bc011dc03303494833",
+  "nodeModulesExists": false,
+  "npmInstallRun": false,
+  "loopbackOnly": true,
+  "moduleClosure": {
+    "modules": 103,
+    "failures": []
+  },
+  "robotGLBStatus": 200
+}

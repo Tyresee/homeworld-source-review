@@ -1,0 +1,181 @@
+{
+  "codeCommit": "bcbfd4c2ddf3439328a853bc011dc03303494833",
+  "nodeModules": false,
+  "installedPackages": false,
+  "realRenderer": true,
+  "views": [
+    {
+      "case": "01-exterior-orbit",
+      "phase": "orbit",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "02-orbit-auto-interior-cutaway",
+      "phase": "orbit",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "03-door-hover",
+      "phase": "orbit",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "04-door-opening",
+      "phase": "opening",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "05-just-entered-living-room",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "06-lamp-lit-interior-through-doorway",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "07-look-back-at-open-front-door",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "08-kitchen-tap-hob-drawers-doors",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "09-bathroom-tap-flush-drawers",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "10-bedside-drawer",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "11-floor-lamp-on",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    },
+    {
+      "case": "12-living-ceiling-lamp-switched-off",
+      "phase": "free",
+      "interactions": 18,
+      "fixtureDataUnchanged": true
+    }
+  ],
+  "consoleErrors": [],
+  "screenshotComparisons": [
+    {
+      "file": "01-exterior-orbit.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "0bf8da3975279364eaaa67aac525578a241459f4e53a4c8854de00698515b3e1",
+      "freshSHA256": "0bf8da3975279364eaaa67aac525578a241459f4e53a4c8854de00698515b3e1",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "02-orbit-auto-interior-cutaway.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "59ea02e7684d0cdf35eaafc22653f6c81ace878bd1fd48ecbbf61d36300ee31c",
+      "freshSHA256": "59ea02e7684d0cdf35eaafc22653f6c81ace878bd1fd48ecbbf61d36300ee31c",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "03-door-hover.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "3a8a377e60d944817f022e19633d6166fefd403b9e830e8f043ffe9bb149f058",
+      "freshSHA256": "3a8a377e60d944817f022e19633d6166fefd403b9e830e8f043ffe9bb149f058",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "04-door-opening.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "9975dd2f332fa4b15e466ddea9e563cf0ff4b9eb5fdc8664935ed7005eb12548",
+      "freshSHA256": "9975dd2f332fa4b15e466ddea9e563cf0ff4b9eb5fdc8664935ed7005eb12548",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "05-just-entered-living-room.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "f8536224a043d4926286bd9078b06612665e6df9172c203d105fd8be7fd085ea",
+      "freshSHA256": "f8536224a043d4926286bd9078b06612665e6df9172c203d105fd8be7fd085ea",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "06-lamp-lit-interior-through-doorway.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "e3f576df0b71991345f2b649fa66e45e7bfd542828b8fbee28b19e35cffa02c4",
+      "freshSHA256": "e3f576df0b71991345f2b649fa66e45e7bfd542828b8fbee28b19e35cffa02c4",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "07-look-back-at-open-front-door.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "085e84106bd5fea340be275ce7e33e81c6539aafa722ad3f268b7cbfda046b08",
+      "freshSHA256": "085e84106bd5fea340be275ce7e33e81c6539aafa722ad3f268b7cbfda046b08",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "08-kitchen-tap-hob-drawers-doors.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "41bd04af97108203b38fb60eb4aaabcf22cddf03c77d245ebb2072ab8c85d9f8",
+      "freshSHA256": "41bd04af97108203b38fb60eb4aaabcf22cddf03c77d245ebb2072ab8c85d9f8",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "09-bathroom-tap-flush-drawers.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "c31d4844fed0e5b9296e8e36f6584dc7089d3314b1e4fc6726ad9b74038ec0b3",
+      "freshSHA256": "c31d4844fed0e5b9296e8e36f6584dc7089d3314b1e4fc6726ad9b74038ec0b3",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "10-bedside-drawer.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "a153fe45004800fa6e6d3d03ec82d8b2962f807257112f09f41db72e90a0c069",
+      "freshSHA256": "a153fe45004800fa6e6d3d03ec82d8b2962f807257112f09f41db72e90a0c069",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "11-floor-lamp-on.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "e19667054d905dd5d64bc6dc043a355bac1ee2880717c606e9cef03ef7bff30b",
+      "freshSHA256": "e19667054d905dd5d64bc6dc043a355bac1ee2880717c606e9cef03ef7bff30b",
+      "dimensions": "1440x900"
+    },
+    {
+      "file": "12-living-ceiling-lamp-switched-off.png",
+      "byteIdentical": true,
+      "decodedPixelsIdentical": true,
+      "sourceSHA256": "88dc10c5db4a48507f47df4b33c52bebc9adc18fd6fd1b08298a2d16e74b1f5a",
+      "freshSHA256": "88dc10c5db4a48507f47df4b33c52bebc9adc18fd6fd1b08298a2d16e74b1f5a",
+      "dimensions": "1440x900"
+    }
+  ],
+  "allPNGsByteIdentical": true,
+  "allDecodedPixelsIdentical": true
+}

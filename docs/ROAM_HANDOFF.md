@@ -1,6 +1,6 @@
 # Warm free viewing delivery — 2026-10-30
 
-This is a local, committed review candidate for `Tyresee/homeworld-source-review`. It is not deployed. Production defaults, Toy, accounts, wallets, prices, inventory, construction, placement and robot activities remain owned by their existing systems.
+This is a Warm-only source review candidate for `Tyresee/homeworld-source-review`. It is not deployed. Production defaults, Toy, accounts, wallets, prices, inventory, construction, placement and robot activities remain owned by their existing systems.
 
 ## Run without npm
 
@@ -15,7 +15,7 @@ To choose another loopback port:
 ROAM_REVIEW_PORT=19551 node scripts/qa/roam-review.mjs
 ```
 
-The tool loads the real `createHomeScene`, room/manor builders, furniture builders, approved Warm finishes and robot v4 GLB. It uses `vendor/three` when `node_modules/three` is absent. It has no account, wallet, command endpoint or persistence. The 12 case buttons reset disposable viewing state; the QA pose field only repositions this review camera. “Play clock” uses real elapsed time; PNG capture uses deterministic controller/interaction time. The two measurement buttons collect foreground animation-frame intervals and actual render-call CPU durations, not GPU timer results.
+The tool loads the real `createHomeScene`, room/manor builders, furniture builders, approved Warm finishes and robot v4 GLB. It uses `vendor/three` when `node_modules/three` is absent. It has no account, wallet, command endpoint or persistence. The 12 case buttons reset disposable viewing state; the QA pose field only repositions this review camera. Use “Play clock” for continuous interactive movement in this QA page; paused time is for fixed captures. “Play clock” uses real elapsed time; PNG capture uses deterministic controller/interaction time. The two measurement buttons collect foreground animation-frame intervals and actual render-call CPU durations, not GPU timer results.
 
 The ordinary application enables this feature only with `?theme=warm`. Its fourth view icon is Visit, with shortcut `4`. Other views or orbit-mode Escape return to the original editor. Indoor Escape/Leave plays the exit sequence first.
 
@@ -47,7 +47,7 @@ A shadow-casting but initially switched-off master must allocate its shadow map 
 
 ## Acceptance evidence
 
-Final 1440 × 900 scene PNGs are in [roam-2026-10-30/renders](roam-2026-10-30/renders). Matching controller, target, lighting and fixture-immutability diagnostics are in [measurements](roam-2026-10-30/measurements). Separate browser captures in `ui/` show real DOM controls; downloaded scene PNGs intentionally contain no synthetic UI overlay.
+The [12-view contact sheet](roam-2026-10-30/contact-sheet.png) provides a quick overview. Final 1440 × 900 scene PNGs are in [roam-2026-10-30/renders](roam-2026-10-30/renders). Matching controller, target, lighting and fixture-immutability diagnostics are in [measurements](roam-2026-10-30/measurements). Separate browser captures in `ui/` show real DOM controls; downloaded scene PNGs intentionally contain no synthetic UI overlay.
 
 | Requirement | Evidence and result |
 | --- | --- |
@@ -86,4 +86,19 @@ The account release builder now follows actual HTML stylesheet dependencies, inc
 
 Raw reviewer materials remain under `docs/look-dev-captures/review-roam-2026-10-30/`, with prototypes confined to documentation. The raw import is a separate public commit, `99c61a3`. The new archive has 23 original members, all verified byte-for-byte. Across the imported review packages, 101 unique archive paths retain matching SHA-256 values. Runtime source continues the existing anonymization policy; approved raw reviewer material is unchanged.
 
-Status: local implementation and validation complete; implementation/evidence committed and pushed to the public review branch when the delivery commit is supplied. Not deployed. Continue from the supplied public commit rather than the raw prototype directory.
+Status: implemented and pushed; not deployed. Code commit `bcbfd4c2ddf3439328a853bc011dc03303494833` was cloned from GitHub into a new directory with no node_modules and no npm installation. All 12 views rendered with 18 targets and unchanged fixture data, all 12 PNGs matched this delivery byte-for-byte, the 103-module import closure and GLB returned successfully, and browser errors were zero. See `measurements/fresh-clone.json` and `fresh-clone-resources.json`. The final delivery commit adds documentation/evidence only after that verified code commit. Continue from the final public delivery commit rather than the raw prototype directory.
+
+## Package checklist
+
+- [x] Door-only application entry; strict click/drag threshold.
+- [x] Hinged leaf, real matching opening, no wall or frame intersection across the tested swing.
+- [x] Physical-code keyboard behavior, including automated Process + KeyW.
+- [x] Collision-free movement, flying, click glide and room transition logic.
+- [x] Indoor ceiling light setup, master-room changes and outside restoration.
+- [x] Exact 18-target recognition, reversible actions and visibility/reach checks.
+- [x] Door exit and exact original-camera restoration.
+- [x] Disposable interaction state and unchanged fictional home files.
+- [x] Default/Toy committed visual baseline equality.
+- [x] Fresh GitHub clone renders all 12 views without npm or node_modules.
+- [ ] Complete source/public full suites entirely green: blocked by the explicitly preserved pre-existing failures, with no new failures.
+- [ ] Physical classroom PC / input-method certification: not performed; desktop browser evidence is scoped above.

@@ -5,7 +5,7 @@
     "modules": 129,
     "tests": 97,
     "selectedSourceFiles": 267,
-    "packagedFiles": 626,
+    "packagedFiles": 634,
     "browserModules": 120,
     "serverModules": 9,
     "qaScripts": 15
@@ -19,7 +19,7 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "status": "local-validated-awaiting-fresh-clone",
+    "status": "verified-and-pushed-code-with-fresh-clone",
     "feature": "Warm first-floor free visit",
     "deployment": "not deployed",
     "sourceFullTests": {
@@ -119,7 +119,25 @@
     "fictionalAccountHomes": "2/2 backing files unchanged",
     "referenceArchiveFiles": 101,
     "threeVendor": "0.186.1, 9 licensed files, import closure and SHA verified",
-    "freshClone": "pending final publication smoke test"
+    "freshClone": {
+      "codeCommit": "bcbfd4c2ddf3439328a853bc011dc03303494833",
+      "nodeModules": false,
+      "npmInstall": false,
+      "views": 12,
+      "targetsPerView": 18,
+      "allPNGsByteIdentical": true,
+      "browserErrors": 0,
+      "moduleClosure": 103,
+      "missingModules": 0,
+      "robotGLBStatus": 200
+    },
+    "documentationFollowup": "Final delivery adds verification records and browser UI captures only",
+    "finalPrivacy": {
+      "status": "PASS",
+      "files": 634,
+      "findings": [],
+      "changedApprovedReferenceFiles": []
+    }
   },
   "sourceRefresh": {
     "purpose": "Warm-only disposable free visit with local interactions",

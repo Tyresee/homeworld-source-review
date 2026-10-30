@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 626,
+  "totalFiles": 634,
   "files": [
     {
       "path": ".gitignore",
@@ -684,7 +684,11 @@
     },
     {
       "path": "docs/ROAM_HANDOFF.md",
-      "bytes": 11129
+      "bytes": 12721
+    },
+    {
+      "path": "docs/roam-2026-10-30/contact-sheet.png",
+      "bytes": 1232088
     },
     {
       "path": "docs/roam-2026-10-30/measurements/01-exterior-orbit.json",
@@ -751,6 +755,14 @@
       "bytes": 1773
     },
     {
+      "path": "docs/roam-2026-10-30/measurements/fresh-clone-resources.json",
+      "bytes": 233
+    },
+    {
+      "path": "docs/roam-2026-10-30/measurements/fresh-clone.json",
+      "bytes": 6009
+    },
+    {
       "path": "docs/roam-2026-10-30/measurements/performance-entry-final.json",
       "bytes": 22744
     },
@@ -764,7 +776,11 @@
     },
     {
       "path": "docs/roam-2026-10-30/measurements/test-summary.json",
-      "bytes": 8375
+      "bytes": 8599
+    },
+    {
+      "path": "docs/roam-2026-10-30/README.md",
+      "bytes": 718
     },
     {
       "path": "docs/roam-2026-10-30/renders/01-exterior-orbit.png",
@@ -813,6 +829,22 @@
     {
       "path": "docs/roam-2026-10-30/renders/12-living-ceiling-lamp-switched-off.png",
       "bytes": 1038749
+    },
+    {
+      "path": "docs/roam-2026-10-30/ui/01-exterior-orbit-ui.png",
+      "bytes": 594113
+    },
+    {
+      "path": "docs/roam-2026-10-30/ui/03-door-hover-ui.png",
+      "bytes": 309670
+    },
+    {
+      "path": "docs/roam-2026-10-30/ui/05-just-entered-living-room-ui.png",
+      "bytes": 373226
+    },
+    {
+      "path": "docs/roam-2026-10-30/ui/08-kitchen-tap-hob-drawers-doors-ui.png",
+      "bytes": 763088
     },
     {
       "path": "docs/ui-review-2026-10-30/CODEX_TASK.md",
@@ -1340,7 +1372,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 63848
+      "bytes": 64656
     },
     {
       "path": "game.manifest.json",
@@ -1360,7 +1392,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 10936
+      "bytes": 11460
     },
     {
       "path": "package-lock.json",

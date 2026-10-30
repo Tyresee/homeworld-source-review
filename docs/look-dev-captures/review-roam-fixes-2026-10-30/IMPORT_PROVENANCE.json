@@ -1,0 +1,72 @@
+{
+  "archive": "homeworld-codex-roam-fixes-2026-10-30.zip",
+  "archiveSha256": "e38e3cf1fa61ad915c4435faa035811d8be2c40d983448e62c9150702c924e4b",
+  "files": [
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/CODEX_TASK.md",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/CODEX_TASK.md",
+      "bytes": 8201,
+      "sha256": "bef76da28c95c6ad112dae26736e61304dd4d146760cd203c4d48b7313b0acd2"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/target/01-chinese-ui-exterior.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/target/01-chinese-ui-exterior.png",
+      "bytes": 629322,
+      "sha256": "c0f9b3ac239467fc801a4564c8f1570e62c1ef6f89b28b3c5a42d5ab01241e1c"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/target/11-floor-lamp-on.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/target/11-floor-lamp-on.png",
+      "bytes": 911859,
+      "sha256": "8e50738eff6ba01f391000e41668379810d3de8c5fe04df6567d6cc665b53d1d"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/target/03-chinese-door-tip.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/target/03-chinese-door-tip.png",
+      "bytes": 641359,
+      "sha256": "49480ac8fac3ee0336518912c006d7509c19b18bb5df5fbbad757cc406af1f85"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/target/05-chinese-ui-inside-and-living-room-entry.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/target/05-chinese-ui-inside-and-living-room-entry.png",
+      "bytes": 706930,
+      "sha256": "160112653a1f7e170e7411f904bce97f181b73696923bf08e2a5b43debf45b06"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/11-floor-lamp-on.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/11-floor-lamp-on.png",
+      "bytes": 655104,
+      "sha256": "e19667054d905dd5d64bc6dc043a355bac1ee2880717c606e9cef03ef7bff30b"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/01-exterior-orbit-ui.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/01-exterior-orbit-ui.png",
+      "bytes": 594113,
+      "sha256": "37627885cc9f2b8fc105edce0206e9800d2c4f4e344025e47fd8b19bca201c19"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/12-living-ceiling-lamp-switched-off.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/12-living-ceiling-lamp-switched-off.png",
+      "bytes": 1038749,
+      "sha256": "88dc10c5db4a48507f47df4b33c52bebc9adc18fd6fd1b08298a2d16e74b1f5a"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/07-look-back-at-open-front-door.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/07-look-back-at-open-front-door.png",
+      "bytes": 478813,
+      "sha256": "085e84106bd5fea340be275ce7e33e81c6539aafa722ad3f268b7cbfda046b08"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/05-just-entered-living-room-ui.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/05-just-entered-living-room-ui.png",
+      "bytes": 373226,
+      "sha256": "e2b5fed91af9e6a933c96f888febce20536d53c7589ff337452807f63475b70a"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-fixes-2026-10-30/reference/current/05-just-entered-living-room.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-fixes-2026-10-30/reference/current/05-just-entered-living-room.png",
+      "bytes": 502974,
+      "sha256": "f8536224a043d4926286bd9078b06612665e6df9172c203d105fd8be7fd085ea"
+    }
+  ]
+}

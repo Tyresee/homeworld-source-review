@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 1988
+      "bytes": 2344
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -300,7 +300,7 @@
     },
     {
       "path": "docs/warm-v6-validation/README.md",
-      "bytes": 6877
+      "bytes": 7163
     },
     {
       "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
@@ -412,7 +412,7 @@
     },
     {
       "path": "docs/warm-v6-validation/verification.json",
-      "bytes": 1107
+      "bytes": 1439
     },
     {
       "path": "docs/warm-v6-validation/visual-validation.json",

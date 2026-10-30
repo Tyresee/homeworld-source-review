@@ -74,3 +74,5 @@ These are direct room crops from actual authenticated application screenshots un
 - No real student, production account or wallet was modified. No physical projector or performance benchmark is claimed.
 
 [Actual light/material/camera readback](render-readback.json) · [Application persistence/receipt verification](application-verification.json) · [Machine-readable visual results](visual-validation.json)
+
+Fresh-clone verification: an anonymous GitHub clone started with Node only, with no node_modules or npm installation. All five warm views rendered through the checked-in vendor modules; the downloaded PNGs match the source implementation byte-for-byte, with no browser console errors.

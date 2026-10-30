@@ -36,6 +36,18 @@
     "sameFailureNamesAsPriorSnapshot": true
   },
   "visualAcceptance": "pass-with-documented-reference-variations",
-  "freshCloneBrowserVerification": "pending",
+  "freshCloneBrowserVerification": {
+    "status": "passed",
+    "testedCodeCommit": "457a8bc02dbcb986fb1f73caadbb291632b336ef",
+    "nodeModulesPresent": false,
+    "npmInstallationPerformed": false,
+    "viewsRendered": 5,
+    "allFiveDownloadedPngsByteIdenticalToSourceRenders": true,
+    "sourceResolution": [
+      1440,
+      900
+    ],
+    "browserConsoleErrors": 0
+  },
   "productionDeployed": false
 }

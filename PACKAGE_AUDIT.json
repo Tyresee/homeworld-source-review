@@ -38,7 +38,20 @@
     "allFinishReceiptsZero": true,
     "refreshAndStudentIsolationVerified": true,
     "warmAppearanceSource": "awaiting warm-v6 and reviewer comparison images",
-    "freshCloneBrowserVerification": "pending-final-commit-clone-check",
+    "freshCloneBrowserVerification": {
+      "status": "passed",
+      "testedCodeCommit": "dfb1860037f2633e438ae201c709f31ba9d3d953",
+      "nodeModulesPresent": false,
+      "npmInstallPerformed": false,
+      "viewsRendered": 5,
+      "sourceResolution": [
+        1440,
+        900
+      ],
+      "allFivePngsByteIdenticalToSourceCaptures": true,
+      "browserConsoleErrors": 0,
+      "portOverride": 19538
+    },
     "deploymentPerformed": false
   },
   "previousSnapshotValidation": {

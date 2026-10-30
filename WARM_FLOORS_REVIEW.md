@@ -51,3 +51,5 @@ Validation counts, rendered reference views, default/toy hashes and actual-appli
 - Pending: warm-v6 appearance source, reviewer reference images and therefore the requested visual-match sign-off. No physical projector or production verification is claimed.
 
 Public normalized package validation: core 379/379 and focused floor/Look Dev 27/27 pass with locked dependencies installed. Full included suite: 663/718 pass; the same 55 normalized display/source-text failure names remain, with no new failure names. The browser review page separately uses checked-in vendor modules without npm.
+
+A fresh anonymous clone of the published code was started with Node only, without node_modules or npm installation. All five warm views rendered with the bundled Three modules. The five downloaded 1440 x 900 PNGs were byte-identical to the source captures, and browser console errors were empty.

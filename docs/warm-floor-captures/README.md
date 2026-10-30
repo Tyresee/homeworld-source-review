@@ -47,3 +47,5 @@ Eight tile choices in the same kitchen:
 All fourteen delivered finish receipts had amount zero. The first student's wallet stayed unchanged, refresh restored the selected finish, and switching to a second fictional student and back preserved isolation. Old color/material fields remain intact. See [application readback](application-verification.json).
 
 All ten default/toy source PNGs remain byte-identical to the preceding gallery. See [hash comparison](default-toy-final-comparison.json) and [actual warm material/repeat/camera readbacks](warm-render-readback.json). Texture scale/caching and legacy fallback also have focused automated coverage. The missing warm-v6/reference-image comparison remains open; physical classroom/projector appearance was not tested.
+
+Fresh-clone check: the public source, started with Node only and no node_modules, rendered all five warm views; all five downloaded PNGs match these source captures byte-for-byte. Browser console errors were empty.

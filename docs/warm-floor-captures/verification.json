@@ -56,6 +56,17 @@
     "Legacy repaint back to the exact original color/material pair cannot be distinguished from an untouched save"
   ],
   "offlineFreshClone": {
-    "status": "pending-final-commit-clone-check"
+    "status": "passed",
+    "testedCodeCommit": "dfb1860037f2633e438ae201c709f31ba9d3d953",
+    "nodeModulesPresent": false,
+    "npmInstallPerformed": false,
+    "viewsRendered": 5,
+    "sourceResolution": [
+      1440,
+      900
+    ],
+    "allFivePngsByteIdenticalToSourceCaptures": true,
+    "browserConsoleErrors": 0,
+    "portOverride": 19538
   }
 }

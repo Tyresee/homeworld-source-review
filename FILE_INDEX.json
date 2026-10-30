@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 1909
+      "bytes": 2255
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -48,7 +48,7 @@
     },
     {
       "path": "WARM_FLOORS_REVIEW.md",
-      "bytes": 5657
+      "bytes": 5954
     },
     {
       "path": "docs/look-dev-captures/README.md",
@@ -108,7 +108,7 @@
     },
     {
       "path": "docs/warm-floor-captures/README.md",
-      "bytes": 3149
+      "bytes": 3365
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -176,7 +176,7 @@
     },
     {
       "path": "docs/warm-floor-captures/verification.json",
-      "bytes": 1637
+      "bytes": 1937
     },
     {
       "path": "docs/warm-floor-captures/warm-floors--bathroom.png",

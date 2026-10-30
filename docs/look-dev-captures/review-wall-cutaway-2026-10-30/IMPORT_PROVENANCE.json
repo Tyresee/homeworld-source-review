@@ -1,0 +1,50 @@
+{
+  "archive": "homeworld-codex-walls-cut-2026-10-30.zip",
+  "archiveSha256": "627f188f4faabd2946271a294e6ed609301f8cc624242a39da9b221737ca6622",
+  "files": [
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/CODEX_TASK.md",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/CODEX_TASK.md",
+      "bytes": 3641,
+      "sha256": "4cdff71d3d033a0f7ba05694e24f06da8e290a3f70ae87cdd0ed82eb3f2a551d"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/prototype/cutaway-proto.patch",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/prototype/cutaway-proto.patch",
+      "bytes": 7793,
+      "sha256": "1862dedc77a7f5ae4a7986194285668e0c86d7a8381a3a084fc4be723c20f7e3"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/reference/house-current.png",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-current.png",
+      "bytes": 2865092,
+      "sha256": "4c79e7d925d0bb69c452b8ecffa88690804a815b5f8ca8ecb1b15d753ace1d9a"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/reference/house-cut-1.05m-not-chosen.png",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-1.05m-not-chosen.png",
+      "bytes": 2968924,
+      "sha256": "ded7ea0c426c123c3c7e091764f257ee35890f03f2e7417fbeb1152c81815eaa"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/reference/house-current--closeup.png",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-current--closeup.png",
+      "bytes": 852718,
+      "sha256": "7a665073ec3304784f4c5b08e33c41a659cf759da539c7cab6255ecda9964a48"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/reference/house-cut-0.5m--closeup.png",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m--closeup.png",
+      "bytes": 838992,
+      "sha256": "1c281db80c60363c47f5e1e2ed4b7bb6d3bd993cc564660254e8fa4f2ec88dd4"
+    },
+    {
+      "archivePath": "homeworld-codex-walls-cut-2026-10-30/reference/house-cut-0.5m.png",
+      "repositoryPath": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m.png",
+      "bytes": 2917923,
+      "sha256": "c46ab27f236d42263ef5f17490e3b0fd7dc9c81b0c478a8e327ce57d504763ad"
+    }
+  ],
+  "runtimePrototypeImported": false,
+  "referenceLanguagePreservedAsAuthorized": true
+}

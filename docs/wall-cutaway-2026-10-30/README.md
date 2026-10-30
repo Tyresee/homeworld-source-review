@@ -38,4 +38,4 @@ node scripts/qa/look-dev-review.mjs
 
 Open the printed loopback address with ?preset=warm-walls.json&view=house, or use warm-floors.json. All 6 PNGs exports a ZIP with one named PNG per view. The script uses the vendored licensed Three.js bundle when node_modules is absent. No npm, account, wallet or saved-home write is required.
 
-No production deployment is included. Final fresh-GitHub-clone evidence and the tested code commit are added after push.
+[Fresh clone verification](fresh-clone.json) tested pushed implementation 65ad7356aa8073c0ac4927ce5b571ecab9375f76: no node_modules, no npm installation, both six-view Warm ZIPs exported, all twelve PNGs byte-identical to source at 1440 x 900, zero browser errors. Later delivery commits change evidence and documentation only. No production deployment is included.

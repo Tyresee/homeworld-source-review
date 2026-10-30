@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 546,
+  "totalFiles": 547,
   "files": [
     {
       "path": ".gitignore",
@@ -744,7 +744,7 @@
     },
     {
       "path": "docs/WALL_CUTAWAY_HANDOFF.md",
-      "bytes": 8997
+      "bytes": 9698
     },
     {
       "path": "docs/WALL_SYSTEM_HANDOFF.md",
@@ -783,6 +783,10 @@
       "bytes": 5219
     },
     {
+      "path": "docs/wall-cutaway-2026-10-30/fresh-clone.json",
+      "bytes": 3065
+    },
+    {
       "path": "docs/wall-cutaway-2026-10-30/house-before.png",
       "bytes": 1032264
     },
@@ -800,7 +804,7 @@
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/README.md",
-      "bytes": 3847
+      "bytes": 4092
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/render-regression.json",
@@ -808,7 +812,7 @@
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/tests.json",
-      "bytes": 1995
+      "bytes": 2117
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/warm-floors--house.png",
@@ -1104,7 +1108,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 54920
+      "bytes": 55016
     },
     {
       "path": "game.manifest.json",
@@ -1124,7 +1128,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 5693
+      "bytes": 6511
     },
     {
       "path": "package-lock.json",

@@ -5,7 +5,7 @@
     "modules": 123,
     "tests": 87,
     "selectedSourceFiles": 246,
-    "packagedFiles": 546,
+    "packagedFiles": 547,
     "browserModules": 114,
     "serverModules": 9,
     "qaScripts": 12
@@ -19,7 +19,7 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "status": "verified-local-cutaway-awaiting-fresh-clone",
+    "status": "cutaway-verified-pushed-and-fresh-cloned",
     "sourceHomes": {
       "tests": 713,
       "pass": 713,
@@ -84,8 +84,17 @@
     "privacy": {
       "normalizedSourceClosure": 246,
       "rawCutawayArchiveMembersUnchanged": 7,
-      "allApprovedRawReferencesUnchanged": 79,
-      "noPrivateFixture": true
+      "allApprovedRawReferencesUnchanged": 78,
+      "noPrivateFixture": true,
+      "rawReferenceCountDefinition": "Unique archive members deduplicated by repository path in four provenance manifests",
+      "finalDeliveryAudit": {
+        "scannedFilesAtCodeCommit": 546,
+        "privatePathsOrIdentityMatches": 0,
+        "symlinks": 0,
+        "newUIPNGMetadataMatches": 0,
+        "applicationCropsVisuallyDeidentified": 3,
+        "renderAndQAModulesMatchSourceControlFlow": true
+      }
     },
     "vendor": {
       "version": "0.186.1",
@@ -93,7 +102,20 @@
       "importClosureAndHashesVerified": true
     },
     "freshClone": {
-      "status": "pending GitHub clone-back"
+      "status": "passed",
+      "codeCommit": "65ad7356aa8073c0ac4927ce5b571ecab9375f76",
+      "nodeModulesPresent": false,
+      "npmInstallPerformed": false,
+      "presets": [
+        "warm-walls",
+        "warm-floors"
+      ],
+      "viewsPerPreset": 6,
+      "twelvePNGsByteIdenticalToSource": true,
+      "width": 1440,
+      "height": 900,
+      "browserConsoleErrors": 0,
+      "evidence": "docs/wall-cutaway-2026-10-30/fresh-clone.json"
     },
     "productionDeployed": false
   },

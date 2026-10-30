@@ -29,7 +29,7 @@
     }
   },
   "public": {
-    "state": "Locally verified normalized implementation; publication metadata is recorded in the handoff",
+    "state": "Verified implementation code pushed and fresh-cloned; no production deployment",
     "publicStartingCommit": "d9bd9a53773cb17fe4962ed1094a61f16b5a22c8",
     "core": {
       "tests": 379,
@@ -57,7 +57,7 @@
     "resolvedFailureNames": [],
     "privacyStatus": "PASS",
     "scannedFiles": 523,
-    "approvedReferenceFilesByteIdentical": 79,
+    "approvedReferenceFilesByteIdentical": 78,
     "rawCutawayArchiveMembersVerified": 7,
     "threeVendor": "0.186.1, 9 licensed files, complete imports and matching SHA-256",
     "temporaryPublicThreeLinkRemoved": true,
@@ -68,6 +68,7 @@
       "No source files edited during export/testing.",
       "Root owns final docs, audit and file index; no subsequent export was run.",
       "Privacy scan is point-in-time and examines text, decoded escapes, GLB JSON and PNG metadata; no OCR claim."
-    ]
+    ],
+    "approvedReferenceCountDefinition": "Unique raw archive members deduplicated by repository path across four provenance manifests"
   }
 }

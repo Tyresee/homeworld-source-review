@@ -1,0 +1,102 @@
+{
+  "codeCommit": "65ad7356aa8073c0ac4927ce5b571ecab9375f76",
+  "source": "Fresh anonymous clone from GitHub main",
+  "nodeVersion": "v24.16.0",
+  "nodeModulesPresent": false,
+  "npmInstallPerformed": false,
+  "vendorThree": "0.186.1",
+  "vendorLicensedFilesVerified": 9,
+  "sixViewZIPVerifiedFor": [
+    "warm-walls",
+    "warm-floors"
+  ],
+  "allTwelvePNGsByteIdenticalToSource": true,
+  "renders": [
+    {
+      "file": "warm-walls--living.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "1ce9e7a6a7291ee2f2c70ee4cb8870c592843ba22bb68a3df2f73577b3dfe151"
+    },
+    {
+      "file": "warm-walls--bedroom.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "83a1ae3e375a7472fbb4ddec5ea127137c2efe592096972259cc502193b1f829"
+    },
+    {
+      "file": "warm-walls--kitchen.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "f5b90eedec31c3368f0a82621d16892bded10b1934f0c3f67976743703d4103f"
+    },
+    {
+      "file": "warm-walls--bathroom.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "61ccf5f76426d88358c61929f447189c858448a5b52fdb56c2cc3a5784354f46"
+    },
+    {
+      "file": "warm-walls--house.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "92735f35e2144df765cd99ed2f5dfea0764e5dc2fc1b0fea12d23304291469f6"
+    },
+    {
+      "file": "warm-walls--exterior.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "c709bd4eda1ff298ff87537541d1dd12103afe7fe31d16765916afc0f97e8481"
+    },
+    {
+      "file": "warm-floors--living.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "1ce9e7a6a7291ee2f2c70ee4cb8870c592843ba22bb68a3df2f73577b3dfe151"
+    },
+    {
+      "file": "warm-floors--bedroom.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "cea6e57e456a5d814a2204bcfc6119344eec095cad5de38b48ffe4d4bb15b9d0"
+    },
+    {
+      "file": "warm-floors--kitchen.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "12820affbc4295b644f12fe349ba59504867044e7e04ff55f1f9613ff1338292"
+    },
+    {
+      "file": "warm-floors--bathroom.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "bf87c814b78b67c686d7f1a2d6e2d6b89ef6f23e41028ab1013a2f79b1504712"
+    },
+    {
+      "file": "warm-floors--house.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "c77d3f800fa075235df606f3909c919bece87fe9207a70967abd1bf3a394aa0d"
+    },
+    {
+      "file": "warm-floors--exterior.png",
+      "width": 1440,
+      "height": 900,
+      "byteIdenticalToSource": true,
+      "sha256": "c709bd4eda1ff298ff87537541d1dd12103afe7fe31d16765916afc0f97e8481"
+    }
+  ],
+  "browserConsoleErrors": [],
+  "productionDeployed": false
+}

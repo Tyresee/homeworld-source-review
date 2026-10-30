@@ -1,0 +1,9 @@
+{
+  "environment": "isolated source application; fictional Sam; no real accounts",
+  "ordinaryEstateDoorClickReachedFree": true,
+  "instructionsVisible": true,
+  "returnToEstatePhase": "inactive",
+  "menuVisitDoesNotAutoEnter": true,
+  "browserErrors": [],
+  "roofClickStayedInEstate": true
+}

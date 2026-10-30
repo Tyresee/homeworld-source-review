@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 727,
+  "totalFiles": 734,
   "files": [
     {
       "path": ".gitignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": "CORE_TESTS.json",
-      "bytes": 2951
+      "bytes": 3049
     },
     {
       "path": "docs/look-dev-captures/default--bathroom.png",
@@ -729,6 +729,26 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/verification.json",
       "bytes": 3557
+    },
+    {
+      "path": "docs/qa/direct-door-entry-2026-10-30/after-direct-door.png",
+      "bytes": 650466
+    },
+    {
+      "path": "docs/qa/direct-door-entry-2026-10-30/before-estate.png",
+      "bytes": 784449
+    },
+    {
+      "path": "docs/qa/direct-door-entry-2026-10-30/browser-proof.json",
+      "bytes": 293
+    },
+    {
+      "path": "docs/qa/direct-door-entry-2026-10-30/README.md",
+      "bytes": 2382
+    },
+    {
+      "path": "docs/qa/direct-door-entry-2026-10-30/restored-estate.png",
+      "bytes": 785051
     },
     {
       "path": "docs/ROAM_FIXES_HANDOFF.md",
@@ -1708,7 +1728,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 75761
+      "bytes": 76478
     },
     {
       "path": "game.manifest.json",
@@ -1728,7 +1748,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 5681
+      "bytes": 6654
     },
     {
       "path": "package-lock.json",
@@ -1856,7 +1876,7 @@
     },
     {
       "path": "public/js/home-estate-manor.js",
-      "bytes": 33599
+      "bytes": 33973
     },
     {
       "path": "public/js/home-estate-outdoor.js",
@@ -2056,7 +2076,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 114831
+      "bytes": 115477
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -2160,7 +2180,7 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 56892
+      "bytes": 57242
     },
     {
       "path": "public/js/student-home-floor-menu.js",
@@ -2260,7 +2280,7 @@
     },
     {
       "path": "public/js/student-home-world.js",
-      "bytes": 7203
+      "bytes": 7428
     },
     {
       "path": "public/js/student-homes.js",
@@ -2507,6 +2527,10 @@
       "bytes": 11981
     },
     {
+      "path": "tests/home-scene-door-entry.test.mjs",
+      "bytes": 5137
+    },
+    {
       "path": "tests/home-theme-rooms.test.mjs",
       "bytes": 10917
     },
@@ -2615,6 +2639,10 @@
       "bytes": 3601
     },
     {
+      "path": "tests/student-home-manor-entrance-picking.test.mjs",
+      "bytes": 9769
+    },
+    {
       "path": "tests/student-home-modular-kitchen-models.test.mjs",
       "bytes": 7430
     },
@@ -2656,7 +2684,7 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 73215
+      "bytes": 76680
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
@@ -2772,7 +2800,7 @@
     },
     {
       "path": "tests/student-home-world-view.test.mjs",
-      "bytes": 7357
+      "bytes": 9330
     },
     {
       "path": "tests/student-homes-catalog-compat.test.mjs",

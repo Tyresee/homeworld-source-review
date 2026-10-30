@@ -14,7 +14,7 @@ const source=await readFile(moduleUrl,'utf8');
 // Only WebGL and the robot asset loader are replaced, so these tests need no
 // browser, saved home, student account, network access or GPU.
 async function fixture({warmUI=false,delayRoam=false}={}) {
-  const calls={views:[],notifications:[],focus:[],floors:[],dispose:0,roam:[],runtimeVisible:[]};
+  const calls={views:[],notifications:[],focus:[],floors:[],dispose:0,roam:[],runtimeVisible:[],entrance:[],roamOptions:[]};
   let handlers;
   let roamActive=false,roamEpoch=0,finishEntry,previousView='interior';
   const canvas={hidden:false,setAttribute(){}};
@@ -24,7 +24,7 @@ async function fixture({warmUI=false,delayRoam=false}={}) {
     focusEstate(id){calls.focus.push(id);},
     dispose(){calls.dispose++;},
     setObjectContext(){},setState(){},setOutdoorState(){},setAvatar(){},selectSurface(){},setTool(){},cancelDrag(){},cancelPlacement(){},hideAvatar(){},
-    async enterRoam(){const epoch=++roamEpoch;previousView=calls.views.at(-1)??'interior';if(delayRoam)await new Promise(resolve=>{finishEntry=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;handlers.onRoamChange({active:true,phase:'orbit',previousView});return true;},
+    async enterRoam(options){calls.roamOptions.push({...options});const epoch=++roamEpoch;previousView=calls.views.at(-1)??'interior';if(delayRoam)await new Promise(resolve=>{finishEntry=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;handlers.onRoamChange({active:true,phase:'orbit',previousView});return true;},
     exitRoam(){roamEpoch++;if(roamActive){roamActive=false;handlers.onRoamChange({active:false,phase:'inactive',previousView});}},
   };
   const context={createCushionPresentation,createStudentHomeObjectRuntime:options=>{const runtime=createStudentHomeObjectRuntime(options);return {...runtime,setVisible(value){calls.runtimeVisible.push(value);runtime.setVisible(value);}};},URL,
@@ -38,7 +38,7 @@ async function fixture({warmUI=false,delayRoam=false}={}) {
     .replaceAll('import.meta.url',JSON.stringify(moduleUrl.href));
   runInNewContext(executable+'\nglobalThis.createWorld=createStudentHomeWorld;',context,{filename:'student-home-world.js'});
   const world=await context.createWorld({
-    warmUI,onRoamChange:value=>calls.roam.push({...value}),
+    warmUI,onRoamChange:value=>calls.roam.push({...value}),onEntranceClick:request=>calls.entrance.push(request),
     container:{querySelector:selector=>selector==='canvas'?canvas:null},
     onViewChange:view=>calls.notifications.push(view),
     onStoreyChange:index=>calls.floors.push(index),
@@ -128,4 +128,23 @@ test('Warm roaming suspends the object runtime and returns to the exact prior vi
 test('read-only entry is Warm-only and an identity clear cancels an asynchronous load before it can reopen',async()=>{
   const legacy=await fixture(),home=createStudentHome('11111111-1111-4111-8111-111111111111');legacy.world.setCommerce(home.commerce,home.avatar);assert.equal(await legacy.world.enterRoam(),false);assert.equal(legacy.world.getView(),'interior');legacy.world.dispose();
   const f=await fixture({warmUI:true,delayRoam:true});f.world.setCommerce(home.commerce,home.avatar);const loading=f.world.enterRoam();f.world.clear();f.finishEntry();assert.equal(await loading,false);assert.equal(f.world.isRoaming(),false);assert.equal(f.calls.roam.some(value=>value.active),false);f.world.dispose();
+});
+
+test('only a ready Warm estate can forward the actual entrance click; roof focus remains separate',async()=>{
+  const home=createStudentHome('11111111-1111-4111-8111-111111111111'),request={entrance:true};
+  for(const warmUI of[false,true]){
+    const f=await fixture({warmUI});f.world.setView('estate');f.handlers.onEntranceClick(request);assert.equal(f.calls.entrance.length,0,'unbound homes cannot enter');
+    f.world.setCommerce(home.commerce,home.avatar);f.world.setView('interior');f.handlers.onEntranceClick(request);assert.equal(f.calls.entrance.length,0);
+    f.world.setView('estate');f.handlers.onEstateFocus('manor');assert.equal(f.calls.entrance.length,0,'roof focus is not an entrance click');
+    f.handlers.onEntranceClick(request);assert.equal(f.calls.entrance.length,warmUI?1:0);
+    f.world.clear();f.handlers.onEntranceClick(request);assert.equal(f.calls.entrance.length,warmUI?1:0);
+    f.world.setCommerce(home.commerce,home.avatar);f.world.dispose();f.handlers.onEntranceClick(request);assert.equal(f.calls.entrance.length,warmUI?1:0);
+  }
+});
+
+test('door entry forwards its explicit option and preserves the ordinary Visit orbit entry',async()=>{
+  const f=await fixture({warmUI:true}),home=createStudentHome('11111111-1111-4111-8111-111111111111');f.world.setCommerce(home.commerce,home.avatar);
+  assert.equal(await f.world.enterRoam({enterDoor:true}),false,'an interior event cannot act as an outdoor doorway');assert.equal(f.calls.roamOptions.length,0);
+  assert.equal(await f.world.enterRoam(),true);assert.deepEqual(f.calls.roamOptions.at(-1),{enterDoor:false});f.world.exitRoam();
+  f.world.setView('estate');assert.equal(await f.world.enterRoam({enterDoor:true}),true);assert.deepEqual(f.calls.roamOptions.at(-1),{enterDoor:true});f.world.exitRoam();assert.equal(f.world.getView(),'estate');f.world.dispose();
 });

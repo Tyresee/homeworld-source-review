@@ -186,9 +186,15 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       }
       roamDoor={hinge,leaf,handles,frame,parts:[leaf,...handles]};
     } else {
-      add(new THREE.ExtrudeGeometry(arch(doorW + .36, doorH + .20), { depth: .24, bevelEnabled: true, bevelSize: .035, bevelThickness: .035, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, 0, .02], group);
-      add(new THREE.ShapeGeometry(arch(doorW, doorH), 16), colors.wood, [0, .08, .31], group);
-      for (const sign of [-1, 1]) { box([.045, doorH * .72, .045], colors.gold, [sign * doorW * .34, doorH * .40 + .16, .34], .01, group); ball(colors.gold, [sign * .15, doorH * .44 + .11, .38], [.055, .075, .06], group); }
+      // Only the visible ground-floor door is an entrance target. Keep the
+      // facade, porch, steps and lamps available to their existing handlers.
+      const entrancePart = mesh => {
+        if (theme.id === 'warm' && currentStorey === 0) mesh.userData.estateEntranceDoor = true;
+        return mesh;
+      };
+      entrancePart(add(new THREE.ExtrudeGeometry(arch(doorW + .36, doorH + .20), { depth: .24, bevelEnabled: true, bevelSize: .035, bevelThickness: .035, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, 0, .02], group));
+      entrancePart(add(new THREE.ShapeGeometry(arch(doorW, doorH), 16), colors.wood, [0, .08, .31], group));
+      for (const sign of [-1, 1]) { entrancePart(box([.045, doorH * .72, .045], colors.gold, [sign * doorW * .34, doorH * .40 + .16, .34], .01, group)); entrancePart(ball(colors.gold, [sign * .15, doorH * .44 + .11, .38], [.055, .075, .06], group)); }
     }
     for (const step of getManorEntranceSteps(structure)) {
       const model = box([step.width, step.height, step.depth], colors.trim, [step.x, step.y, step.z], .045, group);

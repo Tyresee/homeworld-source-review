@@ -46,7 +46,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,del
   const shop=ui('shop'),wardrobe=ui('wardrobe'),menu=ui('menu'),floorPlanner=ui('floor'),roomPlanner=ui('room');
   const robotSource={fixtureSource:true},thumbnails={sources:[],image:()=> 'fixture-thumbnail',setRobotSource(value){this.sources.push(value);},dispose(){}};
   const world={
-    async enterRoam(){const epoch=++roamEpoch;roamPrevious=this.getView();if(delayRoam)await new Promise(resolve=>{finishRoam=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;calls.views.push('roam');bindings.world.onRoamChange?.({active:true,phase:'orbit',previousView:roamPrevious});bindings.world.onViewChange?.('roam');return true;},
+    async enterRoam(options){(calls.roamEntries??=[]).push(clone(options));const epoch=++roamEpoch;roamPrevious=this.getView();if(delayRoam)await new Promise(resolve=>{finishRoam=resolve;});if(epoch!==roamEpoch)return false;roamActive=true;calls.views.push('roam');bindings.world.onRoamChange?.({active:true,phase:'orbit',previousView:roamPrevious});bindings.world.onViewChange?.('roam');return true;},
     exitRoam(){roamEpoch++;if(roamActive){roamActive=false;calls.views.push(roamPrevious);bindings.world.onRoamChange?.({active:false,phase:'inactive',previousView:roamPrevious});bindings.world.onViewChange?.(roamPrevious);}},
     isRoaming:()=>roamActive,getRoamState:()=>({active:roamActive,phase:roamActive?'orbit':'inactive',previousView:roamPrevious}),
     setCommerce(value,avatar,floor,robotActivity){calls.commerce.push(clone({commerce:value,avatar,floor,robotActivity}));if(floor!==stageFloor)stageState={requested:false,active:false};stageFloor=floor;if(robotActivity?.kind==='dance'&&robotActivity.storey===floor)stageState={requested:true,active:true};},
@@ -70,7 +70,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,del
     useAvatarStairs(id){calls.stairs.push(id);return {ok:true};},
     beginFurniturePlacement(item){calls.placements.push({type:'furniture',item:clone(item)});},
     beginOutdoorPlacement(item){calls.placements.push({type:'outdoor',item:clone(item)});},
-    clear(){this.exitRoam();calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;},dispose(){},
+    clear(){this.exitRoam();calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;},dispose(){this.exitRoam();},
   };
   const capture=(name,instance)=>options=>{bindings[name]=options;return instance;};
   const getKitchenPair=jsonCall(areKitchenModulesCompatible),getDockPose=jsonCall(getKitchenDockPose);
@@ -670,4 +670,35 @@ test('view entry honors the existing write lock and a student switch cancels an 
   assert.equal((await locked.editor.enterRoam()).ok,false);assert.equal(locked.editor.isRoaming(),false);locked.requests[0].accept();await wearing;locked.editor.dispose();
   const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true,delayRoam:true});await f.show();const opening=f.editor.enterRoam();assert.equal(f.editor.getRoamState().entering,true);assert.equal((await f.editor.enterRoam()).ok,false);
   await f.show(ownedHome(B),null,'other-actor');f.finishRoam();assert.equal((await opening).detached,true);assert.equal(f.editor.isRoaming(),false);assert.equal(f.editor.getRoamState().entering,false);assert.equal(f.editor.getView(),'interior');assert.equal(f.saved().studentId,B);assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('the Warm outdoor entrance closes editors and enters through the door without spending or saving',async()=>{
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();f.editor.setView('estate');const before=f.saved();
+  f.editor.openRobotQuickActions();for(const ui of[f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner])ui.open({});
+  const oldCloses=[f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner].map(ui=>ui.calls.close);
+  assert.equal((await f.bindings.world.onEntranceClick()).ok,true);assert.deepEqual(f.calls.roamEntries,[{enterDoor:true}]);assert.equal(f.editor.getView(),'roam');assert.equal(f.calls.quick,null);
+  [f.menu,f.shop,f.wardrobe,f.floorPlanner,f.roomPlanner].forEach((ui,index)=>assert.equal(ui.calls.close,oldCloses[index]+1));
+  assert.deepEqual(f.saved(),before);assert.equal(f.requests.length,0);f.editor.exitRoam();assert.equal(f.editor.getView(),'estate');
+  assert.equal((await f.editor.enterRoam()).ok,true);assert.deepEqual(f.calls.roamEntries.at(-1),{enterDoor:false},'the Visit dock must still begin in outside orbit');assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('door requests refuse default, wrong views, saving, leaving and a not-yet-shown identity',async()=>{
+  for(const theme of[HOME_THEMES.default,HOME_THEMES.toy]){
+    const legacy=fixture(ownedHome(),theme);await legacy.show();legacy.editor.setView('estate');assert.equal((await legacy.bindings.world.onEntranceClick()).ok,false);assert.equal(legacy.calls.roamEntries,undefined);assert.equal(legacy.requests.length,0);legacy.editor.dispose();
+  }
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();assert.equal((await f.bindings.world.onEntranceClick()).ok,false);f.editor.setView('estate');
+  const showing=f.show();assert.equal((await f.bindings.world.onEntranceClick()).ok,false,'an old canvas cannot enter while the next show is awaiting its binding');await showing;
+  const leaving=f.editor.prepareLeave({capture:false});assert.equal((await f.bindings.world.onEntranceClick()).ok,false);await leaving;
+  const wearing=f.bindings.shop.onPlace(f.owned(outfit).id);assert.equal(f.requests.length,1);assert.equal((await f.bindings.world.onEntranceClick()).ok,false);assert.equal(f.calls.roamEntries,undefined);f.requests[0].accept();await wearing;
+  f.editor.dispose();assert.equal((await f.bindings.world.onEntranceClick()).ok,false);assert.equal(f.calls.roamEntries,undefined);
+});
+
+test('door loading ignores duplicate clicks and cannot reopen after switching student or disposing',async()=>{
+  for(const depart of['student','dispose']){
+    const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true,delayRoam:true});await f.show();f.editor.setView('estate');
+    const entering=f.bindings.world.onEntranceClick();assert.equal(f.editor.getRoamState().entering,true);assert.equal((await f.bindings.world.onEntranceClick()).ok,false);assert.deepEqual(f.calls.roamEntries,[{enterDoor:true}]);
+    if(depart==='student')await f.show(ownedHome(B),null,'other-actor');else f.editor.dispose();
+    f.finishRoam();assert.equal((await entering).detached,true);assert.equal(f.editor.isRoaming(),false);assert.equal(f.editor.getRoamState().entering,false);assert.equal(f.requests.length,0);
+    if(depart==='student'){assert.equal(f.saved().studentId,B);assert.equal(f.editor.getView(),'interior');f.editor.dispose();}
+  }
 });

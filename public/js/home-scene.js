@@ -78,7 +78,7 @@ export function applyFloorElevatorFrame(group, frame) {
 }
 
 // Each editable part owns its material. Appearance changes never mutate a shared asset.
-export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, onRoamChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
+export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, onRoamChange, onEntranceClick, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
   const lighting=theme.lighting.editor??{};
   const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
   const wallTextures=theme.id==='warm'?createHomeWallTextureManager():null;
@@ -1453,20 +1453,25 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       if(!moved)onObjectClick?.({data:{outdoorOwnedId:id},view,clientX:event.clientX,clientY:event.clientY});
       return;
     }
+    const enterThroughDoor=theme.id==='warm'&&view==='estate'&&typeof onEntranceClick==='function'
+      &&event.button===0&&!event.ctrlKey&&dragging.type==='camera-pan'&&!dragging.moved
+      &&dragging.contextData?.estateEntranceDoor===true&&estateHit(event)?.object.userData.estateEntranceDoor===true;
     if (dragging.moved) lastPanAt = performance.now();
     if(dragging.type==='camera-pan') {
       if(dragging.moved)lastPanAt=performance.now();
       else if(view==='estate'&&floorClickWalk&&avatarActor.supportsOutdoor&&dragging.feature==='lawn'){const point=floorPoint(event);if(point)onAvatarClick?.({data:{surfaceId:'outdoor-ground'},clientX:event.clientX,clientY:event.clientY,worldPoint:{x:point.x,y:point.y,z:point.z}});}
-      else if(dragging.feature)onEstateSelect?.(dragging.feature);
+      else if(dragging.feature&&!enterThroughDoor)onEstateSelect?.(dragging.feature);
     }
     // A completed primary click, never pointer-down, opens object actions.
     // Drag, pinch, Control-click and Space-pan keep their existing ownership.
     const clickedData=!dragging.moved?dragging.contextData??null:undefined;
     if (dragging.last) onDrag(dragging.last, true); dragging = null; hideCollisionGuide();
-    if(clickedData!==undefined)onObjectClick?.({data:clickedData,view,clientX:event.clientX,clientY:event.clientY});
+    if(clickedData!==undefined&&!enterThroughDoor)onObjectClick?.({data:clickedData,view,clientX:event.clientX,clientY:event.clientY});
     if (view !== 'interior') setDragQuality(false);
     if (renderer.domElement.hasPointerCapture(event.pointerId)) renderer.domElement.releasePointerCapture(event.pointerId);
     syncPointerCursor();
+    // Release the editor gesture before its guarded adapter starts the view.
+    if(enterThroughDoor)onEntranceClick({view,clientX:event.clientX,clientY:event.clientY});
     // Primary clicks select or place; editing is opened by the native
     // contextmenu event (right button or a trackpad secondary click).
   }
@@ -1525,6 +1530,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   }
   async function enterRoam(options={}){
     if(theme.id!=='warm'||disposed||!state)return false;if(roamExperience)return roamExperience;
+    const {enterDoor=false,...experienceOptions}=options;
     releaseInput();stopCameraMotion();
     const epoch=++roamEpoch;roamLoading=true;roamCamera=getCameraSnapshot();roamCanvasVisibility=renderer.domElement.style.visibility;
     presentationPaused=true;lastStageCameraFrame=null;avatarActor.setPresentationPaused?.(true);if(renderFrame)cancelAnimationFrame(renderFrame);renderFrame=0;scheduled=false;
@@ -1532,8 +1538,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       const {createHomeRoamExperience}=await import('./home-roam-world.js');if(disposed||epoch!==roamEpoch)return false;
       const experience=createHomeRoamExperience({container,home:groundHome(),theme,maps,robot:activeFloor===0?avatarActor.group:null,
         lighting:{toneMapping:renderer.toneMapping,exposure:renderer.toneMappingExposure,sky:'#'+hemisphere.color.getHexString(),ground:'#'+hemisphere.groundColor.getHexString(),hemisphere:hemisphere.intensity,sunColor:'#'+sun.color.getHexString(),sun:sun.intensity,fillColor:'#'+fill.color.getHexString(),fill:fill.intensity},
-        pixelRatio:renderer.getPixelRatio(),...options,onExit:exitRoam,onStateChange:snapshot=>{if(epoch===roamEpoch)onRoamChange?.({...snapshot,previousView:view});}});
-      if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();return experience;
+        pixelRatio:renderer.getPixelRatio(),...experienceOptions,onExit:exitRoam,onStateChange:snapshot=>{if(epoch===roamEpoch)onRoamChange?.({...snapshot,previousView:view});}});
+      if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();if(enterDoor)experience.controller.enterDoor();return experience;
     }catch(error){if(epoch===roamEpoch)exitRoam();throw error;}
   }
   onRenderSetup?.({scene,renderer,camera,hemisphere,sun,fill,maps,requestRender,markShadowsDirty});

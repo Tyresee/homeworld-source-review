@@ -13,7 +13,7 @@ function disposeSource(source){
 
 /** A rendering adapter only. Account-owned commerce is supplied by the server;
  * this module never reads local demo saves or creates a wallet/inventory. */
-export async function createStudentHomeWorld({container,warmUI=false,onRoamChange,onContextMenu,onDrag,onOutdoorMove,onPlacementPreview,onPlacementCommit,onPlacementCancel,onPlacementReject,onStatus,onPalette,onStoreyChange,onSelect,onObjectClick,onCancel,onPanStart,onObjectEdit,onAvatarClick,onViewChange,onRobotActivityChange,onObjectAction,onStageCameraChange}) {
+export async function createStudentHomeWorld({container,warmUI=false,onRoamChange,onEntranceClick,onContextMenu,onDrag,onOutdoorMove,onPlacementPreview,onPlacementCommit,onPlacementCancel,onPlacementReject,onStatus,onPalette,onStoreyChange,onSelect,onObjectClick,onCancel,onPanStart,onObjectEdit,onAvatarClick,onViewChange,onRobotActivityChange,onObjectAction,onStageCameraChange}) {
   const source=(await new GLTFLoader().loadAsync(new URL('../assets/asset-lab/robot-v1/models/v4/robot.glb',import.meta.url).href)).scene;
   let scene,objectRuntime,commerce=null,avatar=null,robotActivity=null,activeFloor=0,view='interior',disposed=false;
   let roamPreviousView='interior',roamEpoch=0;
@@ -29,8 +29,9 @@ export async function createStudentHomeWorld({container,warmUI=false,onRoamChang
       avatarFactory:options=>createStudentHomeRobotController({...options,source}),onAvatarStatus:onStatus,onAvatarActivityChange:onRobotActivityChange,
       onAvatarObjectAction:request=>onObjectAction?.(request),onAvatarObjectPresentation:request=>{if(Object.hasOwn(request,'remoteHeld'))objectRuntime?.setRemoteHeld(request.id,request.remoteHeld);if(Object.hasOwn(request,'cushionTidy'))cushions.apply(request);},onBeforeModelRelease:group=>{cushions.release(group);objectRuntime?.releaseModel(group);},floorClickWalk:true,
       onAvatarClick:request=>{if(onAvatarClick)onAvatarClick(request);else if(request.data?.surfaceId==='avatar'){if(!onObjectClick)onPalette?.({x:request.clientX,y:request.clientY});}else if(request.worldPoint)scene.walkAvatar(request.worldPoint);},
-      // Roofs are scenery, not an invisible doorway. Outdoor double-clicks may
-      // focus a feature, but entering a room belongs to explicit view controls.
+      // Only a completed click on the actual Warm entrance requests a visit.
+      // Roofs and outdoor double-clicks retain their existing focus behavior.
+      onEntranceClick:request=>{if(warmUI&&!disposed&&commerce&&view==='estate')return onEntranceClick?.(request);},
       onEstateFocus:id=>scene.focusEstate(id),onEstateViewChange:()=>onViewChange?.(view),
     });
   }catch(error){disposeSource(source);throw error;}
@@ -38,10 +39,11 @@ export async function createStudentHomeWorld({container,warmUI=false,onRoamChang
   const canvas=container.querySelector('canvas');canvas.tabIndex=0;
   canvas.setAttribute('aria-label',"DisplayText4200: DisplayText4201, DisplayText4202, DisplayText4203, DisplayText4164, DisplayText4204.");
   function exitRoam(){roamEpoch++;scene.exitRoam?.();if(view==='roam')roamChanged({active:false,phase:'inactive',previousView:roamPreviousView});}
-  async function enterRoam(){
+  async function enterRoam({enterDoor=false}={}){
     if(!warmUI||disposed||!commerce||typeof scene.enterRoam!=='function')return false;
+    if(enterDoor&&view!=='estate')return false;
     if(view==='roam')return true;const epoch=++roamEpoch;roamPreviousView=view;
-    const result=await scene.enterRoam();if(disposed||epoch!==roamEpoch)return false;
+    const result=await scene.enterRoam({enterDoor:enterDoor===true});if(disposed||epoch!==roamEpoch)return false;
     return result!==false&&result?.ok!==false;
   }
   function setView(next){if(!['interior','estate','building'].includes(next)||disposed)return;exitRoam();view=next;scene.setView(next);objectRuntime.setVisible(next==='interior');if(commerce)objectRuntime.sync(commerce,scene.getFurnitureModels?.()??[],activeFloor);onViewChange?.(next);}

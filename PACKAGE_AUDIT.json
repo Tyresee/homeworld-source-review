@@ -3,9 +3,9 @@
   "purpose": "source comprehension",
   "counts": {
     "modules": 131,
-    "tests": 102,
-    "selectedSourceFiles": 276,
-    "packagedFiles": 727,
+    "tests": 104,
+    "selectedSourceFiles": 278,
+    "packagedFiles": 734,
     "browserModules": 122,
     "serverModules": 9,
     "qaScripts": 17
@@ -19,13 +19,13 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "sourceRefresh": "verified-and-pushed-code-with-fresh-clone",
-    "notes": "Core tests pass; original full-suite failures are unchanged. Fourteen fresh-clone PNGs and offline photometry reproduce exactly. No deployment."
+    "sourceRefresh": "direct-door-core-and-targeted-tests-verified",
+    "notes": "Direct exterior entrance regression and isolated real-application browser proof passed. Original broader normalization-sensitive failures remain documented; no production configuration is included."
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 276,
-    "changedSourceFiles": 31,
+    "normalizedSourceFiles": 278,
+    "changedSourceFiles": 8,
     "stableSeedLabels": 4676,
     "newDisplayLabels": 97,
     "identityDataIncluded": false
@@ -184,5 +184,38 @@
       "originalReferencePathsUnchanged": 112,
       "privatePlatformFixtureIncluded": false
     }
+  },
+  "directExteriorEntrance": {
+    "scope": "Warm ordinary Exterior actual ground-floor doorway",
+    "sourceRuntimeCommit": "01385500528d609ba736702587903bd54296ac39",
+    "normalizedSourceFiles": 278,
+    "previousClosurePreserved": 276,
+    "publicCore": {
+      "pass": 470,
+      "tests": 470
+    },
+    "publicFocused": {
+      "pass": 43,
+      "tests": 43
+    },
+    "publicEditorDoorGuards": {
+      "pass": 5,
+      "tests": 5
+    },
+    "existingBroaderEditorFailures": 16,
+    "newBroaderEditorFailures": 0,
+    "sourceReleaseTests": {
+      "pass": 748,
+      "tests": 748
+    },
+    "sourceFull": {
+      "pass": 977,
+      "tests": 978,
+      "unchangedFailureCount": 1
+    },
+    "publicFullSuiteRerun": false,
+    "fictionalAccountBrowserProof": "docs/qa/direct-door-entry-2026-10-30/browser-proof.json",
+    "defaultToyVisualGeometryUnchanged": true,
+    "privateRollbackFixtureIncluded": false
   }
 }

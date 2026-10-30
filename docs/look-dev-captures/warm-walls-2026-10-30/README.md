@@ -53,3 +53,7 @@ Optional offline statistics (requires the declared Sharp development dependency)
 `node scripts/qa/look-dev-wall-compare.mjs --actual docs/look-dev-captures/warm-walls-2026-10-30/renders --readbacks docs/look-dev-captures/warm-walls-2026-10-30/render-readbacks.json --output output/wall-comparison`
 
 This evidence is desktop-browser fixed-camera and fictional-account validation. It is not a production deployment, classroom projector, mobile hardware or performance certification. The old data format cannot identify paint deliberately changed back to the exact original default hex. Commands intentionally update one selector at a time; null clearing is not offered. Neither limitation prevents choosing any of the fifteen combinations.
+
+## Final verification status
+
+Local implementation and evidence are committed, and the normalized review copy has been pushed to GitHub main. [Fresh-clone evidence](fresh-clone-verification.json): no node_modules, no npm install, all five rendered PNGs identical to source; dot/lavender selection also identical, console errors 0. Source account tests 698/698 and build pass; source full suite 838/839 with the pre-existing catalogue-count assertion. Public core tests 379/379 and focused tests 50/50; complete suite 699/754 with exactly the same 55 pre-existing normalized text/source assertion failures as the prior review snapshot. No new failing test names. No production deployment.

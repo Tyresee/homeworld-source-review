@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev-walls",
-  "totalFiles": 464,
+  "totalFiles": 465,
   "files": [
     {
       "path": ".gitignore",
@@ -12,7 +12,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 46238
+      "bytes": 46363
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 2047
+      "bytes": 3464
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "docs/WALL_SYSTEM_HANDOFF.md",
-      "bytes": 6253
+      "bytes": 7170
     },
     {
       "path": "docs/look-dev-captures/README.md",
@@ -352,7 +352,7 @@
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
-      "bytes": 8244
+      "bytes": 8933
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/acceptance-plan.json",
@@ -457,6 +457,10 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--living.png",
       "bytes": 1026316
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/fresh-clone-verification.json",
+      "bytes": 1299
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/render-readbacks.json",
@@ -588,7 +592,7 @@
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/verification.json",
-      "bytes": 2207
+      "bytes": 3557
     },
     {
       "path": "docs/warm-floor-captures/README.md",

@@ -5,7 +5,7 @@
     "modules": 132,
     "tests": 82,
     "selectedSourceFiles": 235,
-    "packagedFiles": 464,
+    "packagedFiles": 465,
     "browserModules": 113,
     "serverModules": 9,
     "qaScripts": 10
@@ -43,7 +43,47 @@
     "upstreamWallPackMembersByteIdentical": 35,
     "referenceLanguageExceptionExplicitlyApproved": true,
     "freshCloneBrowserVerification": {
-      "status": "pending-after-code-push"
+      "status": "passed",
+      "testedCodeCommit": "61d0b700820d498ec70b8c807d785388d4dfb014",
+      "freshGitHubClone": true,
+      "nodeModulesPresent": false,
+      "npmInstallPerformed": false,
+      "entry": "node scripts/qa/look-dev-review.mjs",
+      "viewsRendered": 5,
+      "allFiveByteIdenticalToSource": true,
+      "dotLavenderControlPngByteIdenticalToSource": true,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "consoleErrors": 0,
+      "files": [
+        {
+          "file": "warm-walls--living.png",
+          "byteIdenticalToSource": true,
+          "sha256": "c027951abc4e1b03ece4996d045471dc42c8ee80d79b77857492c453c9726691"
+        },
+        {
+          "file": "warm-walls--bedroom.png",
+          "byteIdenticalToSource": true,
+          "sha256": "36870cac4344437da59ae3e81147c2b5cee4cdad2d32f9136bcf71187b0565a8"
+        },
+        {
+          "file": "warm-walls--kitchen.png",
+          "byteIdenticalToSource": true,
+          "sha256": "61fb70a36052aebf3908d0722815c2919a2bef2d1b4cb739bbdb11c94bd1328d"
+        },
+        {
+          "file": "warm-walls--bathroom.png",
+          "byteIdenticalToSource": true,
+          "sha256": "c8e65f9631e26e4e73696afa985dce3c59902ad91ef3ab0877599945426784a0"
+        },
+        {
+          "file": "warm-walls--exterior.png",
+          "byteIdenticalToSource": true,
+          "sha256": "c709bd4eda1ff298ff87537541d1dd12103afe7fe31d16765916afc0f97e8481"
+        }
+      ]
     },
     "deploymentPerformed": false
   },

@@ -40,7 +40,7 @@ Without new IDs, Warm displays plain warm white when the raw saved color matches
 
 Fine stripes have a 10 cm cycle and 5 cm dark band. Dots have 12 cm staggered spacing and a true 2.8 cm diameter. The supplied prototype drew circular bitmap pixels on a non-square world tile, producing dots about 6.65 cm tall in world space. The user explicitly approved correcting these to true 2.8 cm world circles; the original reference images remain unchanged. Exposed end faces use physical UVs rather than reproducing the prototype's distorted side UVs.
 
-Public outer wall spans are split at room boundaries by clipping the original triangles. Original window openings, wall IDs, mounted-item targets and collision solids are retained. Multi-floor overview copies retain and release texture leases. Shared partitions must resolve their two room-facing surfaces independently; the final acceptance record describes the additional shared-face check.
+Public outer wall spans are split at room boundaries by clipping the original triangles. Original window openings, wall IDs, mounted-item targets and collision solids are retained. Multi-floor overview copies retain and release texture leases. Shared partition faces now resolve their two room-facing surfaces independently, including preserved legacy wall backs. Their original total triangle area and physical bounds remain unchanged.
 
 ## Reference and evidence locations
 
@@ -53,3 +53,7 @@ Public outer wall spans are split at room boundaries by clipping the original tr
 Run the offline viewer with `node scripts/qa/look-dev-review.mjs`, then open `http://127.0.0.1:19534/?preset=warm-walls.json&view=living` using its printed port. The viewer falls back to vendored Three when node_modules is absent. It has no account, wallet or save writes. PNGs stay at 1440 x 900. The optional comparison script needs the existing Sharp development dependency; the viewer itself does not require it.
 
 Reference captions and README are preserved as explicitly authorized. The public implementation continues to use the normalized source-review naming and contains no production account data, private deployment information or credentials. Full application captures with local test labels remain local; public application evidence is cropped to the fictional scene.
+
+## Final delivery verification
+
+Public implementation code was pushed as `61d0b700820d498ec70b8c807d785388d4dfb014`. A fresh clone from GitHub, with no node_modules and no npm installation, rendered all five Warm wall views; all five PNGs and a separately selected dot/lavender view were byte-identical to source renders, with zero browser console errors. Subsequent delivery commits only update documentation and evidence metadata. The source account suite is 698/698 with a successful 471-file build; the full source suite is 838/839 with the pre-existing catalogue-count assertion. The public core suite is 379/379 and relevant focused tests 50/50; its complete 699/754 suite retains exactly the same 55 existing normalized display/source-text expectation failures as its prior HEAD, with zero new failures. No production deployment or production data writes occurred.

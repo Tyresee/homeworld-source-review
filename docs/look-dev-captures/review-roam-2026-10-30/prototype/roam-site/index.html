@@ -1,0 +1,73 @@
+<title>家园漫游</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: full-bleed 3D stage; small paper chips float over the corners. Single warm look by choice. */
+:root{
+  --paper:#efe9df; --panel:#fffdf9; --line:#e2d9cb; --ink:#2b2622; --muted:#7c7166; --clay:#b9755a; --clay-soft:#f4e4d9;
+  --ui:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);overflow:hidden}
+#stage{position:fixed;inset:0;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%;cursor:grab}
+#stage canvas:active{cursor:grabbing}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(90,70,48,.10)}
+.top{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+.title{padding:12px 16px;pointer-events:auto}
+.title h1{margin:0;font-size:20px;letter-spacing:.02em;text-wrap:balance}
+.title p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+#mode-label{font-size:14px;padding:10px 14px;color:var(--ink);pointer-events:auto}
+.bar{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
+.group{display:flex;gap:6px;padding:6px;pointer-events:auto}
+button{font:600 15px var(--ui);color:var(--ink);background:transparent;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;min-height:44px}
+button:hover{background:var(--clay-soft)}
+button:focus-visible{outline:3px solid var(--clay);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+#help{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(88px + env(safe-area-inset-bottom,0px));padding:14px 18px;font-size:14px;line-height:1.8;max-width:340px}
+#help b{display:inline-block;min-width:92px;color:var(--clay)}
+#door-tip{position:fixed;z-index:5;padding:8px 12px;font-size:14px;font-weight:600;pointer-events:none;background:var(--ink);color:var(--panel);border-radius:10px}
+#walk-hint{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);padding:10px 16px;font-size:14px;width:max-content;max-width:calc(100% - 32px);text-align:center}
+body.walking .title{display:none}
+#exit{display:none}
+body:not(.walking) #walk-hint{display:none}
+body.walking #exit{display:inline-block}
+body.walking [data-mode],body.walking #spin,body.walking #home,body.walking #mode-label{display:none}
+body.moving .bar,body.moving #mode-label{visibility:hidden}
+#loading{position:fixed;inset:0;display:grid;place-items:center;font-size:16px;color:var(--muted);background:var(--paper)}
+@media (max-width:600px){.title p{display:none}#mode-label{display:none}button{padding:10px 11px;font-size:14px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
+<div id="stage" aria-label="可以自由旋转、缩放、平移的房子三维视图"></div>
+<div class="top">
+  <div class="title chip"><h1>小明的家 · 自由参观</h1><p>原型 · 真实游戏模型 · 四个房间</p></div>
+  <div id="mode-label" class="chip" role="status">正在看：外观</div>
+</div>
+<div class="bar">
+  <div class="group chip" role="group" aria-label="看外观还是室内">
+    <button type="button" data-mode="auto" aria-pressed="true">自动</button>
+    <button type="button" data-mode="exterior" aria-pressed="false">外观</button>
+    <button type="button" data-mode="interior" aria-pressed="false">室内</button>
+  </div>
+  <div class="group chip" role="group" aria-label="镜头">
+    <button type="button" id="exit">出门</button>
+    <button type="button" id="spin" aria-pressed="false">慢慢转</button>
+    <button type="button" id="home">回到全景</button>
+    <button type="button" id="help-toggle" aria-label="操作说明">?</button>
+  </div>
+</div>
+<div id="help" class="chip">
+  <div><b>左键拖动</b>绕着房子转</div>
+  <div><b>滚轮</b>推近 / 拉远（朝鼠标位置）</div>
+  <div><b>右键拖动</b>平移</div>
+  <div><b>W A S D</b>平移镜头</div>
+  <div><b>Q / E</b>绕着房子左右转</div>
+  <div><b>空格</b>自动慢转　<b style="min-width:0">R</b>　回到全景</div>
+  <div style="color:var(--muted)">推近到房子附近会自动看进室内，挡住视线的墙会自动切低。<br>在外观里<b style="min-width:0">点大门</b>，门会打开，你会走进屋里，之后可以在整栋房子里自由飞行。</div>
+</div>
+<div id="door-tip" hidden>点门进屋</div>
+<div id="walk-hint" class="chip">W S 前后 · A D 左右 · E Q 升降 · Shift 加速 · 拖动看四周 · 点地面走过去 · 点水龙头、马桶、灯、抽屉、柜门、灶台可以用 · 可以穿墙 · Esc 出门</div>
+<div id="loading" role="status">正在载入房子…</div>
+<script type="module" src="./roam.js"></script>

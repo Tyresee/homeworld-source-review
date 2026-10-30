@@ -1,0 +1,38 @@
+From 6492c01fd45874ab3dbee6f4b81724e2341a8850 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 30 Oct 2026 01:08:10 -0400
+Subject: [PATCH 1/2] Local look-dev experiments: perspective showcase camera
+ prototype
+
+Not for merge.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018AduPULTjx86UzqAsp3UqR
+---
+ scripts/qa/look-dev-runtime.mjs | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/qa/look-dev-runtime.mjs b/scripts/qa/look-dev-runtime.mjs
+index 580f51b..5a2a7e8 100644
+--- a/scripts/qa/look-dev-runtime.mjs
++++ b/scripts/qa/look-dev-runtime.mjs
+@@ -93,7 +93,15 @@ export async function createLookDevRuntime({container,preset,fixtureId='living',
+     paintLookDevBackdrop(context,width,height,{inner,outer});
+     context.drawImage(refs.renderer.domElement,0,0,width,height);onFrame(presentation);
+   }
+-  function renderNow() {if(!refs||disposed)return;refs.renderer.render(refs.scene,refs.camera);}
++  function orbitCamera(){ // LOCAL PROTOTYPE: perspective showcase camera
++    const o=globalThis.__ORBIT;if(!o||!refs)return refs?.camera;
++    if(!refs.__persp){refs.__persp=new THREE.PerspectiveCamera(o.fov??35,refs.renderer.domElement.width/refs.renderer.domElement.height,.1,200);}
++    const c=refs.__persp,t=new THREE.Vector3(...o.target),az=o.az*Math.PI/180,el=o.el*Math.PI/180;
++    c.position.set(t.x+o.dist*Math.cos(el)*Math.sin(az),t.y+o.dist*Math.sin(el),t.z+o.dist*Math.cos(el)*Math.cos(az));c.lookAt(t);c.updateProjectionMatrix();c.updateMatrixWorld(true);
++    if(o.hideRoof)refs.scene.traverse(m=>{if(m.isMesh&&m.getWorldPosition(new THREE.Vector3()).y>o.hideRoof)m.visible=false;});
++    return c;
++  }
++  function renderNow() {if(!refs||disposed)return;refs.renderer.render(refs.scene,orbitCamera()??refs.camera);}
+   function roomSurfaceSnapshot() {
+     const parts=refs?.scene.getObjectByName('room-expansion')?.userData.roomParts;
+     if(!parts)return [];
+-- 
+2.43.0
+

@@ -1,0 +1,68 @@
+From 7f4337998635e6f2c60a02a35510a8f79db90286 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 30 Oct 2026 01:27:14 -0400
+Subject: [PATCH 2/2] Local look-dev experiments: full-height wall mode and
+ scene export hooks
+
+Not for merge.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018AduPULTjx86UzqAsp3UqR
+---
+ public/js/home-room-expansion.js | 6 +++---
+ scripts/qa/look-dev-fixtures.mjs | 2 +-
+ scripts/qa/look-dev-runtime.mjs  | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/public/js/home-room-expansion.js b/public/js/home-room-expansion.js
+index 5b40eaa..96072cc 100644
+--- a/public/js/home-room-expansion.js
++++ b/public/js/home-room-expansion.js
+@@ -131,15 +131,15 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
+     for (const [x, yy, w] of [[-.28, y - .35, .3], [.2, y - .48, .42]]) local(new THREE.SphereGeometry(1, 12, 8), '#a7cba4', [x, yy, -.02]).scale.set(w, .26, .01);
+   }
+   // LOCAL PROTOTYPE: globalThis.__WALLMODE = 'cut' | 'focus'; __FOCUS_RECT = {minX,maxX,minZ,maxZ}
+-  const WALLMODE = () => ['cut','focus'].includes(globalThis.__WALLMODE) ? globalThis.__WALLMODE : null;
++  const WALLMODE = () => ['cut','focus','full'].includes(globalThis.__WALLMODE) ? globalThis.__WALLMODE : null;
+   const CUT_H = globalThis.__CUT_H ?? 1.05; let forceFull = false;
+   function lowWall(length, center, axis, color, height = PARTITION_HEIGHT) {
+-    if (WALLMODE()) height = forceFull ? WALL_HEIGHT : CUT_H;
++    if (WALLMODE()) height = (forceFull || WALLMODE()==='full') ? WALL_HEIGHT : CUT_H;
+     const size = axis === 'x' ? [length, height, .17] : [.17, height, length];
+     const m = box(size, [center[0], height / 2 + .06, center[2]], color, 'walls', .03, { roughness: .86 });
+     if (WALLMODE()) {
+       const capSize = axis === 'x' ? [length, .04, .19] : [.19, .04, length];
+-      const cap = box(capSize, [center[0], height + .06 + .02, center[2]], forceFull ? shellColor('wallCap', PALETTE.trim) : (globalThis.__CUT_COLOR ?? '#4a3f37'), 'border', .004);
++      const cap = box(capSize, [center[0], height + .06 + .02, center[2]], (forceFull||WALLMODE()==='full') ? shellColor('wallCap', PALETTE.trim) : (globalThis.__CUT_COLOR ?? '#4a3f37'), 'border', .004);
+       cap.castShadow = false;
+     }
+     return m;
+diff --git a/scripts/qa/look-dev-fixtures.mjs b/scripts/qa/look-dev-fixtures.mjs
+index 4dee4cc..b3b08f4 100644
+--- a/scripts/qa/look-dev-fixtures.mjs
++++ b/scripts/qa/look-dev-fixtures.mjs
+@@ -106,7 +106,7 @@ export function createLookDevFixture(id='living') {
+   const result=builders[id](),floors=[result.home,...result.upperFloors??[]];
+   for(const home of floors)if(!validateHomeState(home))throw new Error('Invalid Look Dev house: '+id);
+   const items=floors.flatMap((home,storey)=>home.furniture.map(item=>({id:item.id,kind:item.kind,storey,color:item.color,material:item.material,defaultColor:definitions.get(item.kind).defaultColor,defaultMaterial:products.get(item.kind).material??'oak'})));
+-  return {id,label:LOOK_DEV_VIEWS.find(view=>view.id===id).label,view:id==='exterior'?'estate':'interior',floors,home:result.home,upperFloors:floors.slice(1),owned:[],robotPoint:result.robotPoint,items,
++  return {id,label:LOOK_DEV_VIEWS.find(view=>view.id===id).label,view:globalThis.__FIXTURE_VIEW??(id==='exterior'?'estate':'interior'),floors,home:result.home,upperFloors:floors.slice(1),owned:[],robotPoint:result.robotPoint,items,
+     avatar:{kind:'robot',modelId:'robot-companion',modelVersion:'v4',colors:{shell:'#e9dfc9',accent:'#869779'},equipped:{}}};
+ }
+ export function cloneLookDevFixture(fixture){return clone(fixture);}
+diff --git a/scripts/qa/look-dev-runtime.mjs b/scripts/qa/look-dev-runtime.mjs
+index 5a2a7e8..be8d6fc 100644
+--- a/scripts/qa/look-dev-runtime.mjs
++++ b/scripts/qa/look-dev-runtime.mjs
+@@ -162,7 +162,7 @@ export async function createLookDevRuntime({container,preset,fixtureId='living',
+       refs.renderer.setPixelRatio(1);refs.renderer.setSize(width,height,false);
+       const nativeRender=refs.renderer.render.bind(refs.renderer);refs.renderer.render=(...args)=>{const result=nativeRender(...args);emitFrame();return result;};
+     },avatarFactory:options=>createStudentHomeRobotController({...options,source:model})});
+-    if(!refs)throw new Error('Look Dev render setup callback was not provided');
++    if(!refs)throw new Error('Look Dev render setup callback was not provided');globalThis.__LD_REFS=refs;globalThis.__LD_WORLD=world;
+     world.setState(next.home,{floors:next.floors,activeFloor:0});world.setOutdoorState(next);world.setView(next.view);world.selectSurface(null);world.setTool('move');
+     const activity={kind:'stand',environment:next.view==='estate'?'estate':'interior',storey:0,point:{...next.robotPoint},rotation:Math.PI/4};
+     world.setAvatar({...next.avatar,activity});
+-- 
+2.43.0
+

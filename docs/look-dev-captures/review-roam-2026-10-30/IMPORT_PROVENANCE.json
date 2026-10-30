@@ -1,0 +1,146 @@
+{
+  "archive": "homeworld-codex-roam-2026-10-30.zip",
+  "archiveSha256": "3451eccc5e3d66677c99b57906862ab1ee29f92dfa349b0873dfaf8956e6ba58",
+  "files": [
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/CODEX_TASK.md",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/CODEX_TASK.md",
+      "bytes": 17274,
+      "sha256": "e08949f19366e8b44ee16484e9fa2cc3ed913aee40c2885e9c5c0c46bcae6d82"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/look-dev-hooks/0002-Local-look-dev-experiments-full-height-wall-mode-and.patch",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/look-dev-hooks/0002-Local-look-dev-experiments-full-height-wall-mode-and.patch",
+      "bytes": 4933,
+      "sha256": "43baaa397e163446f9c8eed8b920b126aa74dcd51087b0e5b9c0036a8d2e53f7"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/look-dev-hooks/0001-Local-look-dev-experiments-perspective-showcase-came.patch",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/look-dev-hooks/0001-Local-look-dev-experiments-perspective-showcase-came.patch",
+      "bytes": 2014,
+      "sha256": "0a2baae244f507298dad34e731d1c956a9cee8ee58662dc7afd8dc750c1f2416"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/three.module.js",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/three.core.js",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/index.html",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/index.html",
+      "bytes": 5335,
+      "sha256": "a8d6dd23a9814d18684293914759f8a2d2aff8d85dcd7632defcc971c36439c4"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/OrbitControls.js",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/OrbitControls.js",
+      "bytes": 40755,
+      "sha256": "3d79d07ecb686b4e5d93232eedab255331c1beef711e13164eaa1f68655a5f2b"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/test.html",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/test.html",
+      "bytes": 5480,
+      "sha256": "e7175472d74f61b4f14f432fd9417e752b8dc7769b9863b1e28d2febf1fcbff2"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/roam.js",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/roam.js",
+      "bytes": 45977,
+      "sha256": "46106d61c74372621f6e90583ad1c7b53ac0704c388af77a20b7cf97492df603"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/roam-site/house.b64.txt",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/house.b64.txt",
+      "bytes": 6984140,
+      "sha256": "09ddb10a64108fb2b8826cb8281557b3f45ba6ae9eae43edecca47741e80a03a"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/prototype/tools/export-house.js",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/prototype/tools/export-house.js",
+      "bytes": 1648,
+      "sha256": "229aaf75a04f007b8631187a6ad49748511949bc23adb90e32642ec948703687"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/09-bathroom-tap-flush-drawers.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/09-bathroom-tap-flush-drawers.png",
+      "bytes": 759417,
+      "sha256": "21112cef1baa8aaa00d0ec63b3e2a04925bb008b7801a4f4bac7d7f184886ecc"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/02-orbit-auto-interior-cutaway.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/02-orbit-auto-interior-cutaway.png",
+      "bytes": 1208123,
+      "sha256": "e33b394c278ecd4618d87bf34b1a010d9af74ac68768e5bc46d4e67ac8dfc4df"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/06-lamp-lit-interior-through-doorway.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/06-lamp-lit-interior-through-doorway.png",
+      "bytes": 690860,
+      "sha256": "1516cbd4f968785208892d5b3e93b34faf79ece59539505202df94423b87a121"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/11-floor-lamp-on.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/11-floor-lamp-on.png",
+      "bytes": 911859,
+      "sha256": "8e50738eff6ba01f391000e41668379810d3de8c5fe04df6567d6cc665b53d1d"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/08-kitchen-tap-hob-drawers-doors.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/08-kitchen-tap-hob-drawers-doors.png",
+      "bytes": 833747,
+      "sha256": "d342f7eedbbac2a84afafc0b1bf036b39033c1ffdf4a76f3eb638aebe53fb886"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/04-door-opening.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/04-door-opening.png",
+      "bytes": 376209,
+      "sha256": "2f94b71ed9ec27d7e204fbeb6cbc4bd0f79ab67a4581edd8a94821e324ab9d94"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/03-door-hover.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/03-door-hover.png",
+      "bytes": 641359,
+      "sha256": "49480ac8fac3ee0336518912c006d7509c19b18bb5df5fbbad757cc406af1f85"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/10-bedside-drawer.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/10-bedside-drawer.png",
+      "bytes": 1174714,
+      "sha256": "5ffef032a74381ed086c6abbf9801ce609f1667e9bc75ce5cbc09480961a7855"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/12-living-ceiling-lamp-switched-off.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/12-living-ceiling-lamp-switched-off.png",
+      "bytes": 1197854,
+      "sha256": "97d55b860ab7610c36fe67e7f2473f9b1d0ff02bef1e688a6d4690c40fb20936"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/07-look-back-at-open-front-door.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/07-look-back-at-open-front-door.png",
+      "bytes": 751213,
+      "sha256": "4f17d7a950e888dc4ad502437949ca45433ed036f34e4600d25dcaf5b5fefa49"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/01-exterior-orbit.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/01-exterior-orbit.png",
+      "bytes": 629322,
+      "sha256": "c0f9b3ac239467fc801a4564c8f1570e62c1ef6f89b28b3c5a42d5ab01241e1c"
+    },
+    {
+      "archivePath": "homeworld-codex-roam-2026-10-30/reference/05-just-entered-living-room.png",
+      "repositoryPath": "docs/look-dev-captures/review-roam-2026-10-30/reference/05-just-entered-living-room.png",
+      "bytes": 706930,
+      "sha256": "160112653a1f7e170e7411f904bce97f181b73696923bf08e2a5b43debf45b06"
+    }
+  ],
+  "runtimePrototypeImported": false,
+  "referenceLanguagePreservedAsAuthorized": true
+}

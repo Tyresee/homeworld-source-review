@@ -79,7 +79,7 @@ export function createStudentHomeScene(stage,{onRobot=()=>{},onContextMenu}={}) 
   function clear(){++token;motion=null;rect=null;if(robot){disposeRobotAvatar(robot);robot=null;}if(room){room.removeFromParent();room.dispose();room=null;}renderer.shadowMap.needsUpdate=true;requestRender();}
   async function show(home){
     clear();const own=token,floor=theme.id==='warm'&&home.commerce?.home?home.commerce.home:home.house.floors[0];rect=theme.id==='warm'?roomRect(floor.rooms[0]):{...floor.rooms[0].bounds};
-    room=createRoomExpansion({rooms:floor.rooms,slab:floor.slab,profile:theme.id==='warm'?(floor.profile??'upper'):'upper',includeGrid:false,theme,surfaces:floor.surfaces});display.add(room);reset();
+    room=createRoomExpansion({rooms:floor.rooms,slab:floor.slab,profile:theme.id==='warm'?(floor.profile??'upper'):'upper',includeGrid:false,theme,surfaces:floor.surfaces,cutaway:theme.id==='warm'});display.add(room);reset();
     sourcePromise??=new GLTFLoader().loadAsync(new URL('../assets/asset-lab/robot-v1/models/v4/robot.glb',import.meta.url).href).then(gltf=>source=gltf.scene).catch(error=>{sourcePromise=null;throw error;});
     const model=await sourcePromise;if(dead||own!==token)return;
     robot=createRobotAvatar(model);robot.position.set(0,.07,.45);robot.rotation.y=.25;robot.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}});display.add(robot);

@@ -84,6 +84,25 @@ export function resolveLookDevBuild(fixture,preset) {
   return theme;
 }
 
+/** Read actual rendered meshes, including the cut surface, without deriving
+ * a height from a saved room or assuming the current display policy. */
+export function describeLookDevWallGeometry(group) {
+  const parts=group?.userData.roomParts;if(!parts)return [];
+  const rows=[];
+  for(const part of ['walls','border','columns'])for(const mesh of parts[part]??[]) {
+    if(part==='border'&&!mesh.userData.wallCutawayCap)continue;
+    const geometry=mesh.geometry;if(!geometry?.attributes.position)continue;
+    mesh.updateWorldMatrix(true,false);geometry.computeBoundingBox();
+    const bounds=geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld),size=bounds.getSize(new THREE.Vector3());
+    const material=[].concat(mesh.material??[]).find(value=>value?.color);
+    rows.push({part,roomId:mesh.userData.roomId??mesh.userData.themeRoomId??null,surfaceId:mesh.userData.surfaceId??null,
+      cutaway:mesh.userData.wallCutaway===true,cutawayCap:mesh.userData.wallCutawayCap===true,
+      color:material?'#'+material.color.getHexString():null,
+      size:size.toArray(),height:size.y,bounds:{min:bounds.min.toArray(),max:bounds.max.toArray()}});
+  }
+  return rows.slice(0,256);
+}
+
 export async function createLookDevRuntime({container,preset,fixtureId='living',onStatus=()=>{},onReady=()=>{},onFrame=()=>{}}) {
   if(!container)throw new TypeError('A fixed-size canvas container is required');
   const {width,height}=LOOK_DEV_SIZE;
@@ -130,7 +149,7 @@ export async function createLookDevRuntime({container,preset,fixtureId='living',
     return {fixtureId:currentId,presetId:current.id??'custom',ready,size:size(),render,backdrop:clone(current.backdrop??{}),capabilities:{...capabilities},
       camera:refs?{position:refs.camera.position.toArray(),quaternion:refs.camera.quaternion.toArray(),left:refs.camera.left,right:refs.camera.right,top:refs.camera.top,bottom:refs.camera.bottom,near:refs.camera.near,far:refs.camera.far,zoom:refs.camera.zoom}:null,
       items:fixture?.items.map(item=>{const actual=fixture.floors[item.storey].furniture.find(row=>row.id===item.id);return {...item,color:actual?.color,material:actual?.material};})??[],
-      roomSurfaces:roomSurfaceSnapshot(),revisions:fixture?.floors.map(floor=>floor.revision)??[],stats:world?.getStats()??null};
+      roomSurfaces:roomSurfaceSnapshot(),wallGeometry:describeLookDevWallGeometry(refs?.scene.getObjectByName('room-expansion')),revisions:fixture?.floors.map(floor=>floor.revision)??[],stats:world?.getStats()??null};
   }
   function applyRender() {
     if(!refs||!baselineRender)return;

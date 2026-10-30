@@ -1,5 +1,7 @@
 # Warm candidate: combined wall and classroom UI handoff
 
+Subsequent update: the selected 0.5 m Warm interior wall display is documented in [WALL_CUTAWAY_HANDOFF.md](WALL_CUTAWAY_HANDOFF.md). The deferral below describes the earlier state; the new task implements a display cutaway while retaining the logical wall system.
+
 The work continues the existing opt-in Warm candidate. Task 1 (wall styles and colors) is already implemented and verified; Task 2 adds classroom page controls and a warm paper interface. Only `?theme=warm` enables the new interface. Default and Toy retain their original page appearance and behavior. This delivery is for source review and local use; no production deployment is included.
 
 ## Review material and precedence

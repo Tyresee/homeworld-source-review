@@ -131,6 +131,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const exteriorFloors = () => floorHomes ?? [state ?? {rooms}];
   let dragging = null, scheduled = false, disposed = false, renderFrame = 0;
   let view = 'interior', estateFocus = null, requestedFocus = null, estateLevels = {manor:3};
+  const usesInteriorCutaway = () => theme.id === 'warm' && view === 'interior' && !capturingHouse;
   const estatePan = new THREE.Vector3();
   const cameraPan = estatePan;
   let cameraMotion = null, cameraAnimation = 0, overviewPose = null, lastPanAt = -Infinity;
@@ -233,7 +234,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const sofaFabricMaps = createSofaFabricMaps();
   Object.values(sofaFabricMaps).forEach(texture => textures.push(texture));
   const maps = { oak: grain('oak'), stone: grain('stone'), ceramic: grain('ceramic'), walnut: grain('oak'), marble: grain('stone'), wool: grain('wool'), linen: grain('linen'), velvet: grain('velvet'), ...Object.fromEntries(Object.entries(sofaFabricMaps).map(([name, texture]) => [`sofa-${name}`, texture])) };
-  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures,wallTextureManager:wallTextures }); root.add(roomExpansion);
+  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures,wallTextureManager:wallTextures, cutaway:usesInteriorCutaway() }); root.add(roomExpansion);
   // The outdoor estate is an isolated scene layer. Its house is generated from
   // the same floor plan as the interior, so adding a room inside changes the
   // silhouette outside; it never participates in interior surfaces or bounds.
@@ -569,6 +570,12 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     }
   }
   function syncRoomEnvelope() {
+    // Floor snapshots for the whole-building view keep the original shell.
+    // Rebuild only when that transient render mode changes; account state,
+    // collision geometry and the overview's persistent cache key are untouched.
+    if(roomExpansion.userData.cutaway !== usesInteriorCutaway()) {
+      roomExpansion.setRooms(rooms,{stairs:getHomeStairs(state),slab:state?.slab??null,profile:state?.profile,surfaces:state?.surfaces??null,cutaway:usesInteriorCutaway()});
+    }
     // The exterior is generated from the same floor plan: every added room
     // becomes a wing of the manor and widens the estate around it.
     const plan = outdoorPlan();
@@ -596,6 +603,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     syncView();
   }
   function syncView() {
+    if(roomExpansion.userData.cutaway !== usesInteriorCutaway())syncRoomEnvelope();
     for (const child of root.children) child.visible = view === 'interior';
     estateOutdoor.visible = view === 'estate' && !outdoorState;
     outdoorWorld.visible = view === 'estate' && !!outdoorState;
@@ -688,7 +696,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     let changedLayout=false;
     if (Array.isArray(next.rooms)) {
       const key = JSON.stringify([next.rooms.map(r => [r.id,r.kind,r.cx,r.cz,r.bounds]),next.slab,next.profile,getHomeStairs(next),floorHomes?.map(home=>[home.slab,home.rooms.map(r=>[r.id,r.kind,r.cx,r.cz,r.bounds])])]);
-      if (key !== layoutKey) { rooms = next.rooms; layoutKey = key; roomExpansion.setRooms(rooms,{stairs:getHomeStairs(next),slab:next.slab??null,profile:next.profile}); syncRoomEnvelope(); changedLayout=true; }
+      if (key !== layoutKey) { rooms = next.rooms; layoutKey = key; roomExpansion.setRooms(rooms,{stairs:getHomeStairs(next),slab:next.slab??null,profile:next.profile,surfaces:next.surfaces??null,cutaway:usesInteriorCutaway()}); syncRoomEnvelope(); changedLayout=true; }
       else rooms = next.rooms;
     }
     syncStaircase(next);
@@ -1542,7 +1550,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     focusEstate,
     isEstateFocused() { return requestedFocus !== null; },
     getEstateFocus() { return estateFocus; },
-    setRooms(value) { rooms = value; layoutKey = ''; roomExpansion.setRooms(value,{stairs:getHomeStairs(state),slab:state?.slab??null,profile:state?.profile}); syncRoomEnvelope(); markShadowsDirty(); frameCamera(); requestRender(); },
+    setRooms(value) { rooms = value; layoutKey = ''; roomExpansion.setRooms(value,{stairs:getHomeStairs(state),slab:state?.slab??null,profile:state?.profile,surfaces:state?.surfaces??null,cutaway:usesInteriorCutaway()}); syncRoomEnvelope(); markShadowsDirty(); frameCamera(); requestRender(); },
     getRooms() { return rooms; },
     getFloorGroundPoint,
     getFloorBounds() { return getFloorBounds(state??{rooms}); },

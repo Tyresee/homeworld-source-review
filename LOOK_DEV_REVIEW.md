@@ -18,13 +18,14 @@ Every source render and PNG is 1440 x 900 pixels at DPR 1. The on-page preview s
 - Bedroom: timber bed, bedside cabinet, lamp, clothes rack and rug.
 - Kitchen: cooker, sink, base cabinet, dining table and two chairs.
 - Bathroom: toilet, vanity and towel rack.
+- House: one storey with living room, kitchen, bedroom and bathroom, for the selected Warm wall cutaway.
 - Exterior: two storeys and the existing roof.
 
 Furniture starts with each actual catalogue product's current default color/material. The fixtures use the real placement validator. They are disposable reference data, never student records.
 
 ## Review in rendered space
 
-1. Load default.json and inspect all five views.
+1. Load default.json and inspect all six views.
 2. Load toy-v1.json in the same window. Keep the camera and source resolution fixed.
 3. Change tone mapping, exposure and real lights first. The diagnostics show actual resolved renderer/light values.
 4. Change room wall/floor colors and floor texture using existing material maps. Check the actual roomSurfaces diagnostics, not just the input value.
@@ -41,7 +42,7 @@ Furniture examples starts as an empty object and has no effect while Product def
 
 Export JSON downloads the complete in-memory candidate. Import JSON applies a local file only to this page; it does not upload it or write it to the server. Imported files are limited to 1 MiB, and unsafe prototype keys are rejected. The preset URL accepts simple file names from scripts/qa/look-dev-presets only.
 
-Current PNG downloads one actual source render. All 5 PNGs captures every reference and downloads one ZIP, avoiding browser restrictions on consecutive automatic downloads. Each file includes the preset ID and view name. The grayscale checkbox is a preview aid; the reference PNG export remains the actual color render.
+Current PNG downloads one actual source render. All 6 PNGs captures every reference and downloads one ZIP, avoiding browser restrictions on consecutive automatic downloads. Each file includes the preset ID and view name. The grayscale checkbox is a preview aid; the reference PNG export remains the actual color render.
 
 Only browser/desktop rendering is validated by this tool. It does not establish physical projector appearance, real touchpad feel, or a change to the shipped default. Source-copy normalization still applies; this repository is not a production deployment archive.
 
@@ -51,4 +52,6 @@ A fresh anonymous GitHub clone was started with only `node scripts/qa/look-dev-r
 
 AgX, exposure, actual main-light angles and JSON import/export were read back in the clean clone. A ceramic floor edit was also checked against the actual mesh material map in the source workstation. The screenshot gallery and machine-readable render readbacks are in [docs/look-dev-captures](docs/look-dev-captures/README.md).
 
-Validation limits: null finish values intentionally inherit the existing per-part defaults; batch PNGs are packaged into one ZIP. The normalized full source suite has the same 55 display/source-text assertion differences as the earlier snapshot (716 of 771 pass). The verified core subset passes 379/379, and the new preset/safety/ZIP tests pass 4/4 without package installation. No assertions were weakened. No production deployment was performed.
+Validation limits: null finish values intentionally inherit the existing per-part defaults; batch PNGs are packaged into one ZIP. The normalized full source suite has the same 55 display/source-text assertion differences as the earlier snapshot (728 of 783 pass). The verified core subset passes 379/379, and the new preset/safety/ZIP tests pass 4/4 without package installation. No assertions were weakened. No production deployment was performed.
+
+The current sixth House view and six-image ZIP were added after the original five-view validation above. Current screenshots, exact unchanged baseline checks and fresh-clone delivery status are recorded in docs/WALL_CUTAWAY_HANDOFF.md and docs/wall-cutaway-2026-10-30/.

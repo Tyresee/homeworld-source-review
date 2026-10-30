@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
+import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, roomOuterFaces, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
 import { getHomeTheme, getRoomTheme } from './home-theme.js';
 import {resolveHomeFloorFinish} from './home-floor-finishes.js';
 import {getDefaultFloorAppearance,getDefaultWallAppearance} from './home-engine.js';
@@ -13,6 +13,9 @@ import { splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs } from '
 export { ROOM_KINDS, getRoomKind, roomRect, layoutBounds };
 export const WALL_HEIGHT = 2.85;
 export const PARTITION_HEIGHT = .98;
+export const CUTAWAY_WALL_HEIGHT = .5;
+export const CUTAWAY_CAP_HEIGHT = .04;
+export const CUTAWAY_CAP_COLOR = '#4a3f37';
 
 /** Legacy preset ids remain available as one-click layouts. */
 export const ROOM_TIERS = Object.freeze(LAYOUT_PRESETS.map((item, index) => {
@@ -44,7 +47,7 @@ const PALETTE = Object.freeze({ trim: '#e6c49e', plinth: '#d0bb9b', accent: '#c8
  * them into a room. Floor and wall skins carry `surfaceId`
  * (`room:<id>.floor` / `room:<id>.wall`) so they can be painted separately.
  */
-export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile, theme = getHomeTheme(), surfaces = null, floorTextureManager = null, wallTextureManager = null } = {}) {
+export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile, theme = getHomeTheme(), surfaces = null, floorTextureManager = null, wallTextureManager = null, cutaway = false } = {}) {
   stairs = Array.isArray(stairs) ? stairs : getHomeStairs({stairs,staircases});
   const group = new THREE.Group(); group.name = 'room-expansion';
   const geometries = new Set(), materials = new Set();
@@ -55,6 +58,9 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   // Keep the empty fixtures bucket for callers that inspect older roomParts.
   const parts = { floor: [], walls: [], border: [], zones: [], columns: [], accents: [], windows: [], fixtures: [] };
   let definition, disposed = false, currentRoom = null, boundarySkinRoom = null;
+  // This is a render-only choice. Collision/placement callers deliberately keep
+  // the original shell even when their surrounding page uses the Warm theme.
+  const usesCutaway = () => theme.id === 'warm' && cutaway === true;
   const shellColor = (key, fallback = PALETTE[key]) => theme.shell[key] ?? fallback;
   // Existing architecture already owns these strips, sills and posts. Theme
   // them in place without adding volume, faces or new collision surfaces.
@@ -111,14 +117,40 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     for (const [x, yy, w] of [[-.28, y - .35, .3], [.2, y - .48, .42]]) local(new THREE.SphereGeometry(1, 12, 8), '#a7cba4', [x, yy, -.02]).scale.set(w, .26, .01);
   }
   function lowWall(length, center, axis, color, height = PARTITION_HEIGHT) {
+    if (usesCutaway()) height = CUTAWAY_WALL_HEIGHT;
     const size = axis === 'x' ? [length, height, .17] : [.17, height, length];
     const m = box(size, [center[0], height / 2 + .06, center[2]], color, 'walls', .03, { roughness: .86 });
     if(theme.id==='warm')m.userData.wallTextureAxis=axis;
+    if (usesCutaway()) {
+      m.userData.wallCutaway = true;
+      const cap = box(axis === 'x' ? [length, CUTAWAY_CAP_HEIGHT, .17] : [.17, CUTAWAY_CAP_HEIGHT, length],
+        [center[0], .06 + height + CUTAWAY_CAP_HEIGHT / 2, center[2]], CUTAWAY_CAP_COLOR, 'border', .012);
+      cap.userData.wallCutawayCap = true;
+      cap.userData.wallNeutralTrim = true;
+      delete cap.userData.surfaceId;
+    }
     return m;
   }
-  function post(position, height = PARTITION_HEIGHT + .16) {
+  function post(position, height) {
+    if (height === undefined && usesCutaway()) return;
+    height ??= PARTITION_HEIGHT + .16;
     box([.16, height, .16], [position[0], height / 2 + .06, position[2]], trimColor(), 'columns', .035);
     box([.24, .08, .24], [position[0], height + .1, position[2]], shellColor('wallCap', PALETTE.accent), 'columns', .03);
+  }
+  function exposedCutWalls(rooms, room, color, starter = false) {
+    const rect = roomRect(room), segments = [];
+    // A neighbouring compact room may cover only part of an edge. Keep the
+    // remaining exposed intervals rather than treating the whole side as shared.
+    for (const edge of roomOuterFaces(rooms, room).filter(edge => edge.side === 'front' || edge.side === 'right')) {
+      const last = segments.at(-1);
+      if(last?.side === edge.side && Math.abs(last.to - edge.from) < 1e-6)last.to = edge.to;
+      else segments.push({...edge});
+    }
+    for (const edge of segments) {
+      const alongX = edge.side === 'front', mid = (edge.from + edge.to) / 2;
+      const mesh = lowWall(edge.to - edge.from, alongX ? [mid, 0, rect.maxZ - .02] : [rect.maxX - .02, 0, mid], alongX ? 'x' : 'z', color);
+      if(starter)mesh.userData.surfaceId = alongX ? 'wall.inner' : 'wall.side';
+    }
   }
   /** Shared edges become a knee wall with a wide doorway so every floor stays visible from the isometric camera. */
   function partition(from, to, fixed, axis, color) {
@@ -218,8 +250,11 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       // Corner posts where two full-height outer walls or a wall and a cut-away meet.
       if (backRow && edges.back.some(s => !s.shared)) post([rect.maxX - .11, 0, rect.minZ - .03], WALL_HEIGHT + .12);
       if (leftColumn && edges.left.some(s => !s.shared)) post([rect.minX - .03, 0, rect.maxZ - .11], WALL_HEIGHT + .12);
-      if (!edges.frontShared) { const lip = box([w + .14, .05, .08], [rect.x, .085, rect.maxZ - .02], trimColor(), 'border', .015); lip.castShadow = false; }
-      if (!edges.rightShared) { const lip = box([.08, .05, d + .14], [rect.maxX - .02, .085, rect.z], trimColor(), 'border', .015); lip.castShadow = false; }
+      if (usesCutaway()) exposedCutWalls(rooms, room, wallColor);
+      else {
+        if (!edges.frontShared) { const lip = box([w + .14, .05, .08], [rect.x, .085, rect.maxZ - .02], trimColor(), 'border', .015); lip.castShadow = false; }
+        if (!edges.rightShared) { const lip = box([.08, .05, d + .14], [rect.maxX - .02, .085, rect.z], trimColor(), 'border', .015); lip.castShadow = false; }
+      }
     }
     floorAccents(rect, kind);
     for(const part of ['zones','accents'])for(const object of parts[part])if(object.userData.surfaceId?.startsWith(`room:${room.id}.`)&&object.position.y<.2)clipFloor(object);
@@ -286,18 +321,21 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
         if(holes.length)windowAt(alongX?[mid,0,edge.at+.1]:[edge.at+.1,0,mid],axis,holes[0][2]);
         box(alongX?[length,.11,.29]:[.29,.11,length],alongX?[mid,WALL_HEIGHT+.12,edge.at-.03]:[edge.at-.03,WALL_HEIGHT+.12,mid],shellColor('wallCap', PALETTE.trim),'border',.025);
         box(alongX?[length,.14,.11]:[.11,.14,length],alongX?[mid,.16,edge.at+.14]:[edge.at+.14,.16,mid],trimColor(PALETTE.frame),'border',.02);
+      } else if (usesCutaway()) {
+        lowWall(length, center, axis, getRoomTheme(edge.owner?.kind ?? boundarySkinRoom?.kind ?? 'living', edge.owner ?? boundarySkinRoom, theme).wall);
       } else {
         const lip=box(alongX?[length,.08,.09]:[.09,.08,length],alongX?[mid,.08,edge.at]:[edge.at,.08,mid],trimColor(),'border',.015);lip.castShadow=false;
       }
       for(const object of Object.values(parts).flat()) if(!before.has(object)) {
-        object.userData.surfaceId=surfaceId;object.userData.floorBoundary={...edge};
+        if(!object.userData.wallCutawayCap)object.userData.surfaceId=surfaceId;
+        object.userData.floorBoundary={...edge};
         if(['toy','warm'].includes(theme.id)&&!legacy&&boundarySkinRoom&&object.userData.roomPart==='walls')object.userData.themeRoomId=boundarySkinRoom.id;
         if(full)object.userData.wallId=edge.owner?`room:${edge.owner.id}:${edge.side}:${edge.from}:${edge.to}`:`slab:${edge.side}:${edge.at}:${edge.from}:${edge.to}`;
       }
-      if(theme.id==='warm'&&full&&!edge.owner) {
+      if(theme.id==='warm'&&(full||usesCutaway())&&!edge.owner) {
         // A public shell may span several rooms. Slice its existing triangles,
         // retaining the one original window opening, mount wallId and solids.
-        const owners=home.rooms.filter(room=>{const r=roomRect(room),at=edge.side==='back'?r.minZ:r.minX;return Math.abs(at-edge.at)<1e-6;});
+        const owners=home.rooms.filter(room=>{const r=roomRect(room),at=edge.side==='back'?r.minZ:edge.side==='front'?r.maxZ:edge.side==='left'?r.minX:r.maxX;return Math.abs(at-edge.at)<1e-6;});
         const cuts=[...new Set([edge.from,edge.to,...owners.flatMap(room=>{const r=roomRect(room);return alongX?[r.minX,r.maxX]:[r.minZ,r.maxZ];})].filter(n=>n>=edge.from-1e-6&&n<=edge.to+1e-6))].sort((a,b)=>a-b);
         for(const original of [...parts.walls].filter(mesh=>!before.has(mesh))) {
           const replacements=[];
@@ -306,7 +344,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
             const owner=owners.find(room=>{const r=roomRect(room);return mid>(alongX?r.minX:r.minZ)-1e-6&&mid<(alongX?r.maxX:r.maxZ)+1e-6;});
             const geometry=clipWallGeometryInterval(original,from,to,alongX?'x':'z');if(!geometry)continue;
             const mesh=new THREE.Mesh(geometry,original.material.clone());mesh.position.copy(original.position);mesh.rotation.copy(original.rotation);mesh.scale.copy(original.scale);mesh.castShadow=original.castShadow;mesh.receiveShadow=original.receiveShadow;
-            mesh.userData={...original.userData,roomId:owner?.id??null,roomKind:owner?.kind??null,wallTextureAxis:'x',...(owner?{themeRoomId:owner.id}:{}),surfaceId:owner&&owner.id!=='living'?`room:${owner.id}.wall`:surfaceId};
+            mesh.userData={...original.userData,roomId:owner?.id??null,roomKind:owner?.kind??null,wallTextureAxis:original.userData.wallTextureAxis??'x',...(owner?{themeRoomId:owner.id}:{}),surfaceId:owner&&owner.id!=='living'?`room:${owner.id}.wall`:surfaceId};
             geometries.add(geometry);materials.add(mesh.material);group.add(mesh);replacements.push(mesh);
           }
           const index=parts.walls.indexOf(original);parts.walls.splice(index,1,...replacements);original.removeFromParent();geometries.delete(original.geometry);materials.delete(original.material);original.geometry.dispose();original.material.dispose();
@@ -356,6 +394,14 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       definition = describeRooms(rooms);
       for (const room of definition.rooms.filter(room=>room.id!=='living')) buildRoom(definition.rooms, room, definition.bounds);
     }
+    // The hand-built starter shell owns only the two tall window walls. Its
+    // exposed front/right edges need the same render-only cut as other rooms.
+    if (includeWalls && usesCutaway() && hasStarterRoom(home)) {
+      const room = home.rooms.find(room => room.id === 'living');
+      currentRoom = room;
+      exposedCutWalls(home.rooms, room, getRoomTheme(room.kind, room, theme).wall, true);
+      currentRoom = null;
+    }
     if(theme.id==='warm')for(const original of [...parts.walls]) {
       const axis=original.userData.sharedPartitionAxis;if(!axis)continue;
       const faces=createSharedWallFaceMeshes(original,home.rooms,{axis,rectForRoom:roomRect,includePublic:true,trimColor:shellColor('trim',PALETTE.frame)});if(!faces)continue;
@@ -372,6 +418,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     if(theme.id==='warm')for(const mesh of parts.walls)if(mesh.userData.surfaceId)group.userData.surfaceIds[mesh.userData.surfaceId]=mesh.userData.surfaceId;
     if(slabMode)Object.assign(group.userData.surfaceIds,{'slab.floor':'floor.main','slab.back':'wall.inner','slab.left':'wall.side'});
     group.userData.slab=slab;group.userData.standalone=standalone;group.userData.slabMode=slabMode;
+    group.userData.cutaway = usesCutaway();
     group.userData.roomTier = Array.isArray(rooms) ? describeStage(definition.count) : rooms;
   }
   function syncFloorFinishes(home) {
@@ -399,7 +446,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   group.syncWallFinishes=syncWallFinishes;
   const describeStage = count => count >= 5 ? 'mansion' : count >= 3 ? 'atrium' : count >= 2 ? 'suite' : 'starter';
   build(tier ?? rooms);
-  group.setRooms = (value, options = {}) => { if (disposed) throw new Error('Cannot change a disposed room expansion.'); if(Object.hasOwn(options,'staircases'))stairs=getHomeStairs(options);else if(Object.hasOwn(options,'stairs'))stairs=Array.isArray(options.stairs)?options.stairs:getHomeStairs(options);if(Object.hasOwn(options,'slab'))slab=options.slab;if(Object.hasOwn(options,'profile'))profile=options.profile;if(Object.hasOwn(options,'surfaces'))surfaces=options.surfaces; clear(); build(value); return group; };
+  group.setRooms = (value, options = {}) => { if (disposed) throw new Error('Cannot change a disposed room expansion.'); if(Object.hasOwn(options,'staircases'))stairs=getHomeStairs(options);else if(Object.hasOwn(options,'stairs'))stairs=Array.isArray(options.stairs)?options.stairs:getHomeStairs(options);if(Object.hasOwn(options,'slab'))slab=options.slab;if(Object.hasOwn(options,'profile'))profile=options.profile;if(Object.hasOwn(options,'surfaces'))surfaces=options.surfaces;if(Object.hasOwn(options,'cutaway'))cutaway=options.cutaway; clear(); build(value); return group; };
   group.setTier = value => group.setRooms(getRoomTierDefinition(value).id);
   group.getDefinition = () => definition;
   group.dispose = () => { if (disposed) return; disposed = true; clear();if(ownsFloorTextures)floorTextures.dispose();if(ownsWallTextures)wallTextures.dispose(); group.userData.roomParts = null; };

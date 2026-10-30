@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {zipFiles} from '../scripts/qa/look-dev-zip.mjs';
+import {LOOK_DEV_VIEWS} from '../scripts/qa/look-dev-fixtures.mjs';
 import {HOME_THEMES} from '../public/js/home-theme.js';
 import {assertSafePresetKeys,MAX_LOOK_DEV_PRESET_BYTES} from '../scripts/qa/look-dev-preset-safety.mjs';
 
@@ -30,7 +31,7 @@ test('toy-v1 starts with the exact existing toy colors and lights, without inven
   assert.equal(value.render.exposure,1);assert.deepEqual(value.build.furniture,{mode:'default',examples:{}});
 });
 test('a single archive contains every named view with valid ZIP headers, byte payloads and central-directory offsets',async()=>{
-  const views=['living','bedroom','kitchen','bathroom','exterior'],encoder=new TextEncoder();
+  const views=LOOK_DEV_VIEWS.map(view=>view.id),encoder=new TextEncoder();
   const files=views.map(view=>({name:'toy-v1--'+view+'.png',bytes:encoder.encode('123456789')}));
   const bytes=new Uint8Array(await zipFiles(files).arrayBuffer()),data=new DataView(bytes.buffer),decoder=new TextDecoder();
   let offset=0;const offsets=[];
@@ -45,7 +46,7 @@ test('a single archive contains every named view with valid ZIP headers, byte pa
   }
   const centralOffset=offset;
   files.forEach((file,index)=>{assert.equal(data.getUint32(offset,true),0x02014b50);assert.equal(data.getUint32(offset+42,true),offsets[index]);const length=data.getUint16(offset+28,true);assert.equal(decoder.decode(bytes.subarray(offset+46,offset+46+length)),file.name);offset+=46+length;});
-  assert.equal(data.getUint32(offset,true),0x06054b50);assert.equal(data.getUint16(offset+8,true),5);assert.equal(data.getUint16(offset+10,true),5);assert.equal(data.getUint32(offset+16,true),centralOffset);assert.equal(offset+22,bytes.length);
+  assert.equal(data.getUint32(offset,true),0x06054b50);assert.equal(data.getUint16(offset+8,true),views.length);assert.equal(data.getUint16(offset+10,true),views.length);assert.equal(data.getUint32(offset+16,true),centralOffset);assert.equal(offset+22,bytes.length);
 });
 
 test('look-development rejects unsafe preset keys at any nesting depth before editable overlays',()=>{

@@ -1,0 +1,73 @@
+{
+  "source": {
+    "homes": {
+      "tests": 713,
+      "pass": 713,
+      "fail": 0,
+      "command": "npm run verify:student-homes"
+    },
+    "build": {
+      "passed": true,
+      "releaseFiles": 474,
+      "assets": {
+        "originalBytes": 5017684,
+        "brotliBytes": 1217344,
+        "gzipBytes": 1483730
+      },
+      "note": "Asset sizes are not a runtime performance measurement"
+    },
+    "full": {
+      "tests": 868,
+      "pass": 867,
+      "fail": 1,
+      "knownFailure": "Existing catalogue-count assertion: actual 376, expected 311"
+    },
+    "cutaway": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    }
+  },
+  "public": {
+    "state": "Locally verified normalized implementation; publication metadata is recorded in the handoff",
+    "publicStartingCommit": "d9bd9a53773cb17fe4962ed1094a61f16b5a22c8",
+    "core": {
+      "tests": 379,
+      "pass": 379,
+      "fail": 0
+    },
+    "focused": {
+      "tests": 74,
+      "pass": 74,
+      "fail": 0
+    },
+    "full": {
+      "tests": 783,
+      "pass": 728,
+      "fail": 55
+    },
+    "baseline": {
+      "tests": 771,
+      "pass": 716,
+      "fail": 55
+    },
+    "baselineCommit": "c17c88cae579ffc7fcbc7fc1ced16988d7368ac8",
+    "same55FailureNames": true,
+    "newFailureNames": [],
+    "resolvedFailureNames": [],
+    "privacyStatus": "PASS",
+    "scannedFiles": 523,
+    "approvedReferenceFilesByteIdentical": 79,
+    "rawCutawayArchiveMembersVerified": 7,
+    "threeVendor": "0.186.1, 9 licensed files, complete imports and matching SHA-256",
+    "temporaryPublicThreeLinkRemoved": true,
+    "existingPhosphorDependenciesPreserved": true,
+    "exportDependencyClosure": 246,
+    "sourceRuntimeChangedOrAddedFiles": 10,
+    "notes": [
+      "No source files edited during export/testing.",
+      "Root owns final docs, audit and file index; no subsequent export was run.",
+      "Privacy scan is point-in-time and examines text, decoded escapes, GLB JSON and PNG metadata; no OCR claim."
+    ]
+  }
+}

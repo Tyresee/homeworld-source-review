@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 513,
+  "totalFiles": 546,
   "files": [
     {
       "path": ".gitignore",
@@ -133,6 +133,38 @@
     {
       "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-8--bedroom.png",
       "bytes": 1104904
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/CODEX_TASK.md",
+      "bytes": 3641
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/IMPORT_PROVENANCE.json",
+      "bytes": 2511
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/prototype/cutaway-proto.patch",
+      "bytes": 7793
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-current--closeup.png",
+      "bytes": 852718
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-current.png",
+      "bytes": 2865092
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m--closeup.png",
+      "bytes": 838992
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m.png",
+      "bytes": 2917923
+    },
+    {
+      "path": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-1.05m-not-chosen.png",
+      "bytes": 2968924
     },
     {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/IMPORT_PROVENANCE.json",
@@ -711,12 +743,104 @@
       "bytes": 9792
     },
     {
+      "path": "docs/WALL_CUTAWAY_HANDOFF.md",
+      "bytes": 8997
+    },
+    {
       "path": "docs/WALL_SYSTEM_HANDOFF.md",
       "bytes": 7170
     },
     {
+      "path": "docs/wall-cutaway-2026-10-30/application-building-scene.png",
+      "bytes": 570965
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/application-checks.json",
+      "bytes": 1114
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/application-return-scene.png",
+      "bytes": 607300
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/application-three-room-scene.png",
+      "bytes": 607300
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/comparison/evidence.json",
+      "bytes": 3640
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/comparison/pair-warm-floors-native.png",
+      "bytes": 2268933
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/comparison/pair-warm-walls-native.png",
+      "bytes": 2268585
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/comparison/REPORT.md",
+      "bytes": 5219
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/house-before.png",
+      "bytes": 1032264
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/house-cut.png",
+      "bytes": 1060234
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/house-diagnostics.json",
+      "bytes": 31842
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/public-test-baseline.json",
+      "bytes": 11166
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/README.md",
+      "bytes": 3847
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/render-regression.json",
+      "bytes": 1865
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/tests.json",
+      "bytes": 1995
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-floors--house.png",
+      "bytes": 1059965
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--bathroom.png",
+      "bytes": 860684
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--bedroom.png",
+      "bytes": 1012282
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--exterior.png",
+      "bytes": 511442
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--house.png",
+      "bytes": 1060234
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--kitchen.png",
+      "bytes": 889477
+    },
+    {
+      "path": "docs/wall-cutaway-2026-10-30/warm-walls/warm-walls--living.png",
+      "bytes": 1004669
+    },
+    {
       "path": "docs/WARM_UI_HANDOFF.md",
-      "bytes": 10990
+      "bytes": 11256
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -980,7 +1104,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 51220
+      "bytes": 54920
     },
     {
       "path": "game.manifest.json",
@@ -988,7 +1112,7 @@
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
-      "bytes": 5390
+      "bytes": 5765
     },
     {
       "path": "MODULE_MAP.md",
@@ -1000,7 +1124,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 3859
+      "bytes": 5693
     },
     {
       "path": "package-lock.json",
@@ -1268,7 +1392,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 31466
+      "bytes": 34245
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -1292,7 +1416,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 110323
+      "bytes": 111137
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -1468,7 +1592,7 @@
     },
     {
       "path": "public/js/student-home-scene.js",
-      "bytes": 12136
+      "bytes": 12162
     },
     {
       "path": "public/js/student-home-stage-camera.js",
@@ -1536,11 +1660,11 @@
     },
     {
       "path": "README.md",
-      "bytes": 7433
+      "bytes": 7815
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
-      "bytes": 2091
+      "bytes": 2291
     },
     {
       "path": "scripts/qa/look-dev-backdrop.mjs",
@@ -1548,7 +1672,7 @@
     },
     {
       "path": "scripts/qa/look-dev-fixtures.mjs",
-      "bytes": 5923
+      "bytes": 7075
     },
     {
       "path": "scripts/qa/look-dev-preset-safety.mjs",
@@ -1580,7 +1704,7 @@
     },
     {
       "path": "scripts/qa/look-dev-runtime.mjs",
-      "bytes": 17467
+      "bytes": 18742
     },
     {
       "path": "scripts/qa/look-dev-ui.css",
@@ -1588,11 +1712,11 @@
     },
     {
       "path": "scripts/qa/look-dev-ui.html",
-      "bytes": 2800
+      "bytes": 2798
     },
     {
       "path": "scripts/qa/look-dev-ui.mjs",
-      "bytes": 24308
+      "bytes": 24405
     },
     {
       "path": "scripts/qa/look-dev-wall-compare.mjs",
@@ -1683,6 +1807,10 @@
       "bytes": 6159
     },
     {
+      "path": "tests/home-wall-cutaway.test.mjs",
+      "bytes": 15028
+    },
+    {
       "path": "tests/home-wall-finishes.test.mjs",
       "bytes": 11319
     },
@@ -1695,8 +1823,12 @@
       "bytes": 4578
     },
     {
+      "path": "tests/look-dev-house.test.mjs",
+      "bytes": 5517
+    },
+    {
       "path": "tests/look-dev-ui.test.mjs",
-      "bytes": 4462
+      "bytes": 4533
     },
     {
       "path": "tests/look-dev-warm-floors.test.mjs",

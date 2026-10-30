@@ -1,0 +1,1471 @@
+{
+  "fixtureId": "house",
+  "presetId": "warm-walls",
+  "ready": true,
+  "size": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "canvasWidth": 1440,
+    "canvasHeight": 900
+  },
+  "render": {
+    "toneMapping": "neutral",
+    "exposure": 1.03,
+    "hemisphere": {
+      "sky": "#fff6ea",
+      "ground": "#e2dbcf",
+      "intensity": 1.7
+    },
+    "sun": {
+      "color": "#fff0d8",
+      "intensity": 3.4,
+      "position": [
+        4.6130992416178,
+        12.687654399245266,
+        9.213240719563725
+      ],
+      "target": [
+        0.5902288436889642,
+        1.9600000047683714,
+        1.1674999237060537
+      ]
+    },
+    "fill": {
+      "color": "#dde7f2",
+      "intensity": 0.9
+    },
+    "shadowRadius": 3,
+    "environmentIntensity": 1
+  },
+  "backdrop": {
+    "inner": "#f7f4ee",
+    "outer": "#e2dccf"
+  },
+  "capabilities": {
+    "contactShadow": false
+  },
+  "camera": {
+    "position": [
+      8.411067814398672,
+      8.462499996870756,
+      9.611067814398673
+    ],
+    "quaternion": [
+      -0.28069599163380765,
+      0.3645933919260623,
+      0.11626808663848794,
+      0.880206311539509
+    ],
+    "left": -9.747781437574467,
+    "right": 9.747781437574467,
+    "top": 6.092363398484043,
+    "bottom": -6.092363398484041,
+    "near": 3.749417654507223,
+    "far": 20.778933288839944,
+    "zoom": 1
+  },
+  "items": [
+    {
+      "id": "lookdev:h-sofa",
+      "kind": "sofa",
+      "storey": 0,
+      "color": "#eeaaa4",
+      "material": "velvet",
+      "defaultColor": "#eeaaa4",
+      "defaultMaterial": "velvet"
+    },
+    {
+      "id": "lookdev:h-table",
+      "kind": "lcCoffeeTable",
+      "storey": 0,
+      "color": "#c89f72",
+      "material": "oak",
+      "defaultColor": "#c89f72",
+      "defaultMaterial": "oak"
+    },
+    {
+      "id": "lookdev:h-rug",
+      "kind": "rug",
+      "storey": 0,
+      "color": "#a6cbb6",
+      "material": "wool",
+      "defaultColor": "#a6cbb6",
+      "defaultMaterial": "wool"
+    },
+    {
+      "id": "lookdev:h-lamp",
+      "kind": "hhTripodLamp",
+      "storey": 0,
+      "color": "#d6bc85",
+      "material": "linen",
+      "defaultColor": "#d6bc85",
+      "defaultMaterial": "linen"
+    },
+    {
+      "id": "lookdev:h-cooker",
+      "kind": "mkDoubleGas",
+      "storey": 0,
+      "color": "#b98a54",
+      "material": "oak",
+      "defaultColor": "#b98a54",
+      "defaultMaterial": "oak"
+    },
+    {
+      "id": "lookdev:h-sink",
+      "kind": "mkSingleSink",
+      "storey": 0,
+      "color": "#e7d8b5",
+      "material": "ceramic",
+      "defaultColor": "#e7d8b5",
+      "defaultMaterial": "ceramic"
+    },
+    {
+      "id": "lookdev:h-dining",
+      "kind": "hhDropLeafTable",
+      "storey": 0,
+      "color": "#b78e5b",
+      "material": "oak",
+      "defaultColor": "#b78e5b",
+      "defaultMaterial": "oak"
+    },
+    {
+      "id": "lookdev:h-bed",
+      "kind": "bedTimber",
+      "storey": 0,
+      "color": "#c99362",
+      "material": "oak",
+      "defaultColor": "#c99362",
+      "defaultMaterial": "oak"
+    },
+    {
+      "id": "lookdev:h-bedside",
+      "kind": "bedsideCabinet",
+      "storey": 0,
+      "color": "#c99362",
+      "material": "oak",
+      "defaultColor": "#c99362",
+      "defaultMaterial": "oak"
+    },
+    {
+      "id": "lookdev:h-bedrug",
+      "kind": "rug",
+      "storey": 0,
+      "color": "#a6cbb6",
+      "material": "wool",
+      "defaultColor": "#a6cbb6",
+      "defaultMaterial": "wool"
+    },
+    {
+      "id": "lookdev:h-toilet",
+      "kind": "compactToilet",
+      "storey": 0,
+      "color": "#f7ead7",
+      "material": "ceramic",
+      "defaultColor": "#f7ead7",
+      "defaultMaterial": "ceramic"
+    },
+    {
+      "id": "lookdev:h-vanity",
+      "kind": "bathroomVanity",
+      "storey": 0,
+      "color": "#a7c8e5",
+      "material": "oak",
+      "defaultColor": "#a7c8e5",
+      "defaultMaterial": "oak"
+    }
+  ],
+  "roomSurfaces": [
+    {
+      "roomId": null,
+      "surfaceId": "floor.main",
+      "part": "floor",
+      "color": "#d8b58c",
+      "materialKey": "floor:wide",
+      "finishId": "wood-light-oak",
+      "pattern": "wide",
+      "worldTileMetres": 2.4,
+      "repeat": [
+        3.4999998410542807,
+        4.333333174387614
+      ],
+      "offset": [
+        -1.1666665871938071,
+        -1.0833332538604739
+      ]
+    },
+    {
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.floor",
+      "part": "floor",
+      "color": "#b9755a",
+      "materialKey": "floor:tile",
+      "finishId": "tile-terracotta",
+      "pattern": "tile",
+      "worldTileMetres": 1.4,
+      "repeat": [
+        1.999999965940203,
+        3.7142855780465265
+      ],
+      "offset": [
+        2.000000017029898,
+        -1.8571427890232632
+      ]
+    },
+    {
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.floor",
+      "part": "floor",
+      "color": "#d8b58c",
+      "materialKey": "floor:wide",
+      "finishId": "wood-light-oak",
+      "pattern": "wide",
+      "worldTileMetres": 2.4,
+      "repeat": [
+        2.333333293596904,
+        2.166666587193807
+      ],
+      "offset": [
+        -1.166666646798452,
+        1.0833333730697634
+      ]
+    },
+    {
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.floor",
+      "part": "floor",
+      "color": "#9aabb8",
+      "materialKey": "floor:tile",
+      "finishId": "tile-blue",
+      "pattern": "tile",
+      "worldTileMetres": 1.4,
+      "repeat": [
+        1.999999965940203,
+        3.7142855780465265
+      ],
+      "offset": [
+        2.000000017029898,
+        1.8571429252624514
+      ]
+    },
+    {
+      "roomId": "living",
+      "surfaceId": "wall.inner",
+      "part": "walls",
+      "color": "#f4efe6",
+      "materialKey": "wall:plain",
+      "styleId": "wall-plain",
+      "colorId": "wall-warm-white",
+      "pattern": "plain",
+      "worldTileMetres": 1.2,
+      "worldHeightMetres": 2.85,
+      "dotDiameterMetres": null,
+      "repeat": [
+        0.8333333333333334,
+        0.3508771929824561
+      ],
+      "offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "part": "walls",
+      "color": "#f4efe6",
+      "materialKey": "wall:plain",
+      "styleId": "wall-plain",
+      "colorId": "wall-warm-white",
+      "pattern": "plain",
+      "worldTileMetres": 1.2,
+      "worldHeightMetres": 2.85,
+      "dotDiameterMetres": null,
+      "repeat": [
+        0.8333333333333334,
+        0.3508771929824561
+      ],
+      "offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "part": "walls",
+      "color": "#f4efe6",
+      "materialKey": "wall:plain",
+      "styleId": "wall-plain",
+      "colorId": "wall-warm-white",
+      "pattern": "plain",
+      "worldTileMetres": 1.2,
+      "worldHeightMetres": 2.85,
+      "dotDiameterMetres": null,
+      "repeat": [
+        0.8333333333333334,
+        0.3508771929824561
+      ],
+      "offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "part": "walls",
+      "color": "#f4efe6",
+      "materialKey": "wall:plain",
+      "styleId": "wall-plain",
+      "colorId": "wall-warm-white",
+      "pattern": "plain",
+      "worldTileMetres": 1.2,
+      "worldHeightMetres": 2.85,
+      "dotDiameterMetres": null,
+      "repeat": [
+        0.8333333333333334,
+        0.3508771929824561
+      ],
+      "offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "roomId": "living",
+      "surfaceId": "wall.side",
+      "part": "walls",
+      "color": "#f4efe6",
+      "materialKey": "wall:plain",
+      "styleId": "wall-plain",
+      "colorId": "wall-warm-white",
+      "pattern": "plain",
+      "worldTileMetres": 1.2,
+      "worldHeightMetres": 2.85,
+      "dotDiameterMetres": null,
+      "repeat": [
+        0.8333333333333334,
+        0.3508771929824561
+      ],
+      "offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "roomId": null,
+      "surfaceId": null,
+      "part": "walls",
+      "color": "#fbf7ef",
+      "materialKey": null
+    }
+  ],
+  "wallGeometry": [
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.inner",
+      "cutaway": false,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        5.599999785423279,
+        2.8499999046325684,
+        0.2199999988079071
+      ],
+      "height": 2.8499999046325684,
+      "bounds": {
+        "min": [
+          -2.799999809265137,
+          0.06,
+          -2.7399999994039534
+        ],
+        "max": [
+          2.799999976158142,
+          2.9099999046325684,
+          -2.5200000005960463
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": false,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.799999833106995,
+        2.8499999046325684,
+        0.2199999988079071
+      ],
+      "height": 2.8499999046325684,
+      "bounds": {
+        "min": [
+          2.799999976158142,
+          0.06,
+          -2.7399999994039534
+        ],
+        "max": [
+          5.599999809265137,
+          2.9099999046325684,
+          -2.5200000005960463
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        5.599999785423279,
+        0.5,
+        0.17000000178813934
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          -2.799999809265137,
+          0.06,
+          7.68499999910593
+        ],
+        "max": [
+          2.799999976158142,
+          0.56,
+          7.855000000894069
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.799999833106995,
+        0.5,
+        0.17000000178813934
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.799999976158142,
+          0.06,
+          7.68499999910593
+        ],
+        "max": [
+          5.599999809265137,
+          0.56,
+          7.855000000894069
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.side",
+      "cutaway": false,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.21999999880790844,
+        2.8499999046325684,
+        5.199999809265137
+      ],
+      "height": 2.8499999046325684,
+      "bounds": {
+        "min": [
+          -2.939999999403953,
+          0.06,
+          -2.599999809265137
+        ],
+        "max": [
+          -2.7200000005960447,
+          2.9099999046325684,
+          2.6
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": false,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.21999999880790844,
+        2.8499999046325684,
+        5.199999809265137
+      ],
+      "height": 2.8499999046325684,
+      "bounds": {
+        "min": [
+          -2.9399999994039545,
+          0.06,
+          2.5999999999999996
+        ],
+        "max": [
+          -2.720000000596046,
+          2.9099999046325684,
+          7.799999809265136
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.17000000178813934,
+        0.5,
+        5.199999809265137
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          5.48499999910593,
+          0.06,
+          -2.599999809265137
+        ],
+        "max": [
+          5.655000000894069,
+          0.56,
+          2.5999999999999996
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.17000000178813934,
+        0.5,
+        5.199999809265137
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          5.48499999910593,
+          0.06,
+          2.5999999999999996
+        ],
+        "max": [
+          5.655000000894069,
+          0.56,
+          7.799999809265136
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.682426393032074,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.808786803483963,
+          0.06878679752349853,
+          2.5149999991059304
+        ],
+        "max": [
+          3.491213196516037,
+          0.5512132024765015,
+          2.527679494023323
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.682426393032074,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.808786803483963,
+          0.06878679752349853,
+          2.672320505976677
+        ],
+        "max": [
+          3.491213196516037,
+          0.5512132024765015,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.699999988079071,
+        0.5,
+        0.15242640674114227
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.8000000059604644,
+          0.06,
+          2.523786796629429
+        ],
+        "max": [
+          3.4999999940395354,
+          0.56,
+          2.6762132033705712
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.682426393032074,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          4.908786803483963,
+          0.06878679752349853,
+          2.5149999991059304
+        ],
+        "max": [
+          5.591213196516037,
+          0.5512132024765015,
+          2.527679494023323
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.682426393032074,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          4.908786803483963,
+          0.06878679752349853,
+          2.672320505976677
+        ],
+        "max": [
+          5.591213196516037,
+          0.5512132024765015,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.699999988079071,
+        0.5,
+        0.15242640674114227
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          4.9000000059604645,
+          0.06,
+          2.523786796629429
+        ],
+        "max": [
+          5.5999999940395355,
+          0.56,
+          2.6762132033705712
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.side",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.06878679752349853,
+          -2.5912132024765016
+        ],
+        "max": [
+          2.727679494023323,
+          0.5512132024765015,
+          -0.7337867975234986
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.8723205059766768,
+          0.06878679752349853,
+          -2.5912132024765016
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5512132024765015,
+          -0.7337867975234986
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.15242640674114227,
+        0.5,
+        1.875
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.7237867966294287,
+          0.06,
+          -2.6
+        ],
+        "max": [
+          2.876213203370571,
+          0.56,
+          -0.7250000000000001
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.side",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.06878679752349853,
+          0.7337867975234986
+        ],
+        "max": [
+          2.727679494023323,
+          0.5512132024765015,
+          2.5912132024765016
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": "room:lookdev-kitchen.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.8723205059766768,
+          0.06878679752349853,
+          0.7337867975234986
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5512132024765015,
+          2.5912132024765016
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.15242640674114227,
+        0.5,
+        1.875
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.7237867966294287,
+          0.06,
+          0.7250000000000001
+        ],
+        "max": [
+          2.876213203370571,
+          0.56,
+          2.6
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.inner",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.0574264526367188,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          -2.7912132263183596,
+          0.06878679752349853,
+          2.5149999991059304
+        ],
+        "max": [
+          -0.7337867736816406,
+          0.5512132024765015,
+          2.527679494023323
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.0574264526367188,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          -2.7912132263183596,
+          0.06878679752349853,
+          2.672320505976677
+        ],
+        "max": [
+          -0.7337867736816406,
+          0.5512132024765015,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        2.075000047683716,
+        0.5,
+        0.15242640674114227
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          -2.800000023841858,
+          0.06,
+          2.523786796629429
+        ],
+        "max": [
+          -0.724999976158142,
+          0.56,
+          2.6762132033705712
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "living",
+      "surfaceId": "wall.inner",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.0574264526367188,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          0.7337867736816406,
+          0.06878679752349853,
+          2.5149999991059304
+        ],
+        "max": [
+          2.7912132263183596,
+          0.5512132024765015,
+          2.527679494023323
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        2.0574264526367188,
+        0.482426404953003,
+        0.01267949491739273
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          0.7337867736816406,
+          0.06878679752349853,
+          2.672320505976677
+        ],
+        "max": [
+          2.7912132263183596,
+          0.5512132024765015,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        2.075000047683716,
+        0.5,
+        0.15242640674114227
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          0.724999976158142,
+          0.06,
+          2.523786796629429
+        ],
+        "max": [
+          2.800000023841858,
+          0.56,
+          2.6762132033705712
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.06878679752349853,
+          2.608786797523498
+        ],
+        "max": [
+          2.727679494023323,
+          0.5512132024765015,
+          4.466213202476501
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.8723205059766768,
+          0.06878679752349853,
+          2.608786797523498
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5512132024765015,
+          4.466213202476501
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.15242640674114227,
+        0.5,
+        1.875
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.7237867966294287,
+          0.06,
+          2.5999999999999996
+        ],
+        "max": [
+          2.876213203370571,
+          0.56,
+          4.475
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": "room:lookdev-bedroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.06878679752349853,
+          5.933786797523499
+        ],
+        "max": [
+          2.727679494023323,
+          0.5512132024765015,
+          7.791213202476502
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": "lookdev-bathroom",
+      "surfaceId": "room:lookdev-bathroom.wall",
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#f4efe6",
+      "size": [
+        0.01267949491739273,
+        0.482426404953003,
+        1.857426404953003
+      ],
+      "height": 0.482426404953003,
+      "bounds": {
+        "min": [
+          2.8723205059766768,
+          0.06878679752349853,
+          5.933786797523499
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5512132024765015,
+          7.791213202476502
+        ]
+      }
+    },
+    {
+      "part": "walls",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": true,
+      "cutawayCap": false,
+      "color": "#fbf7ef",
+      "size": [
+        0.15242640674114227,
+        0.5,
+        1.875
+      ],
+      "height": 0.5,
+      "bounds": {
+        "min": [
+          2.7237867966294287,
+          0.06,
+          5.925000000000001
+        ],
+        "max": [
+          2.876213203370571,
+          0.56,
+          7.800000000000001
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        8.399999618530273,
+        0.03999999910593033,
+        0.17000000178813934
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          -2.799999809265137,
+          0.5600000004470349,
+          7.68499999910593
+        ],
+        "max": [
+          5.599999809265137,
+          0.5999999995529652,
+          7.855000000894069
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": null,
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.17000000178813934,
+        0.03999999910593033,
+        10.399999618530273
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          5.48499999910593,
+          0.5600000004470349,
+          -2.599999809265137
+        ],
+        "max": [
+          5.655000000894069,
+          0.5999999995529652,
+          7.799999809265136
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.699999988079071,
+        0.03999999910593033,
+        0.17000000178813934
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          2.8000000059604644,
+          0.5600000004470349,
+          2.5149999991059304
+        ],
+        "max": [
+          3.4999999940395354,
+          0.5999999995529652,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.699999988079071,
+        0.03999999910593033,
+        0.17000000178813934
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          4.9000000059604645,
+          0.5600000004470349,
+          2.5149999991059304
+        ],
+        "max": [
+          5.5999999940395355,
+          0.5999999995529652,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.17000000178813934,
+        0.03999999910593033,
+        1.875
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.5600000004470349,
+          -2.6
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5999999995529652,
+          -0.7250000000000001
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-kitchen",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.17000000178813934,
+        0.03999999910593033,
+        1.875
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.5600000004470349,
+          0.7250000000000001
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5999999995529652,
+          2.6
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        2.075000047683716,
+        0.03999999910593033,
+        0.17000000178813934
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          -2.800000023841858,
+          0.5600000004470349,
+          2.5149999991059304
+        ],
+        "max": [
+          -0.724999976158142,
+          0.5999999995529652,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        2.075000047683716,
+        0.03999999910593033,
+        0.17000000178813934
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          0.724999976158142,
+          0.5600000004470349,
+          2.5149999991059304
+        ],
+        "max": [
+          2.800000023841858,
+          0.5999999995529652,
+          2.6850000008940698
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.17000000178813934,
+        0.03999999910593033,
+        1.875
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.5600000004470349,
+          2.5999999999999996
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5999999995529652,
+          4.475
+        ]
+      }
+    },
+    {
+      "part": "border",
+      "roomId": "lookdev-bedroom",
+      "surfaceId": null,
+      "cutaway": false,
+      "cutawayCap": true,
+      "color": "#4a3f37",
+      "size": [
+        0.17000000178813934,
+        0.03999999910593033,
+        1.875
+      ],
+      "height": 0.03999999910593033,
+      "bounds": {
+        "min": [
+          2.71499999910593,
+          0.5600000004470349,
+          5.925000000000001
+        ],
+        "max": [
+          2.8850000008940695,
+          0.5999999995529652,
+          7.800000000000001
+        ]
+      }
+    }
+  ],
+  "revisions": [
+    12
+  ],
+  "stats": {
+    "frame": 4,
+    "calls": 303,
+    "triangles": 120528,
+    "points": 0,
+    "lines": 0,
+    "geometries": 303,
+    "textures": 11,
+    "surfaceCount": 31
+  }
+}

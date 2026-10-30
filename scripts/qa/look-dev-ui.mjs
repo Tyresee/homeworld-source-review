@@ -1,4 +1,5 @@
 import {createLookDevRuntime} from '/qa/look-dev-runtime.mjs';
+import {LOOK_DEV_VIEWS} from '/qa/look-dev-fixtures.mjs';
 import {ROOM_KINDS} from '/js/home-layout.js';
 import {FLOOR_FINISHES,getFloorFinish} from '/js/home-floor-finishes.js';
 import {WALL_STYLES,WALL_COLORS,getWallStyle,getWallColor} from '/js/home-wall-finishes.js';
@@ -7,7 +8,8 @@ import {zipFiles} from '/qa/look-dev-zip.mjs';
 import {assertSafePresetKeys,MAX_LOOK_DEV_PRESET_BYTES} from '/qa/look-dev-preset-safety.mjs';
 
 const $=id=>document.getElementById(id);
-const views=[['living','Living'],['bedroom','Bedroom'],['kitchen','Kitchen'],['bathroom','Bathroom'],['exterior','Exterior']];
+const views=LOOK_DEV_VIEWS.map(view=>[view.id,view.tabLabel??view.label]);
+$('capture-all').textContent='All '+views.length+' PNGs · ZIP';
 const rooms=[['living','Living'],['bedroom','Bedroom'],['study','Study'],['kitchen','Kitchen'],['playroom','Playroom'],['bathroom','Bathroom'],['gallery','Gallery'],['sunroom','Sunroom'],['hallway','Hallway']];
 const materials=[['','Inherit actual material'],['oak','Oak'],['walnut','Walnut'],['stone','Stone'],['marble','Marble'],['ceramic','Ceramic'],['linen','Linen'],['wool','Wool'],['velvet','Velvet']];
 const filename=/^[a-z0-9][a-z0-9-]{0,63}\.json$/;
@@ -178,7 +180,7 @@ async function capture(all){
   try{
     await drain();const ids=all?views.map(([id])=>id):[activeView],files=[];
     for(let index=0;index<ids.length;index++){status('Capturing '+(index+1)+' / '+ids.length+' · '+ids[index]+' · 1440 × 900…');const image=await runtime.captureView(ids[index]);if(!(image instanceof Blob))throw new Error('The runtime did not return a PNG Blob.');files.push({name:preset.id+'--'+ids[index]+'.png',bytes:new Uint8Array(await image.arrayBuffer())});}
-    if(all){download(zipFiles(files),preset.id+'--all-5-views.zip');status('Downloaded one ZIP containing all 5 named PNGs at 1440 × 900.');}
+    if(all){download(zipFiles(files),preset.id+'--all-'+ids.length+'-views.zip');status('Downloaded one ZIP containing all '+ids.length+' named PNGs at 1440 × 900.');}
     else{download(files[0].bytes,files[0].name,'image/png');status('Downloaded '+files[0].name+' at 1440 × 900.');}
   }catch(error){status('Capture failed: '+error.message,true);}
   finally{capturing=false;$('controls').inert=false;snapshot();}

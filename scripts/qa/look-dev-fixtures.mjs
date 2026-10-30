@@ -6,10 +6,11 @@ import {SHOP_CATALOG} from '../../public/js/home-commerce.js';
 
 export const LOOK_DEV_SIZE=Object.freeze({width:1440,height:900});
 export const LOOK_DEV_VIEWS=Object.freeze([
-  {id:'living',label:'Living room',description:'Sofa, coffee table, television, floor lamp, rug and plant'},
+  {id:'living',label:'Living room',tabLabel:'Living',description:'Sofa, coffee table, television, floor lamp, rug and plant'},
   {id:'bedroom',label:'Bedroom',description:'Timber bed, bedside cabinet, table lamp, clothes rack and rug'},
   {id:'kitchen',label:'Kitchen',description:'Cooker, sink, base cabinet, dining table and chairs'},
   {id:'bathroom',label:'Bathroom',description:'Toilet, vanity and towel ladder'},
+  {id:'house',label:'House',description:'Four furnished rooms on one storey for cutaway review'},
   {id:'exterior',label:'Exterior',description:'Two-storey house and roof generated from the actual floor plan'},
 ]);
 const definitions=new Map(FURNITURE_ITEMS.map(row=>[row.id,row]));
@@ -79,7 +80,26 @@ function exterior() {
   upper=place(higher.state,'upper-bed','bedTimber',1.5,-.2);
   return {home,upperFloors:[upper],robotPoint:{x:0,z:5.5}};
 }
-const builders={living,bedroom,kitchen,bathroom,exterior};
+function house() {
+  const slab={rects:[{minX:-2.8,minZ:-2.6,width:8.4,depth:10.4}]};
+  const region=(kind,minX,minZ,width,depth,id)=>room(kind,{minX,minZ,width,depth},id);
+  let home=createHomeState({sandbox:false,profile:'account',slab,rooms:[
+    region('living',-2.8,-2.6,5.6,5.2,'lookdev-living'),
+    region('kitchen-compact',2.8,-2.6,2.8,5.2,'lookdev-kitchen'),
+    region('bedroom',-2.8,2.6,5.6,5.2,'lookdev-bedroom'),
+    region('bathroom',2.8,2.6,2.8,5.2,'lookdev-bathroom'),
+  ]});
+  for(const [id,kind,x,z]of [
+    ['h-sofa','sofa',0,-1.1],['h-table','lcCoffeeTable',0,.2],['h-rug','rug',0,.2],
+    ['h-lamp','hhTripodLamp',-1.8,-1.15],['h-cooker','mkDoubleGas',3.4,-1.65],
+    ['h-sink','mkSingleSink',4.35,-1.65],['h-dining','hhDropLeafTable',4.2,.9],
+    ['h-bed','bedTimber',-.9,4.3],['h-bedside','bedsideCabinet',.3,3.4],
+    ['h-bedrug','rug',-.6,6.4],['h-toilet','compactToilet',3.5,3.5],
+    ['h-vanity','bathroomVanity',4.7,3.4],
+  ])home=place(home,id,kind,x,z);
+  return {home,robotPoint:{x:-1.4,z:6.4}};
+}
+const builders={living,bedroom,kitchen,bathroom,house,exterior};
 /** Returns fresh, independently validated data. Never account/save-shaped. */
 export function createLookDevFixture(id='living') {
   if(!Object.hasOwn(builders,id))throw new RangeError('Unknown Look Dev view: '+id);

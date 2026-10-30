@@ -1,0 +1,42 @@
+{
+  "environment": "Disposable real platform and home-service integration lab; fictional students only",
+  "appViewport": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 0.5
+  },
+  "viewsChecked": [
+    "interior",
+    "building",
+    "interior-return"
+  ],
+  "consoleErrors": [],
+  "persistedRecords": [
+    {
+      "fixture": "starter-fictional-student",
+      "rooms": 1,
+      "revisionBefore": 1,
+      "revisionAfter": 1,
+      "entirePersistedRecordByteIdentical": true
+    },
+    {
+      "fixture": "expanded-fictional-student",
+      "rooms": 3,
+      "revisionBefore": 25,
+      "revisionAfter": 25,
+      "entirePersistedRecordByteIdentical": true
+    }
+  ],
+  "productionDataUsed": false,
+  "productionWalletModified": false,
+  "publicEvidence": "Scene-only crop of the actual application; local account headers and wallet values omitted.",
+  "menuPicking": {
+    "sampledNewWallFaceOpensWallMenu": true,
+    "sampledDarkCapPositionOpensWallMenu": true,
+    "noFinishWritePerformed": true
+  },
+  "interiorAfterBuilding": {
+    "sceneCropChangedChannels": 0,
+    "identicalDecodedPixels": true
+  }
+}

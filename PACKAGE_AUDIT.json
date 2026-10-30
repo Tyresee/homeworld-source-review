@@ -3,9 +3,9 @@
   "purpose": "source comprehension",
   "counts": {
     "modules": 123,
-    "tests": 85,
-    "selectedSourceFiles": 242,
-    "packagedFiles": 513,
+    "tests": 87,
+    "selectedSourceFiles": 246,
+    "packagedFiles": 546,
     "browserModules": 114,
     "serverModules": 9,
     "qaScripts": 12
@@ -19,6 +19,93 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
+    "status": "verified-local-cutaway-awaiting-fresh-clone",
+    "sourceHomes": {
+      "tests": 713,
+      "pass": 713,
+      "fail": 0
+    },
+    "sourceCutaway": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    "sourceFull": {
+      "tests": 868,
+      "pass": 867,
+      "fail": 1,
+      "knownFailure": "Existing catalogue count assertion:376vs311"
+    },
+    "build": {
+      "passed": true,
+      "releaseFiles": 474
+    },
+    "publicCore": {
+      "tests": 379,
+      "pass": 379,
+      "fail": 0
+    },
+    "publicFocused": {
+      "tests": 74,
+      "pass": 74,
+      "fail": 0
+    },
+    "publicFull": {
+      "tests": 783,
+      "pass": 728,
+      "fail": 55,
+      "same55FailureNamesAsBaseline": true,
+      "newFailureNames": []
+    },
+    "visual": {
+      "housePNGResolution": [
+        1440,
+        900
+      ],
+      "houseDPR": 1,
+      "appCSSViewport": [
+        1440,
+        900
+      ],
+      "appEmulatedDPR": 0.5,
+      "unchangedDefaultToyPNGs": 10,
+      "unchangedWarmExteriorPNGs": 1,
+      "wholeBuildingRestoresOriginalMeshSignature": true,
+      "interiorReturnScenePixelsIdentical": true
+    },
+    "persistence": {
+      "fictionalStudentRecordsByteIdentical": 2,
+      "productionDataUsed": false
+    },
+    "logic": {
+      "collisionNavigationMountingLayoutModulesUnchanged": 5,
+      "pricesAndSchemasUnchanged": true
+    },
+    "privacy": {
+      "normalizedSourceClosure": 246,
+      "rawCutawayArchiveMembersUnchanged": 7,
+      "allApprovedRawReferencesUnchanged": 79,
+      "noPrivateFixture": true
+    },
+    "vendor": {
+      "version": "0.186.1",
+      "licensedFiles": 9,
+      "importClosureAndHashesVerified": true
+    },
+    "freshClone": {
+      "status": "pending GitHub clone-back"
+    },
+    "productionDeployed": false
+  },
+  "sourceRefresh": {
+    "purpose": "Optional look-development review candidate",
+    "normalizedSourceFiles": 246,
+    "changedSourceFiles": 10,
+    "stableSeedLabels": 4676,
+    "newDisplayLabels": 89,
+    "identityDataIncluded": false
+  },
+  "previousSnapshotValidation": {
     "status": "verified-and-pushed-code-with-fresh-clone",
     "sourceHomeTests": {
       "command": "npm run verify:student-homes",
@@ -121,13 +208,5 @@
       "deliverySymlinks": 0,
       "rawReviewerReferencesApproved": true
     }
-  },
-  "sourceRefresh": {
-    "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 242,
-    "changedSourceFiles": 2,
-    "stableSeedLabels": 4676,
-    "newDisplayLabels": 89,
-    "identityDataIncluded": false
   }
 }

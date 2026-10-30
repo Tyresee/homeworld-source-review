@@ -1,0 +1,95 @@
+{
+  "captureStatus": "Final source house recapture inspected after partial-edge fix.",
+  "sourceHead": "88a8a3972d5b5b0c44b4a2e00d4979d649ced1a9",
+  "method": "Native images are placed side by side without resampling, color correction or registration. Labels and a neutral gutter are added outside screenshots.",
+  "records": [
+    {
+      "id": "warm-walls",
+      "actual": "docs/wall-cutaway-2026-10-30/house-cut.png",
+      "reference": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m.png",
+      "comparison": "docs/wall-cutaway-2026-10-30/comparison/pair-warm-walls-native.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        2400,
+        1500
+      ],
+      "actualSHA256": "92735f35e2144df765cd99ed2f5dfea0764e5dc2fc1b0fea12d23304291469f6",
+      "referenceSHA256": "c46ab27f236d42263ef5f17490e3b0fd7dc9c81b0c478a8e327ce57d504763ad",
+      "scaled": false,
+      "visuallyReviewed": true
+    },
+    {
+      "id": "warm-floors",
+      "actual": "docs/wall-cutaway-2026-10-30/warm-floors--house.png",
+      "reference": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m.png",
+      "comparison": "docs/wall-cutaway-2026-10-30/comparison/pair-warm-floors-native.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        2400,
+        1500
+      ],
+      "actualSHA256": "c77d3f800fa075235df606f3909c919bece87fe9207a70967abd1bf3a394aa0d",
+      "referenceSHA256": "c46ab27f236d42263ef5f17490e3b0fd7dc9c81b0c478a8e327ce57d504763ad",
+      "scaled": false,
+      "visuallyReviewed": true
+    }
+  ],
+  "referenceCloseup": {
+    "file": "docs/look-dev-captures/review-wall-cutaway-2026-10-30/reference/house-cut-0.5m--closeup.png",
+    "dimensions": [
+      1200,
+      750
+    ],
+    "sha256": "1c281db80c60363c47f5e1e2ed4b7bb6d3bd993cc564660254e8fa4f2ec88dd4",
+    "visuallyReviewed": true
+  },
+  "unchangedLogicModules": [
+    {
+      "file": "public/js/home-engine.js",
+      "headBlob": "263ef4acd77f973471df83c042ae3fbb3be4ef7c",
+      "worktreeBlob": "263ef4acd77f973471df83c042ae3fbb3be4ef7c",
+      "unchanged": true,
+      "sha256": "5c701f57d5c6e24bae3990d5dbf091a68829d36b0f143f54a61c68b505ec580f"
+    },
+    {
+      "file": "public/js/home-building-collision.js",
+      "headBlob": "8f4b34b304b8c8bdcb5c5db830f565fb4450bc04",
+      "worktreeBlob": "8f4b34b304b8c8bdcb5c5db830f565fb4450bc04",
+      "unchanged": true,
+      "sha256": "d552a50f855e49e733df53afb36e5a433d3fb24cf617e31c2bdd3ad53d9ad06a"
+    },
+    {
+      "file": "public/js/home-avatar-navigation.js",
+      "headBlob": "30b65225dcedf2fc7979378f2cd18060a6662064",
+      "worktreeBlob": "30b65225dcedf2fc7979378f2cd18060a6662064",
+      "unchanged": true,
+      "sha256": "1070802f5ebd90b4ab7b6c7da75132909f5df8b402012e51f1fcdf57609eaa09"
+    },
+    {
+      "file": "public/js/home-item-placement.js",
+      "headBlob": "2b08683cfd582abb0a81227689f80e113c4e81a1",
+      "worktreeBlob": "2b08683cfd582abb0a81227689f80e113c4e81a1",
+      "unchanged": true,
+      "sha256": "f2e300d72a91ce8ec0f8ae3cd9f33bb85b68e8a77f72397c851a3953f0e84550"
+    },
+    {
+      "file": "public/js/home-layout.js",
+      "headBlob": "6001751c3246c5cc3ddd1d584ab7815a6e6ce4d3",
+      "worktreeBlob": "6001751c3246c5cc3ddd1d584ab7815a6e6ce4d3",
+      "unchanged": true,
+      "sha256": "3673696b9cb7afc27daf34120c276f2d8da183a2f96bd2cfed7e9d1a28ebc8c9"
+    }
+  ],
+  "automatedTests": {
+    "newCutawayTests": 9,
+    "targetedGeometryAndWallTests": 33,
+    "allPassed": true,
+    "browserActionsByThisAudit": false
+  }
+}

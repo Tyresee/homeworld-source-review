@@ -12,9 +12,13 @@ node scripts/qa/look-dev-review.mjs
 
 Open the loopback URL printed by the script. The default is http://127.0.0.1:19534/?preset=default.json. Use ?preset=toy-v1.json for the frozen Toy v1 reference. If that local port is occupied, set LOOK_DEV_PORT to another free port.
 
-The workstation uses the real home/room/furniture builders and the v4 robot model. It has five deterministic reference views, live lighting and finish controls, JSON import/export, and full-resolution 1440 x 900 PNG capture. All five captures download together as one ZIP containing five named PNG files. It has no accounts, wallet, save endpoint, or write API.
+The workstation uses the real home/room/furniture builders and the v4 robot model. It has six deterministic reference views, including a four-room House, live lighting and finish controls, JSON import/export, and full-resolution 1440 x 900 PNG capture. All six captures download together as one ZIP containing six named PNG files. It has no accounts, wallet, save endpoint, or write API.
 
 Three.js 0.186.1 and its actual transitive module dependencies are bundled in vendor/three with the original license. The server automatically uses this bundle when node_modules/three is absent. See [the 10 actual reference renders](docs/look-dev-captures/README.md) and LOOK_DEV_REVIEW.md for the review procedure and VENDORED_THREE.md for dependency provenance.
+
+## Selected Warm interior cutaway
+
+The chosen 0.5 m wall display and validated four-room House view are complete. See [the cutaway handoff](docs/WALL_CUTAWAY_HANDOFF.md) and [actual screenshots and checks](docs/wall-cutaway-2026-10-30/README.md). This changes presentation only; logical collision, mounting, navigation, prices and saves remain unchanged.
 
 ## Warm classroom interface candidate
 

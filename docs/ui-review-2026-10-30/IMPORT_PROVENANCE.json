@@ -1,0 +1,293 @@
+{
+  "archive": "homeworld-codex-2026-10-30.zip",
+  "archiveSha256": "8c83d753b412f8c60f9103803991e68b61b5be35412aedd6d3f7b22098340098",
+  "files": [
+    {
+      "archivePath": "homeworld-codex-2026-10-30/CODEX_TASK.md",
+      "repositoryPath": "docs/ui-review-2026-10-30/CODEX_TASK.md",
+      "bytes": 7301,
+      "sha256": "e4e2c481af61e11dbb4301144d040e93214d1fc5089f17153433031a58c4576f"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/reviewer-prototype/wall-proto.patch",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/prototype/wall-proto.patch",
+      "bytes": 5607,
+      "sha256": "4b97dbbae78fec3d59640d283ebc60b0ac9851e6c6ea46dd1df24ae193fb33aa"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/reviewer-prototype/home-wall-proto.js",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/prototype/home-wall-proto.js",
+      "bytes": 4781,
+      "sha256": "7242218189336fcf0a01512ff870305fafedeb998306a3a7101acc43d260838a"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/matrix-living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/matrix-living.png",
+      "bytes": 916914,
+      "sha256": "882d3b383eea6f37a1f02e5e194d5ea5aa94690a9a9576a8f9d082f1be4bcfaa"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/README.md",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
+      "bytes": 1286,
+      "sha256": "d256f0696a34a7f5a12bf43422b2cb42d712fae2b506bd2ee599e8f52f948afa"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--kitchen.png",
+      "bytes": 827830,
+      "sha256": "2f869dae434dc5edfb8b84b105f43a7d9794622c7c2e0fe92f93b33b55beaa54"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--living.png",
+      "bytes": 984725,
+      "sha256": "0cc677f8dcd37227894a8f52bc3bfb6423758c61cd623254117a157f11055e07"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--kitchen.png",
+      "bytes": 826433,
+      "sha256": "4a4929b84c79c85119122b8c15d79ab754985f96789d1c2792f44c86cc5993bb"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--living.png",
+      "bytes": 983142,
+      "sha256": "86aa15e4043435881cfeb74b97d217f2d1fbd7696836c0846f5e2248cd3de6b1"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--kitchen.png",
+      "bytes": 871212,
+      "sha256": "635e82e8e22861180ff9dfe7c0282082010e79a48b30e6ac654dc5d347276cd2"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--living.png",
+      "bytes": 1023803,
+      "sha256": "fc48f098aab0d40e21f04161289ff5c7ff05ec87f04bd25337e7cc12466508e7"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--living.png",
+      "bytes": 983620,
+      "sha256": "e8fc2937e2c158ac6fc31ef8f6ff1a96ca0a39a1a1062490e46c864ff331d5cb"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--living.png",
+      "bytes": 1081707,
+      "sha256": "ca5ce76338919a6a5563c25591babb7ab9ab7732a29d4ed8bdc8c5f1f49484a7"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--kitchen.png",
+      "bytes": 864180,
+      "sha256": "288d7ccf00a7858273c5593d8819fce3408bd4ceb907df2654d0f199e02db847"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--kitchen.png",
+      "bytes": 826934,
+      "sha256": "410d4da07d5d52bb5e741b64938101165c1df2a170f5e07b816424b7d9989e52"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--kitchen.png",
+      "bytes": 828315,
+      "sha256": "7397d473a06d26eece09526f75010960f7ad3fda72ffb86f77e72522c6ae74dc"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--kitchen.png",
+      "bytes": 825330,
+      "sha256": "8fa8c16cff93556c921dae3ac72cec45cc6dd7fb3619799184b7af8b6841fc48"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--living.png",
+      "bytes": 985097,
+      "sha256": "cdd1023255dcf5c16a70543e81e1df412a3856b50bad176bbf75199cdb9b50fa"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--kitchen.png",
+      "bytes": 868188,
+      "sha256": "e24bb783afda95b8dede36b46ff2a0fb6753f8ce535c6553af6c54b59e2e2269"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--kitchen.png",
+      "bytes": 923246,
+      "sha256": "e0108829c702f3be1d2bbbd6a6cf0aa5d920c8dc7f99e56fcd5f3e407911c134"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--living.png",
+      "bytes": 1029881,
+      "sha256": "088ad928483327211c59633a6293a2855ebab547e5b5e4b5d12cfc5b9b79c23a"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--living.png",
+      "bytes": 1088555,
+      "sha256": "410802f55ea08d907b0542e3e71892d52c1dbd4e7f76935093ec38501ae47dff"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--living.png",
+      "bytes": 1084131,
+      "sha256": "cbe1644ca391e26dc7c476d583e45a70e12056e531941f9362942f1da73bb69c"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--kitchen.png",
+      "bytes": 922181,
+      "sha256": "3f7229abad8425349e4101cec5211af70bd3a0a567ce1fc4a7f49d932b78feac"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--living.png",
+      "bytes": 1027543,
+      "sha256": "dfced81789fca661ade73e874ceabc5f8de51b66cb5633d8620467d1f3689b2a"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--kitchen.png",
+      "bytes": 865379,
+      "sha256": "75b03fb6642b11a9aafa97a7a8aa8b15a8f7b8d6b8f34f89a5eae610d63ea8c4"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--living.png",
+      "bytes": 982118,
+      "sha256": "794d3a603e4895d2d3b627661620b83fb2b2be7657b93acccfc60493882182b6"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--kitchen.png",
+      "bytes": 920439,
+      "sha256": "a876e1ef1a92b49d812f9b075f0de6ddb5662a425dafd4e0d82b50f0dadf4be7"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--kitchen.png",
+      "bytes": 919743,
+      "sha256": "4d61d1e414a03441118b518f3034cb03e45fd06a9bfc4d5afcd833eb610b2884"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--living.png",
+      "bytes": 1019864,
+      "sha256": "b88a60ec6c51aa253ac0821ab81f897d64a7dad24662b0d2a0fc201cb29e9764"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--living.png",
+      "bytes": 1021909,
+      "sha256": "3caa584a8f2920f216adeaef0168e3106d2b7dd2c21b8499c6bccf85e5db37c5"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--living.png",
+      "bytes": 1080511,
+      "sha256": "f769016c53d4e4c0dacdac876617083ef237062a7beb5a5e8dd7375044a94fdc"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--kitchen.png",
+      "bytes": 927275,
+      "sha256": "a03194022baebc512f974f3c9bb71b3965d62cd152917216774744002309a347"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--kitchen.png",
+      "bytes": 861943,
+      "sha256": "d888459fe820f395b65e03cf2913fe43d276ff9eb857207932bc472c1895261f"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--living.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--living.png",
+      "bytes": 1083391,
+      "sha256": "dcb1ecba5533261941bde1f93c6f82ae97bcd2c4104ef5c247559f4d0ce57b66"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/1-walls/docs/look-dev-captures/review-walls-2026-10-30/matrix-kitchen.png",
+      "repositoryPath": "docs/look-dev-captures/review-walls-2026-10-30/matrix-kitchen.png",
+      "bytes": 839138,
+      "sha256": "40427f4550cd288a9a2b6acfc7e70c0d7b49530b6b99bacb7b734068036a0df4"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/prototype/dock.js",
+      "repositoryPath": "docs/ui-review-2026-10-30/prototype/dock.js",
+      "bytes": 4631,
+      "sha256": "c80169d25f6a65d489ec349502857e75ac86160d75d118c5e594a2d92c44f268"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/prototype/ui-harness.mjs",
+      "repositoryPath": "docs/ui-review-2026-10-30/prototype/ui-harness.mjs",
+      "bytes": 3426,
+      "sha256": "3ea26b86dfbdac1a81963757d2c77c57dba5bfc603728886a4b68108c9af2e46"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/prototype/skin.css",
+      "repositoryPath": "docs/ui-review-2026-10-30/prototype/skin.css",
+      "bytes": 1708,
+      "sha256": "f23d73baed38d92f795a95adfdfed3d81428fc2e26720d9e56cf762a033736ea"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/01-current-default.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/01-current-default.png",
+      "bytes": 900833,
+      "sha256": "6583bcea62d9877682c91e10070acab17cbd56db80bbbc937f6948db9f8f83e2"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/05-proposed-skin.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/05-proposed-skin.png",
+      "bytes": 1050052,
+      "sha256": "4df6dcfd7387dee2d5616646b437751ed720ad6e6ea3c1b1548b2f1062fddcd8"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/07-proposed-icon-dock.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/07-proposed-icon-dock.png",
+      "bytes": 1210295,
+      "sha256": "39f9f45f5f1ce652a98ee4ea82ee2b6c314e205c9a665d4e05bcc9ef27f055c0"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/04-current-remote.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/04-current-remote.png",
+      "bytes": 1119202,
+      "sha256": "4d7f951c5edcee7ad49f6279dafe437f56b2a12638376076ac3fb9346ac2ac4c"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/08-proposed-dock-building-view.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/08-proposed-dock-building-view.png",
+      "bytes": 961451,
+      "sha256": "a0a9a2f057b1ebc7d9105122258b2c28dfc4ecae66492a90c08859edad28c97e"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/03-current-context-menu.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/03-current-context-menu.png",
+      "bytes": 939271,
+      "sha256": "1b265185147200ad81924d32125b92c1b389a4a9342a34983a2e0457a0247a40"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/02-current-warm.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/02-current-warm.png",
+      "bytes": 1051304,
+      "sha256": "8eef99a113532352f9210e7e48eca39f57f4eb53feedd827100ccb52281cede3"
+    },
+    {
+      "archivePath": "homeworld-codex-2026-10-30/2-ui/screenshots/06-proposed-presentation-mode.png",
+      "repositoryPath": "docs/ui-review-2026-10-30/screenshots/06-proposed-presentation-mode.png",
+      "bytes": 1274108,
+      "sha256": "17efdbee6843b7d3e549e9e3176e219f016484b54a70da372e816eb9e466d38c"
+    }
+  ],
+  "notes": [
+    "The 35 wall reference files are byte-identical to the already committed wall pack; not re-applied.",
+    "All prototypes remain documentation only. Original reference wording and screenshots are retained as approved.",
+    "Latest user instruction defers wall height and cutaway changes. Prior explicit true-circle correction remains authoritative."
+  ]
+}

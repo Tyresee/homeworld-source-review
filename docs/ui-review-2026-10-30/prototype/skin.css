@@ -1,0 +1,24 @@
+:root{--green:#b9755a;--line:#e8e0d4;color:#2b2622;background:#f6f2eb;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif}
+.topbar{background:#fbf9f5;height:60px;border-bottom:1px solid #ebe4d9}
+.brand span{color:#8a7f72}
+main{min-height:calc(100dvh - 60px)}
+.roster{background:#f6f2eb;border-right:1px solid #ebe4d9}
+.eyebrow{color:#8a7f72;letter-spacing:.06em;font-size:13px}
+.roster h1{color:#2b2622}
+.student{border-radius:14px}
+.student[aria-pressed=true]{background:#f4e4d9;border-color:#e6c6b3}
+.initial{background:#efdccd;color:#7b4a33}
+.muted,.roster-foot{color:#8a7f72}
+.home{background:radial-gradient(ellipse at 50% 46%,#fbf9f5 0%,#efe9df 70%,#e7dfd2 100%)!important}
+.home-heading h2{color:#2b2622;font-size:30px}
+.wallet{background:#ffffff;border:1px solid #ebe4d9;box-shadow:0 6px 20px #5a46300f;border-radius:20px;padding:12px 18px}
+.wallet>span{color:#8a7f72;font-size:13px}
+.wallet strong{font-size:32px;color:#2b2622}
+.wallet strong::before{content:"● ";color:#e0a64a;font-size:22px;vertical-align:4px}
+.home-tools button,.home-views button{font-size:15px!important;padding:11px 16px!important;background:#ffffffee!important;border:1px solid #e8e0d4!important;color:#2b2622!important;border-radius:12px!important;box-shadow:0 2px 8px #5a463012}
+.home-views button[aria-pressed=true]{background:#2b2622!important;color:#fff!important;border-color:#2b2622!important}
+.primary{background:#b9755a!important;border-color:#b9755a!important;color:#fff!important}
+.scene-hint{display:none!important}
+.feedback{color:#6f655a}
+.feedback button{background:#fff!important;border:1px solid #e8e0d4!important}
+.home-quick-remote{--remote-ink:#33302c;--remote-edge:#e8e0d4}

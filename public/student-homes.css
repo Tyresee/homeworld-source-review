@@ -22,3 +22,6 @@
   --green:var(--home-theme-accent);--line:var(--home-theme-line);
   --ink:var(--home-theme-ink);--paper:var(--home-theme-surface);
 }
+
+/* Approved warm-v6 root backdrop; the unselected theme keeps its original values. */
+:root[data-theme="warm"]{--home-theme-backdrop-inner:#f7f4ee;--home-theme-backdrop-outer:#e2dccf}

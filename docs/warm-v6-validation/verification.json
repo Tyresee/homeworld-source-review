@@ -1,0 +1,41 @@
+{
+  "appearanceSource": "warm-v6.json",
+  "approvedSourceSha256": "69e7c65924e3af54111ce9aab2655a3adc6210f12536a9204057d162d3317d8f",
+  "upstreamFiles": 24,
+  "upstreamFilesByteIdenticalToZip": true,
+  "originalReferenceLanguageApproved": true,
+  "lookDevViews": 5,
+  "selectedFinishViews": 14,
+  "sourceResolution": [
+    1440,
+    900
+  ],
+  "currentApplicationSelections": 14,
+  "allCurrentFinishCommandsFree": true,
+  "defaultToyByteIdenticalPngs": 10,
+  "actualWallMaps": {
+    "living": "linen",
+    "bedroom": "linen",
+    "kitchen": "linen",
+    "bathroom": "ceramic"
+  },
+  "browserConsoleErrors": 0,
+  "sourceTests": {
+    "accountPassed": 688,
+    "focusedPassed": 49,
+    "all": 808,
+    "passed": 807,
+    "preExistingCatalogueCountFailures": 1
+  },
+  "publicTests": {
+    "corePassed": 379,
+    "focusedPassed": 49,
+    "all": 723,
+    "passed": 668,
+    "preExistingNormalizedDisplayFailures": 55,
+    "sameFailureNamesAsPriorSnapshot": true
+  },
+  "visualAcceptance": "pass-with-documented-reference-variations",
+  "freshCloneBrowserVerification": "pending",
+  "productionDeployed": false
+}

@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-30",
+  "status": "PASS",
+  "blockingVisualIssues": [],
+  "referenceCommit": "ea261aa",
+  "captureSize": [
+    1440,
+    900
+  ],
+  "individuallyInspectedCaptures": 19,
+  "overallContextViews": 5,
+  "selectedFloorProducts": 14,
+  "rawWarmV6ReproductionViewsSeparatelyInspected": 5,
+  "acceptanceCriteria": [
+    "Wall and floor hue/lightness",
+    "Wood seam pattern and apparent board scale",
+    "Large tile grid scale",
+    "Unchanged furniture texture and color identity"
+  ],
+  "scopeNote": "The five new catalog-default overview floors are intentionally not color-compared with the old warm-v6 floor roles. Their non-floor context is compared. Each of the fourteen individual products is compared with its corresponding product reference.",
+  "diagnosticSummary": {
+    "overviewBackgroundRegionDeltaE76": 0,
+    "maximumOverviewWallOrFurnitureRegionDeltaE76": 0.077,
+    "woodFloorRegionMeanDeltaE76Range": [
+      1.278,
+      2.708
+    ],
+    "eightTileFloorRegionMeanDeltaE76": 0,
+    "maximumIndividualTileReferenceWallRegionDeltaE76": 3.122
+  },
+  "acceptedDifferences": [
+    {
+      "id": "wood-phase",
+      "detail": "Deterministic board-tone variation and texture phase differ from the temporary upstream prototype; hue, lightness hierarchy, board density and herringbone form remain comparable."
+    },
+    {
+      "id": "world-square-tiles",
+      "detail": "True 1.4 m square tiles cover a 5.6 by 5.2 m room as 4 by about 3.714 cells, while the old reference stretched the grid to 4 by 4. The depth pitch and partial perimeter cell differences are accepted."
+    },
+    {
+      "id": "tile-reference-wall-variation",
+      "detail": "Some individual tile references have slightly different wall appearance from the standard warm-v6 preset. The largest sampled wall difference is about 3.12 Delta E76 for the blue-tile view; the current wall is slightly warmer. Standard warm-v6 wall/light settings remain authoritative; no per-tile wall/light retuning is requested."
+    },
+    {
+      "id": "bathroom-perimeter",
+      "detail": "The new floor-system bathroom uses a clean full floor surface without the old perimeter accent squares. The separate raw warm-v6 reproduction retains the old accents."
+    }
+  ],
+  "knownUpstreamLimitations": [
+    "Bright exterior grass under Neutral tone mapping remains visible and is not a new floor-system regression."
+  ],
+  "limits": "Offline manual visual review of actual exported PNGs plus diagnostic sRGB region statistics. No automatic pixel-perfect acceptance, GPU performance, frame-rate, physical-display calibration or classroom-use claim.",
+  "captures": [
+    {
+      "id": "warm-v6--living",
+      "scope": "non-floor context",
+      "view": "living",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--living.png",
+      "actualCaptureFile": "warm-floors--living.png"
+    },
+    {
+      "id": "warm-v6--bedroom",
+      "scope": "non-floor context",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bedroom.png",
+      "actualCaptureFile": "warm-floors--bedroom.png"
+    },
+    {
+      "id": "warm-v6--kitchen",
+      "scope": "non-floor context",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--kitchen.png",
+      "actualCaptureFile": "warm-floors--kitchen.png"
+    },
+    {
+      "id": "warm-v6--bathroom",
+      "scope": "non-floor context",
+      "view": "bathroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bathroom.png",
+      "actualCaptureFile": "warm-floors--bathroom.png"
+    },
+    {
+      "id": "warm-v6--exterior",
+      "scope": "non-floor context",
+      "view": "exterior",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--exterior.png",
+      "actualCaptureFile": "warm-floors--exterior.png"
+    },
+    {
+      "id": "wood-light-oak",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-1--bedroom.png",
+      "actualCaptureFile": "wood-light-oak--bedroom.png",
+      "baseColor": "#d8b58c",
+      "pattern": "wide",
+      "floorRegionMeanDeltaL": 2.625,
+      "floorRegionMeanDeltaE76": 2.641
+    },
+    {
+      "id": "wood-walnut",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-4--bedroom.png",
+      "actualCaptureFile": "wood-walnut--bedroom.png",
+      "baseColor": "#8f6748",
+      "pattern": "wide",
+      "floorRegionMeanDeltaL": 2.673,
+      "floorRegionMeanDeltaE76": 2.708
+    },
+    {
+      "id": "wood-washed-oak",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-5--bedroom.png",
+      "actualCaptureFile": "wood-washed-oak--bedroom.png",
+      "baseColor": "#cdbfac",
+      "pattern": "washed",
+      "floorRegionMeanDeltaL": 2.224,
+      "floorRegionMeanDeltaE76": 2.285
+    },
+    {
+      "id": "wood-herringbone-oak",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-6--bedroom.png",
+      "actualCaptureFile": "wood-herringbone-oak--bedroom.png",
+      "baseColor": "#c29470",
+      "pattern": "herringbone",
+      "floorRegionMeanDeltaL": 2.197,
+      "floorRegionMeanDeltaE76": 2.4
+    },
+    {
+      "id": "wood-cherry",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-7--bedroom.png",
+      "actualCaptureFile": "wood-cherry--bedroom.png",
+      "baseColor": "#b17a58",
+      "pattern": "narrow",
+      "floorRegionMeanDeltaL": -1.147,
+      "floorRegionMeanDeltaE76": 1.278
+    },
+    {
+      "id": "wood-herringbone-walnut",
+      "scope": "floor product and furniture",
+      "view": "bedroom",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/woods/wood-8--bedroom.png",
+      "actualCaptureFile": "wood-herringbone-walnut--bedroom.png",
+      "baseColor": "#94694a",
+      "pattern": "herringbone",
+      "floorRegionMeanDeltaL": 1.792,
+      "floorRegionMeanDeltaE76": 1.956
+    },
+    {
+      "id": "tile-terracotta-deep",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-deep--kitchen.png",
+      "actualCaptureFile": "tile-terracotta-deep--kitchen.png",
+      "baseColor": "#a5624a",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-terracotta",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta--kitchen.png",
+      "actualCaptureFile": "tile-terracotta--kitchen.png",
+      "baseColor": "#b9755a",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-terracotta-light",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-light--kitchen.png",
+      "actualCaptureFile": "tile-terracotta-light--kitchen.png",
+      "baseColor": "#c98c6c",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-caramel",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-caramel--kitchen.png",
+      "actualCaptureFile": "tile-caramel--kitchen.png",
+      "baseColor": "#c49a6c",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-sand",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-sand--kitchen.png",
+      "actualCaptureFile": "tile-sand--kitchen.png",
+      "baseColor": "#c9b498",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-stone",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-stone--kitchen.png",
+      "actualCaptureFile": "tile-stone--kitchen.png",
+      "baseColor": "#aea493",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-blue",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-blue--kitchen.png",
+      "actualCaptureFile": "tile-blue--kitchen.png",
+      "baseColor": "#9aabb8",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    },
+    {
+      "id": "tile-charcoal",
+      "scope": "floor product and furniture",
+      "view": "kitchen",
+      "status": "PASS",
+      "referenceCapture": "docs/look-dev-captures/review-2026-10-29/tiles/tile-charcoal--kitchen.png",
+      "actualCaptureFile": "tile-charcoal--kitchen.png",
+      "baseColor": "#7a7671",
+      "pattern": "tile",
+      "floorRegionMeanDeltaL": 0.0,
+      "floorRegionMeanDeltaE76": 0.0
+    }
+  ]
+}

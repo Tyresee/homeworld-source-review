@@ -1,104 +1,205 @@
 {
   "schemaVersion": 1,
   "id": "warm-floors",
-  "label": "Warm floors (appearance source pending)",
+  "label": "Warm floors · v6 appearance",
   "build": {
     "theme": {
       "id": "warm",
+      "backdrop": {
+        "inner": "#f7f4ee",
+        "outer": "#e2dccf"
+      },
       "rooms": {
         "living": {
+          "wall": "#f4efe6",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         },
         "bedroom": {
+          "wall": "#e9edf1",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         },
         "study": {
+          "wall": "#efe9dc",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         },
         "kitchen": {
+          "wall": "#f5f0e6",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "tile-terracotta"
         },
         "playroom": {
+          "wall": "#f6efd9",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         },
         "bathroom": {
+          "wall": "#f6f6f3",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "ceramic",
           "floorFinishId": "tile-blue"
         },
         "gallery": {
+          "wall": "#f4f1ea",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         },
         "sunroom": {
+          "wall": "#eef1e4",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "tile-sand"
         },
         "hallway": {
+          "wall": "#f1ebe0",
           "floor": null,
-          "wall": null,
-          "trim": null,
+          "trim": "#fbf7ef",
           "floorMaterial": null,
-          "wallMaterial": null,
+          "wallMaterial": "linen",
           "floorFinishId": "wood-light-oak"
         }
       },
-      "surfaceRemap": {},
+      "surfaceRemap": {
+        "wall.inner": {
+          "from": "#f7ead7",
+          "to": "#f4efe6"
+        },
+        "wall.outer": {
+          "from": "#f7ead7",
+          "to": "#f4efe6"
+        },
+        "wall.side": {
+          "from": "#d0dcca",
+          "to": "#f4efe6"
+        },
+        "window.frame": {
+          "from": "#faf0d7",
+          "to": "#fbf7ef"
+        }
+      },
       "shell": {
-        "trim": null,
-        "plinth": null,
-        "frame": null,
-        "glass": null,
-        "wallCap": null
+        "trim": "#fbf7ef",
+        "plinth": "#b5a48c",
+        "frame": "#fbf7ef",
+        "glass": "#9fc9d6",
+        "wallCap": "#fbf7ef"
       },
       "manor": {
-        "wall": null,
-        "trim": null,
-        "base": null,
-        "wood": null,
-        "glass": null,
-        "leaf": null,
-        "flower": null,
-        "gold": null
+        "wall": "#f1ebe0",
+        "trim": "#fbf7ef",
+        "base": "#b89b7a",
+        "wood": "#9a6a45",
+        "glass": "#9fc9d6",
+        "leaf": "#2d9c46",
+        "flower": "#e5483d",
+        "gold": "#ffc93a"
       },
-      "lighting": {},
-      "swatches": null
+      "lighting": {
+        "editor": {
+          "toneMapping": "neutral",
+          "exposure": 1.03,
+          "hemisphere": {
+            "sky": "#fff6ea",
+            "ground": "#e2dbcf",
+            "intensity": 1.7
+          },
+          "sun": {
+            "color": "#fff0d8",
+            "intensity": 3.4
+          },
+          "fill": {
+            "color": "#dde7f2",
+            "intensity": 0.9
+          },
+          "shadowRadius": 3,
+          "contactShadow": "#4a3a2e"
+        },
+        "student": {
+          "toneMapping": "neutral",
+          "exposure": 1.03,
+          "hemisphere": {
+            "sky": "#fff6ea",
+            "ground": "#e2dbcf",
+            "intensity": 1.7
+          },
+          "sun": {
+            "color": "#fff0d8",
+            "intensity": 2.584
+          },
+          "fill": {
+            "color": "#dde7f2",
+            "intensity": 0.9
+          },
+          "shadowRadius": 3,
+          "contactShadow": "#4a3a2e"
+        }
+      },
+      "swatches": [
+        {
+          "id": "cream",
+          "label": "Cream",
+          "color": "#f6f1e6"
+        },
+        {
+          "id": "oak",
+          "label": "Oak",
+          "color": "#d58b48"
+        },
+        {
+          "id": "red",
+          "label": "Tomato red",
+          "color": "#e5483d"
+        },
+        {
+          "id": "green",
+          "label": "Grass green",
+          "color": "#15864a"
+        },
+        {
+          "id": "blue",
+          "label": "Studio blue",
+          "color": "#2d63b8"
+        },
+        {
+          "id": "yellow",
+          "label": "Lemon yellow",
+          "color": "#ffc93a"
+        },
+        {
+          "id": "orange",
+          "label": "Orange",
+          "color": "#ff8a3d"
+        },
+        {
+          "id": "cocoa",
+          "label": "Cocoa",
+          "color": "#6b4129"
+        }
+      ]
     },
     "furniture": {
       "mode": "default",
@@ -106,35 +207,37 @@
     }
   },
   "render": {
-    "toneMapping": "aces",
-    "exposure": 1.1,
+    "toneMapping": "neutral",
+    "exposure": 1.03,
     "hemisphere": {
-      "sky": "#fff8e6",
-      "ground": "#9daa98",
-      "intensity": 2.1
+      "sky": "#fff6ea",
+      "ground": "#e2dbcf",
+      "intensity": 1.7
     },
     "sun": {
-      "color": "#fff4d9",
+      "color": "#fff0d8",
       "intensity": 3.4,
       "azimuth": null,
       "altitude": null
     },
     "fill": {
-      "color": "#dceceb",
-      "intensity": 1
+      "color": "#dde7f2",
+      "intensity": 0.9
     },
-    "shadowRadius": 4,
-    "contactShadow": null,
+    "shadowRadius": 3,
+    "contactShadow": "#4a3a2e",
     "environmentIntensity": 1
   },
   "backdrop": {
-    "inner": "#fcf7df",
-    "outer": "#e5edce"
+    "inner": "#f7f4ee",
+    "outer": "#e2dccf"
   },
   "reviewStatus": {
-    "appearanceSource": "warm-v6",
-    "appearanceStatus": "awaiting-source",
-    "referenceComparison": "awaiting-reviewer-images",
-    "note": "Floor candidate only. Existing default lighting, walls and backdrop are inherited until the approved source preset is provided."
+    "appearanceSource": "warm-v6.json",
+    "appearanceStatus": "reviewer-source-integrated",
+    "referenceComparison": "verified-against-supplied-render-pack",
+    "referenceBaseCommit": "ea261aa",
+    "note": "Uses supplied v6 lighting, wall finishes, shell and root backdrop; floor defaults are the requested 14-finish catalogue, not the old per-room v6 floor colors.",
+    "referenceDirectory": "docs/look-dev-captures/review-2026-10-29"
   }
 }

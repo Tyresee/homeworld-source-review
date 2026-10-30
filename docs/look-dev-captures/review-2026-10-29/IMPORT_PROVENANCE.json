@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Original reviewer reference package provenance",
+  "archive": {
+    "name": "look-dev-review-pack.zip",
+    "sha256": "4e8800e51609be10d15c5109f7615686be2c043f187f82f5916542243ee26e4e"
+  },
+  "copyMode": "byte-for-byte",
+  "importedFileCount": 24,
+  "userApprovedOriginalReferenceExceptions": [
+    "docs/look-dev-captures/review-2026-10-29/README.md",
+    "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
+    "docs/look-dev-captures/review-2026-10-29/woods-bedroom-sheet.png",
+    "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png"
+  ],
+  "notes": [
+    "Reference prose and composite image labels are intentionally retained in their original form with user approval.",
+    "Source code remains privacy-normalized. Reference renders are not evidence that the application currently matches them."
+  ],
+  "files": [
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/README.md",
+      "bytes": 1908,
+      "sha256": "eab9aa6f829c436612be5e08b71d464af189705f9b2ecfd9d1aa1cb0bddcf688"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
+      "bytes": 2267373,
+      "sha256": "460f23cfc5263e3526ba531c742313590075d2f6f855913df4220cce55ee9fab"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
+      "bytes": 1256465,
+      "sha256": "a6d496dbf40b9e74967c32627e8335bcfe325bf989e114c41f400116e2ae6bc8"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-blue--kitchen.png",
+      "bytes": 971283,
+      "sha256": "36b43b297cf6b90a302dad6cbd743a848e5dd5618bc9363476a30be7146f07cd"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-caramel--kitchen.png",
+      "bytes": 970250,
+      "sha256": "52b8a716a0bc6232a014a5b4ef8e5019a4380d3732c28d6266bd1fdfa76af58a"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-charcoal--kitchen.png",
+      "bytes": 970976,
+      "sha256": "5ef9e94d6808f3294224d838a4ef823fbc8b10c3cfa4b5cb30b9b03640dad4e9"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-sand--kitchen.png",
+      "bytes": 965258,
+      "sha256": "81408d372776519976ae4ea54d53a91e440d5fc5b9a0985299a5f096dbcf6b77"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-stone--kitchen.png",
+      "bytes": 964995,
+      "sha256": "fd8a03ddbe11aae35c6170c69ae9c21734c7a6c99cca5e79eb1154ec5c63550e"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta--kitchen.png",
+      "bytes": 966514,
+      "sha256": "af9432b785825c9fcbf75c8f9991467b08fd77bf7f7b0bfddc86fb3f74557ff9"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-deep--kitchen.png",
+      "bytes": 965354,
+      "sha256": "149b5a811c9184ac22cdd7b43d2cf72e2edd548b9e4bf72d4e30100f5001b36b"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-light--kitchen.png",
+      "bytes": 965139,
+      "sha256": "601e44800141e092f72ca56118e8678b0945b725f051c7106754d64c00e3712e"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bathroom.png",
+      "bytes": 844543,
+      "sha256": "4aaf0ef4fa2202493f59a8b09b3da5db4f2ea34b1496fdcdc66b8c435dca7c22"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bedroom.png",
+      "bytes": 1154373,
+      "sha256": "53d61e1c05104947a86973d11d5dec8347322dba06da5f558f4fc983da3f3caa"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--exterior.png",
+      "bytes": 511883,
+      "sha256": "939778236756a725a619efd99d68f9420f0a8d96f55726d9dd4790f218aaceaa"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--kitchen.png",
+      "bytes": 964995,
+      "sha256": "fd8a03ddbe11aae35c6170c69ae9c21734c7a6c99cca5e79eb1154ec5c63550e"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--living.png",
+      "bytes": 1132730,
+      "sha256": "215b689f1700092338209720a36352eddea3576200bcc646869a7b7ee733d57a"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods-bedroom-sheet.png",
+      "bytes": 1431932,
+      "sha256": "06a4cb92aee2d2d026952125d8f7fa3b1a725682db8b49534ae52c6b10a221de"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-1--bedroom.png",
+      "bytes": 1149691,
+      "sha256": "e142acd1a1cdb3b8f99d21229f5fff475c783f492ef831164bb3d968b970680f"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-4--bedroom.png",
+      "bytes": 1145009,
+      "sha256": "d60a27c769a9e2c4fe5587145336635f6e51794da8e9f9b343192eff74a09e12"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-5--bedroom.png",
+      "bytes": 1144292,
+      "sha256": "3d4705f76e159fed0d070a73debe7e81be5a13793c711ffe2351961d2d283e15"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-6--bedroom.png",
+      "bytes": 1116804,
+      "sha256": "feea64ba803cababb5750159b3a519eb5f31dfba8eeffcd6677f65c2e78f029b"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-7--bedroom.png",
+      "bytes": 1165648,
+      "sha256": "e2f319c40cfa35b03767e431f7154dfd9fcaf162002623b1454c39b18b2cec7f"
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-8--bedroom.png",
+      "bytes": 1104904,
+      "sha256": "94748054f00c9143d608024b73d2ad50a48556fd634ef71a59202f9adfc32cd9"
+    },
+    {
+      "path": "scripts/qa/look-dev-presets/warm-v6.json",
+      "bytes": 5292,
+      "sha256": "69e7c65924e3af54111ce9aab2655a3adc6210f12536a9204057d162d3317d8f"
+    }
+  ]
+}

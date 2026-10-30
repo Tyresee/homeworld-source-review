@@ -37,15 +37,17 @@ export function pickStudentHomeContext(raycaster,{room,robot,rect}){
 // Only server-owned starter geometry and avatar colors enter this view. Legacy demo
 // wallet, save, furniture and construction state are deliberately not dependencies.
 export function createStudentHomeScene(stage,{onRobot=()=>{},onContextMenu}={}) {
-  const lighting=getHomeTheme().lighting.student??{};
+  const theme=getHomeTheme(),lighting=theme.lighting.student??{};
+  const originalBackdrop=stage.style.background;
+  if(theme.id==='warm'&&theme.backdrop)stage.style.background=`radial-gradient(ellipse at 45% 42%,${theme.backdrop.inner},${theme.backdrop.outer})`;
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
-  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=lighting.exposure??1.12;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:lighting.toneMapping==='agx'?THREE.AgXToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=lighting.exposure??1.12;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.shadowMap.autoUpdate=false;
   const canvas=renderer.domElement;canvas.tabIndex=0;canvas.setAttribute('aria-label',"DisplayText4161: DisplayText4162, DisplayText4163, DisplayText4164, DisplayText4165.");stage.prepend(canvas);
   const scene=new THREE.Scene(),display=new THREE.Group();scene.add(display);
   const roomEnvironment=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer),environment=pmrem.fromScene(roomEnvironment,.04);
-  scene.environment=environment.texture;scene.environmentIntensity=.55;roomEnvironment.dispose();pmrem.dispose();
+  scene.environment=environment.texture;scene.environmentIntensity=theme.id==='warm'?(lighting.environmentIntensity??.55):.55;roomEnvironment.dispose();pmrem.dispose();
   scene.add(new THREE.HemisphereLight(lighting.hemisphere?.sky??'#fff8e9',lighting.hemisphere?.ground??'#a4b899',lighting.hemisphere?.intensity??1.6));
   const sun=new THREE.DirectionalLight(lighting.sun?.color??'#fff2d6',lighting.sun?.intensity??2.5);sun.position.set(-4,8,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
   if(lighting.shadowRadius!==undefined)sun.shadow.radius=lighting.shadowRadius;
@@ -116,6 +118,6 @@ export function createStudentHomeScene(stage,{onRobot=()=>{},onContextMenu}={}) 
   addEventListener('keydown',keyDown);addEventListener('keyup',keyUp);addEventListener('blur',releaseSpace);document.addEventListener('visibilitychange',visibility);
   const observer=new ResizeObserver(resize);observer.observe(stage);reset();
   function dispose(){if(dead)return;clear();dead=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();removeEventListener('keydown',keyDown);removeEventListener('keyup',keyUp);removeEventListener('blur',releaseSpace);document.removeEventListener('visibilitychange',visibility);ground.geometry.dispose();ground.material.dispose();environment.dispose();sun.shadow.dispose();
-    sourcePromise?.then(()=>{const geometries=new Set(),materials=new Set();source?.traverse(node=>{if(node.geometry)geometries.add(node.geometry);for(const mat of(Array.isArray(node.material)?node.material:[node.material]).filter(Boolean))materials.add(mat);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}).catch(()=>{});renderer.dispose();canvas.remove();}
+    sourcePromise?.then(()=>{const geometries=new Set(),materials=new Set();source?.traverse(node=>{if(node.geometry)geometries.add(node.geometry);for(const mat of(Array.isArray(node.material)?node.material:[node.material]).filter(Boolean))materials.add(mat);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}).catch(()=>{});renderer.dispose();if(theme.id==='warm')stage.style.background=originalBackdrop;canvas.remove();}
   return{show,clear,palette,reset,moveTo,dispose,wave(){if(robot){motion={kind:'wave',time:0};last=0;requestRender();}}};
 }

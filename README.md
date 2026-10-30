@@ -18,7 +18,7 @@ Three.js 0.186.1 and its actual transitive module dependencies are bundled in ve
 
 ## Warm floor candidate
 
-The optional warm floor system adds fourteen free, per-room finishes with world-space texture repetition. The approved warm-v6 appearance source is still pending. See [implementation and save contract](WARM_FLOORS_REVIEW.md) and [nineteen real-render/application captures](docs/warm-floor-captures/README.md). The shipped default and Toy v1 reference PNGs remain unchanged.
+The optional warm floor system adds fourteen free, per-room finishes with world-space texture repetition. The approved warm-v6 appearance source and reviewer render pack are now included. See [the save contract](WARM_FLOORS_REVIEW.md), [current comparison gallery](docs/warm-v6-validation/README.md), and [the original supplied reference pack](docs/look-dev-captures/review-2026-10-29/README.md). The shipped default and Toy v1 reference PNGs remain unchanged.
 
 ## Read in this order
 

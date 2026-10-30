@@ -153,7 +153,7 @@ export function createHomeFloorTextureManager({createCanvas=makeCanvas}={}) {
     }
     const map=record.texture;map.repeat.set(...metrics.repeat);map.offset.set(...metrics.offset);map.updateMatrix();
     map.name='floor:'+finish.pattern;map.userData={floorPattern:finish.pattern,finishId:finish.id,tileMetres:finish.tileMeters??spec.tileMeters,worldTileMetres:finish.tileMeters??spec.tileMeters,boardWidthMetres:finish.boardWidthMeters??spec.plank??null};
-    if(mesh.material.map!==map){mesh.material.map=map;mesh.material.needsUpdate=true;}mesh.material.color.set(finish.color);mesh.material.roughness=finish.group==='tile'?.65:.8;mesh.material.metalness=0;
+    if(mesh.material.map!==map){mesh.material.map=map;mesh.material.needsUpdate=true;}mesh.material.color.set(finish.color);mesh.material.roughness=finish.group==='tile'?.45:.72;mesh.material.metalness=0;
     Object.assign(mesh.userData,{floorFinishId:finish.id,floorPattern:finish.pattern,floorTexture:map.userData});return true;
   }
   function dispose(){if(disposed)return;for(const mesh of[...records.keys()])release(mesh);disposed=true;}

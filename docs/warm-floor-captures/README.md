@@ -1,3 +1,5 @@
+> Historical provisional captures: this folder records the stage before the approved appearance source was supplied. See [current v6 integration and validation](../warm-v6-validation/README.md). Original evidence bytes are preserved.
+
 # Warm floor candidate: real-render evidence
 
 **Appearance source pending:** these captures validate floor implementation under inherited default lighting. The requested warm-v6 preset and reviewer comparison images were not supplied. They do not establish a warm-v6 visual match. No production deployment was performed.

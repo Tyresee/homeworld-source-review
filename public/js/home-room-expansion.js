@@ -57,13 +57,34 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     const owner = currentRoom ?? boundarySkinRoom;
     return (owner ? getRoomTheme(owner.kind, owner, theme)?.trim : null) ?? shellColor('trim', fallback);
   };
+  const warmWallMaps=new Map();
+  // The lightweight student renderer has no general furniture texture maps.
+  // Match the existing home-scene grain recipes only for its approved walls.
+  function warmWallMap(key) {
+    if(warmWallMaps.has(key))return warmWallMaps.get(key);
+    if(theme.id!=='warm'||!['linen','ceramic'].includes(key)||typeof document==='undefined')return null;
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=256;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,256,256);
+    if(key==='linen') {
+      ctx.strokeStyle='rgba(112,137,124,.13)';ctx.lineWidth=1.4;
+      for(let i=0;i<256;i+=11){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(256,i+Math.sin(i)*2);ctx.stroke();}
+    }else {
+      ctx.strokeStyle='rgba(91,132,133,.14)';ctx.lineWidth=2;
+      for(let i=0;i<=256;i+=64){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,256);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(256,i);ctx.stroke();}
+    }
+    const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;map.wrapS=map.wrapT=THREE.RepeatWrapping;map.name='warm-wall:'+key;warmWallMaps.set(key,map);return map;
+  }
   function material(color, options = {}) {
-    const { mapKey, ...rest } = options;
+    const { mapKey, wallMap = false, ...rest } = options;
     const m = new THREE.MeshStandardMaterial({ color, roughness: .76, ...rest });
-    if (mapKey && maps[mapKey]) m.map = maps[mapKey];
+    if (mapKey) m.map = maps[mapKey]??(wallMap?warmWallMap(mapKey):null);
     materials.add(m); return m;
   }
   function add(geometry, color, position, bucket = 'accents', options = {}) {
+    if(theme.id==='warm'&&bucket==='walls') {
+      const owner=currentRoom??boundarySkinRoom,skin=getRoomTheme(owner?.kind??'living',owner,theme),key=skin.wallMaterial??owner?.wall?.material;
+      if(key)options={...options,mapKey:key,wallMap:true,roughness:key==='ceramic'?.45:key==='gold'?.35:['stone','marble'].includes(key)?.4:.72,metalness:key==='gold'?.6:0};
+    }
     geometries.add(geometry); const m = new THREE.Mesh(geometry, material(color, options));
     m.position.set(...position); m.castShadow = true; m.receiveShadow = true;
     m.userData = { roomPart: bucket, roomId: currentRoom?.id ?? null, roomKind: currentRoom?.kind ?? null };
@@ -354,7 +375,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   group.setRooms = (value, options = {}) => { if (disposed) throw new Error('Cannot change a disposed room expansion.'); if(Object.hasOwn(options,'staircases'))stairs=getHomeStairs(options);else if(Object.hasOwn(options,'stairs'))stairs=Array.isArray(options.stairs)?options.stairs:getHomeStairs(options);if(Object.hasOwn(options,'slab'))slab=options.slab;if(Object.hasOwn(options,'profile'))profile=options.profile;if(Object.hasOwn(options,'surfaces'))surfaces=options.surfaces; clear(); build(value); return group; };
   group.setTier = value => group.setRooms(getRoomTierDefinition(value).id);
   group.getDefinition = () => definition;
-  group.dispose = () => { if (disposed) return; disposed = true; clear();if(ownsFloorTextures)floorTextures.dispose(); group.userData.roomParts = null; };
+  group.dispose = () => { if (disposed) return; disposed = true; clear();if(ownsFloorTextures)floorTextures.dispose();warmWallMaps.forEach(map=>map.dispose());warmWallMaps.clear(); group.userData.roomParts = null; };
   return group;
 }
 export { CELL };

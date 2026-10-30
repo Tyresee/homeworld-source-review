@@ -97,7 +97,7 @@ function renderControls(){
   colorControl(rendering,'Fill color',['render','fill','color'],{fallback:'#dceceb',inherit:false});
   numberControl(rendering,'Fill intensity',['render','fill','intensity'],{min:0,max:5,step:.05,fallback:1});
   numberControl(rendering,'Shadow radius',['render','shadowRadius'],{min:0,max:10,step:.1,fallback:4});
-  const roomSection=section('Room finishes','Inherit preserves the actual original finish for each part. Bathroom keeps its existing oak material until you change it.',true),tabs=node('div','room-tabs'),roomControls=node('div','room-controls');roomSection.append(tabs,roomControls);
+  const roomSection=section('Room finishes','Inherit preserves original materials. Warm floor presets use the selected catalogue finishes; the supplied v6 reference retains its original role colors.',true),tabs=node('div','room-tabs'),roomControls=node('div','room-controls');roomSection.append(tabs,roomControls);
   for(const[id,label]of rooms){const button=node('button','',label);button.type='button';button.setAttribute('aria-pressed',String(id===roomId));button.addEventListener('click',()=>{roomId=id;renderRoomControls();});tabs.append(button);}
   function renderRoomControls(){
     [...tabs.children].forEach((button,index)=>button.setAttribute('aria-pressed',String(rooms[index][0]===roomId)));roomControls.replaceChildren();

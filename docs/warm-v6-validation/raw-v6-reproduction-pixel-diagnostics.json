@@ -1,0 +1,32 @@
+[
+  {
+    "view": "living",
+    "changedChannels": 203428,
+    "meanAbsoluteChannelDifference": 0.06690972222222222,
+    "maxChannelDifference": 118
+  },
+  {
+    "view": "bedroom",
+    "changedChannels": 210566,
+    "meanAbsoluteChannelDifference": 0.06718518518518518,
+    "maxChannelDifference": 99
+  },
+  {
+    "view": "kitchen",
+    "changedChannels": 142848,
+    "meanAbsoluteChannelDifference": 0.0525,
+    "maxChannelDifference": 123
+  },
+  {
+    "view": "bathroom",
+    "changedChannels": 94930,
+    "meanAbsoluteChannelDifference": 0.03813753858024691,
+    "maxChannelDifference": 117
+  },
+  {
+    "view": "exterior",
+    "changedChannels": 52897,
+    "meanAbsoluteChannelDifference": 0.0373238811728395,
+    "maxChannelDifference": 115
+  }
+]

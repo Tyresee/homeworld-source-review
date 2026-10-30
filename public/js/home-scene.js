@@ -79,6 +79,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const lighting=theme.lighting.editor??{};
   const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
   const scene = new THREE.Scene();
+  const originalBackdrop=container.style.background;
+  if(theme.id==='warm'&&theme.backdrop)container.style.background=`radial-gradient(ellipse at 45% 42%,${theme.backdrop.inner},${theme.backdrop.outer})`;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   // A retina display at DPR 2 quadruples the canvas pixels while the scene is
   // still being projected into the same classroom-sized panel. Capping at
@@ -92,13 +94,14 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = lighting.toneMapping==='neutral'?THREE.NeutralToneMapping:lighting.toneMapping==='agx'?THREE.AgXToneMapping:THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = lighting.exposure??1.1;
   renderer.domElement.setAttribute('aria-label', "DisplayText2742");
   renderer.domElement.style.touchAction = 'none';
   container.prepend(renderer.domElement);
   const camera = new THREE.OrthographicCamera(-6, 6, 4, -4, .1, 70);
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
+  if(theme.id==='warm'&&Number.isFinite(lighting.environmentIntensity))scene.environmentIntensity=lighting.environmentIntensity;
   const root = new THREE.Group(), table = new THREE.Group();
   scene.add(root); root.add(table);
   const parts = new Map(), pickables = [], dynamic = new THREE.Group(); root.add(dynamic);
@@ -598,7 +601,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if (!room) return getHomeSurfaceAppearance(id,next.surfaces[id],theme);
     const owner=next.rooms?.find(item => item.id === room.roomId),appearance=owner?.[room.part]??null;
     if(!appearance||theme.id==='default')return appearance;
-    return {...appearance,color:getRoomTheme(owner.kind,owner,theme)[room.part]};
+    const skin=getRoomTheme(owner.kind,owner,theme);
+    return {...appearance,color:skin[room.part],...(theme.id==='warm'&&room.part==='wall'&&skin.wallMaterial?{material:skin.wallMaterial}:{})};
   }
   function syncFixedModels(next) {
     if(next.profile==='upper')return;
@@ -682,9 +686,10 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
         const room=themeRooms?.get(o.userData.themeRoomId);
         const appearance=room?getHomeSurfaceAppearance(id,next.surfaces[id]??a,theme,room):a;
         o.material.color.set(appearance.color);
-        const map = maps[a.material] || null;
+        const materialId=theme.id==='warm'?appearance.material:a.material;
+        const map = maps[materialId] || null;
         if (o.material.map !== map) { o.material.map = map; o.material.needsUpdate = true; }
-        o.material.roughness = a.material === 'gold' ? .35 : a.material === 'ceramic' ? .45 : ['stone','marble'].includes(a.material) ? .4 : .72; o.material.metalness = a.material === 'gold' ? .6 : 0;
+        o.material.roughness = materialId === 'gold' ? .35 : materialId === 'ceramic' ? .45 : ['stone','marble'].includes(materialId) ? .4 : .72; o.material.metalness = materialId === 'gold' ? .6 : 0;
       }
     }
     syncUpgrades(next);roomExpansion.syncFloorFinishes?.(next); root.updateMatrixWorld(true); syncDynamic(next); syncView(); root.updateMatrixWorld(true); updateSelection(); markShadowsDirty();
@@ -1529,6 +1534,6 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     zoom(direction) { stageCamera?.exit({restore:false});interruptCameraMotion(); zoom = boundedZoom(zoom + direction * .1, view); frameCamera(lastCameraBounds); },
     showCollision(volume) { showWallBlock(volume, true); },
     getStats() { return { ...renderer.info.render, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, surfaceCount: parts.size }; },
-    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose(); renderer.domElement.remove(); }
+    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
   };
 }

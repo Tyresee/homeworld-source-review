@@ -1,4 +1,5 @@
 import {ROOM_KINDS} from './home-layout.js';
+import {APPROVED_WARM_THEME} from './home-warm-theme.js';
 
 // Presentation only. Never import this module into save/wallet validation to
 // choose defaults, and never write these resolved colors back to a home.
@@ -22,10 +23,7 @@ export const HOME_THEMES=freeze({
   // Empty overrides deliberately leave the existing renderer/CSS defaults in
   // their original owners. Room entries reference the original kind records.
   default:{id:'default',rooms:defaultRooms,surfaceRemap:{},shell:{},manor:{},lighting:{},swatches:null},
-  // Floor candidate only until the reviewer supplies the approved warm-v6
-  // lighting/wall/backdrop preset. Inheritance is deliberate, not guessed color.
-  warm:{id:'warm',rooms:defaultRooms,surfaceRemap:{},shell:{},manor:{},lighting:{},swatches:null,floorFinishes:true,
-    appearanceSource:{id:'warm-v6',status:'awaiting-source'}},
+  warm:APPROVED_WARM_THEME,
   toy:{
     id:'toy',backdrop:{inner:'#bfe6f5',outer:'#7cc3e6'},
     rooms:{
@@ -94,14 +92,23 @@ export function getRoomTheme(kind,roomState,theme=getHomeTheme()) {
   return {...definition,
     floor:color('floor'),wall:color('wall'),
     trim:skin.trim??theme.shell.trim,
+    ...(theme.id==='warm'?{wallMaterial:(!roomState?.wall?.material||roomState.wall.material==='ceramic')?(skin.wallMaterial??roomState?.wall?.material):roomState.wall.material}:{}),
   };
 }
 /** Only legacy default surface values are remapped, never owned furniture. */
 export function getHomeSurfaceAppearance(id,appearance,theme=getHomeTheme(),roomState=null) {
   const mapping=theme.surfaceRemap[id];
-  if(!appearance||!mapping||appearance.color?.toLowerCase()!==mapping.from)return appearance;
-  const roomColor=roomState&&id.startsWith('wall.')?getRoomTheme(roomState.kind,roomState,theme)?.wall:null;
-  return {...appearance,color:roomColor??mapping.to};
+  const mapped=appearance&&mapping&&appearance.color?.toLowerCase()===mapping.from;
+  let result=appearance;
+  if(mapped) {
+    const roomColor=roomState&&id.startsWith('wall.')?getRoomTheme(roomState.kind,roomState,theme)?.wall:null;
+    result={...appearance,color:roomColor??mapping.to};
+  }
+  if(theme.id==='warm'&&appearance&&id.startsWith('wall.')&&appearance.material==='ceramic') {
+    const material=getRoomTheme(roomState?.kind??'living',roomState,theme)?.wallMaterial;
+    if(material&&material!==result.material)result={...result,material};
+  }
+  return result;
 }
 /** Keep just the whitelisted presentation parameter; no account data is added. */
 export function preserveHomeTheme(value,search=typeof window==='undefined'?'':window.location?.search??'') {

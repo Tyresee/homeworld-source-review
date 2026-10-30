@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 117,
-    "tests": 75,
-    "selectedSourceFiles": 222,
-    "packagedFiles": 287
+    "modules": 118,
+    "tests": 77,
+    "selectedSourceFiles": 226,
+    "packagedFiles": 356
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -17,41 +17,27 @@
   "productionDataIncluded": false,
   "validation": {
     "coreTestsPassed": 379,
-    "coreTestsFailed": 0,
-    "floorFocusedTestsPassed": 27,
-    "floorFocusedTestsFailed": 0,
-    "allIncludedTestsAttempted": 718,
-    "allIncludedTestsPassed": 663,
+    "focusedTestsPassed": 49,
+    "allIncludedTestsAttempted": 723,
+    "allIncludedTestsPassed": 668,
     "allIncludedTestsWithDisplayExpectationDifferences": 55,
     "sameDisplayFailureNamesAsPreviousSnapshot": true,
-    "offlineVendorVerification": "passed",
     "sourceAccountTestsPassed": 688,
-    "sourceFocusedTestsPassed": 44,
+    "sourceFocusedTestsPassed": 49,
     "sourceFullTests": {
-      "total": 803,
-      "passed": 802,
+      "total": 808,
+      "passed": 807,
       "preExistingCatalogueCountFailures": 1
     },
+    "upstreamReferenceFilesByteIdentical": 24,
+    "referenceLanguageExceptionExplicitlyApproved": true,
+    "warmAppearanceSource": "approved warm-v6, root render and backdrop precedence",
+    "warmVisualComparison": "5 overall and 14 finish views passed with documented phase/depth/wall variations",
     "defaultToyPngsByteIdentical": 10,
-    "warmLookDevRenders": 5,
-    "actualApplicationFinishSelections": 14,
-    "allFinishReceiptsZero": true,
+    "currentRealApplicationFreeFinishSelections": 14,
     "refreshAndStudentIsolationVerified": true,
-    "warmAppearanceSource": "awaiting warm-v6 and reviewer comparison images",
-    "freshCloneBrowserVerification": {
-      "status": "passed",
-      "testedCodeCommit": "dfb1860037f2633e438ae201c709f31ba9d3d953",
-      "nodeModulesPresent": false,
-      "npmInstallPerformed": false,
-      "viewsRendered": 5,
-      "sourceResolution": [
-        1440,
-        900
-      ],
-      "allFivePngsByteIdenticalToSourceCaptures": true,
-      "browserConsoleErrors": 0,
-      "portOverride": 19538
-    },
+    "offlineVendorVerification": "passed",
+    "freshCloneBrowserVerification": "pending",
     "deploymentPerformed": false
   },
   "previousSnapshotValidation": {
@@ -66,8 +52,8 @@
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 222,
-    "changedSourceFiles": 3,
+    "normalizedSourceFiles": 226,
+    "changedSourceFiles": 12,
     "stableSeedLabels": 4676,
     "newDisplayLabels": 41,
     "identityDataIncluded": false

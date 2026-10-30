@@ -1,6 +1,6 @@
 {
-  "edition": "source-review-v3-warm-floors",
-  "totalFiles": 287,
+  "edition": "source-review-v4-approved-warm-v6",
+  "totalFiles": 356,
   "files": [
     {
       "path": ".gitignore",
@@ -12,7 +12,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 25492
+      "bytes": 32898
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
@@ -24,11 +24,11 @@
     },
     {
       "path": "NORMALIZATION_NOTES.md",
-      "bytes": 1864
+      "bytes": 2304
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 2255
+      "bytes": 1988
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -36,7 +36,7 @@
     },
     {
       "path": "README.md",
-      "bytes": 6651
+      "bytes": 6738
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
@@ -48,7 +48,7 @@
     },
     {
       "path": "WARM_FLOORS_REVIEW.md",
-      "bytes": 5954
+      "bytes": 6545
     },
     {
       "path": "docs/look-dev-captures/README.md",
@@ -77,6 +77,102 @@
     {
       "path": "docs/look-dev-captures/default-render-readback.json",
       "bytes": 17111
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/IMPORT_PROVENANCE.json",
+      "bytes": 5807
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/README.md",
+      "bytes": 1908
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
+      "bytes": 2267373
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-blue--kitchen.png",
+      "bytes": 971283
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-caramel--kitchen.png",
+      "bytes": 970250
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-charcoal--kitchen.png",
+      "bytes": 970976
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-sand--kitchen.png",
+      "bytes": 965258
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-stone--kitchen.png",
+      "bytes": 964995
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta--kitchen.png",
+      "bytes": 966514
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-deep--kitchen.png",
+      "bytes": 965354
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-terracotta-light--kitchen.png",
+      "bytes": 965139
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
+      "bytes": 1256465
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bathroom.png",
+      "bytes": 844543
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bedroom.png",
+      "bytes": 1154373
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--exterior.png",
+      "bytes": 511883
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--kitchen.png",
+      "bytes": 964995
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--living.png",
+      "bytes": 1132730
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-1--bedroom.png",
+      "bytes": 1149691
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-4--bedroom.png",
+      "bytes": 1145009
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-5--bedroom.png",
+      "bytes": 1144292
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-6--bedroom.png",
+      "bytes": 1116804
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-7--bedroom.png",
+      "bytes": 1165648
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-8--bedroom.png",
+      "bytes": 1104904
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods-bedroom-sheet.png",
+      "bytes": 1431932
     },
     {
       "path": "docs/look-dev-captures/toy-render-readback.json",
@@ -108,7 +204,7 @@
     },
     {
       "path": "docs/warm-floor-captures/README.md",
-      "bytes": 3365
+      "bytes": 3600
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -201,6 +297,170 @@
     {
       "path": "docs/warm-floor-captures/warm-render-readback.json",
       "bytes": 19748
+    },
+    {
+      "path": "docs/warm-v6-validation/README.md",
+      "bytes": 6877
+    },
+    {
+      "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
+      "bytes": 2782
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-blue.png",
+      "bytes": 389439
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-caramel.png",
+      "bytes": 397155
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-charcoal.png",
+      "bytes": 380177
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-sand.png",
+      "bytes": 380880
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-stone.png",
+      "bytes": 377890
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-terracotta-deep.png",
+      "bytes": 402339
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-terracotta-light.png",
+      "bytes": 397484
+    },
+    {
+      "path": "docs/warm-v6-validation/app/tile-terracotta.png",
+      "bytes": 406823
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-cherry.png",
+      "bytes": 488228
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-herringbone-oak.png",
+      "bytes": 469305
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-herringbone-walnut.png",
+      "bytes": 450499
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-light-oak.png",
+      "bytes": 440237
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-walnut.png",
+      "bytes": 443326
+    },
+    {
+      "path": "docs/warm-v6-validation/app/wood-washed-oak.png",
+      "bytes": 426508
+    },
+    {
+      "path": "docs/warm-v6-validation/application-verification.json",
+      "bytes": 546
+    },
+    {
+      "path": "docs/warm-v6-validation/default-toy-baseline.json",
+      "bytes": 1530
+    },
+    {
+      "path": "docs/warm-v6-validation/raw-v6-reproduction-pixel-diagnostics.json",
+      "bytes": 751
+    },
+    {
+      "path": "docs/warm-v6-validation/render-readback.json",
+      "bytes": 19760
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-blue--kitchen.png",
+      "bytes": 945963
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-caramel--kitchen.png",
+      "bytes": 944787
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-charcoal--kitchen.png",
+      "bytes": 944388
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-sand--kitchen.png",
+      "bytes": 944996
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-stone--kitchen.png",
+      "bytes": 945231
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-terracotta--kitchen.png",
+      "bytes": 946073
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-terracotta-deep--kitchen.png",
+      "bytes": 943686
+    },
+    {
+      "path": "docs/warm-v6-validation/tile-terracotta-light--kitchen.png",
+      "bytes": 944670
+    },
+    {
+      "path": "docs/warm-v6-validation/verification.json",
+      "bytes": 1107
+    },
+    {
+      "path": "docs/warm-v6-validation/visual-validation.json",
+      "bytes": 10093
+    },
+    {
+      "path": "docs/warm-v6-validation/warm-floors--bathroom.png",
+      "bytes": 833430
+    },
+    {
+      "path": "docs/warm-v6-validation/warm-floors--bedroom.png",
+      "bytes": 1132100
+    },
+    {
+      "path": "docs/warm-v6-validation/warm-floors--exterior.png",
+      "bytes": 511442
+    },
+    {
+      "path": "docs/warm-v6-validation/warm-floors--kitchen.png",
+      "bytes": 946073
+    },
+    {
+      "path": "docs/warm-v6-validation/warm-floors--living.png",
+      "bytes": 1108359
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-cherry--bedroom.png",
+      "bytes": 1148054
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-herringbone-oak--bedroom.png",
+      "bytes": 1099119
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-herringbone-walnut--bedroom.png",
+      "bytes": 1087158
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-light-oak--bedroom.png",
+      "bytes": 1132100
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-walnut--bedroom.png",
+      "bytes": 1128138
+    },
+    {
+      "path": "docs/warm-v6-validation/wood-washed-oak--bedroom.png",
+      "bytes": 1126258
     },
     {
       "path": "game.manifest.json",
@@ -344,7 +604,7 @@
     },
     {
       "path": "public/js/home-floor-textures.js",
-      "bytes": 11862
+      "bytes": 11863
     },
     {
       "path": "public/js/home-furniture-capabilities.js",
@@ -468,7 +728,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 27162
+      "bytes": 28813
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -492,7 +752,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 107387
+      "bytes": 108027
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -540,7 +800,7 @@
     },
     {
       "path": "public/js/home-theme.js",
-      "bytes": 6210
+      "bytes": 6459
     },
     {
       "path": "public/js/home-utility-daily-collection.js",
@@ -549,6 +809,10 @@
     {
       "path": "public/js/home-utility-daily-models.js",
       "bytes": 17672
+    },
+    {
+      "path": "public/js/home-warm-theme.js",
+      "bytes": 6485
     },
     {
       "path": "public/js/robot-avatar.js",
@@ -648,7 +912,7 @@
     },
     {
       "path": "public/js/student-home-scene.js",
-      "bytes": 11760
+      "bytes": 12136
     },
     {
       "path": "public/js/student-home-stage-camera.js",
@@ -700,7 +964,7 @@
     },
     {
       "path": "public/student-homes.css",
-      "bytes": 9595
+      "bytes": 9780
     },
     {
       "path": "public/student-homes.html",
@@ -728,7 +992,11 @@
     },
     {
       "path": "scripts/qa/look-dev-presets/warm-floors.json",
-      "bytes": 3391
+      "bytes": 6009
+    },
+    {
+      "path": "scripts/qa/look-dev-presets/warm-v6.json",
+      "bytes": 5292
     },
     {
       "path": "scripts/qa/look-dev-review.mjs",
@@ -744,11 +1012,11 @@
     },
     {
       "path": "scripts/qa/look-dev-ui.html",
-      "bytes": 2672
+      "bytes": 2728
     },
     {
       "path": "scripts/qa/look-dev-ui.mjs",
-      "bytes": 21447
+      "bytes": 21479
     },
     {
       "path": "scripts/qa/look-dev-zip.mjs",
@@ -827,12 +1095,20 @@
       "bytes": 6159
     },
     {
+      "path": "tests/home-warm-theme.test.mjs",
+      "bytes": 4503
+    },
+    {
       "path": "tests/look-dev-ui.test.mjs",
       "bytes": 4462
     },
     {
       "path": "tests/look-dev-warm-floors.test.mjs",
       "bytes": 1587
+    },
+    {
+      "path": "tests/look-dev-warm-v6.test.mjs",
+      "bytes": 1721
     },
     {
       "path": "tests/student-home-account-world.test.mjs",

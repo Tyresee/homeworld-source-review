@@ -2,9 +2,13 @@
 
 This changes the optional `?theme=warm` candidate. The no-parameter default and `?theme=toy` keep their existing visual path. No deployment is included.
 
-## Appearance source status
+## Approved appearance source
 
-The requested `warm-v6` lighting/wall/backdrop JSON and reviewer comparison images were not present in the supplied files, current source, Downloads, or public repository main. They were requested from the user. Until supplied, `warm-floors.json` explicitly says appearance source pending and inherits the existing default lights, walls and backdrop. It must not be described as matching warm-v6 or the unavailable reference images.
+The reviewer supplied look-dev-review-pack.zip, generated from ea261aa. Its 24 files are preserved at their original repository paths, with per-file SHA-256 provenance. The source warm-v6.json is immutable. The user explicitly approved publishing the original reference README and image captions; implementation source remains normalized in the public copy.
+
+The warm candidate now imports the approved root render settings, wall finishes, shell/facade roles and root backdrop. The root backdrop is authoritative over the stale blue nested duplicate. Editor lighting uses the supplied root render; the lightweight student scene retains its explicitly authored 2.584 key intensity. Floor defaults still come from the fourteen-finish catalogue, not the older v6 room floor colors.
+
+The raw warm-v6 preset remains available for reproducing the original reference. The derived warm-floors preset enables the new floor system under the approved appearance. These are separate comparison cases.
 
 ## Saved fields and commands
 
@@ -44,12 +48,12 @@ Validation counts, rendered reference views, default/toy hashes and actual-appli
 ## Recorded checks
 
 - Account home verification: 688/688 pass; final account-only build succeeds.
-- Final focused finish, texture, menu, theme and Look Dev checks: 44/44 pass.
-- Final source full suite: 802/803 pass. The only failure is the pre-existing catalogue-count assertion (376 actual, 311 expected), independently reproduced at the original base; this task adds no SKU.
+- Final focused finish, texture, menu, theme and Look Dev checks: 49/49 pass.
+- Final source full suite: 807/808 pass. The only failure is the pre-existing catalogue-count assertion (376 actual, 311 expected), independently reproduced at the original base; this task adds no SKU.
 - All ten default/toy PNGs are byte-identical to the preceding reference gallery. Warm camera transforms match those references. All real catalogue furniture colors/materials remain defaults.
 - Fourteen actual-application finish selections each produced a delivered zero-amount receipt. The same fictional student retained the selected bedroom/kitchen finishes after refresh and switching students; the second fictional student's surfaces stayed untouched.
-- Pending: warm-v6 appearance source, reviewer reference images and therefore the requested visual-match sign-off. No physical projector or production verification is claimed.
+- The supplied v6 images are reproduced and the fourteen finish variants are compared at 1440 x 900 for color, lightness, pattern and world scale. Exact seam phase is not an acceptance requirement. No physical projector or production verification is claimed.
 
-Public normalized package validation: core 379/379 and focused floor/Look Dev 27/27 pass with locked dependencies installed. Full included suite: 663/718 pass; the same 55 normalized display/source-text failure names remain, with no new failure names. The browser review page separately uses checked-in vendor modules without npm.
+The corrected tile period is exactly 1.4 m in both world directions. The older reference stretched four cells across 5.2 m depth; the new depth has about 3.714 cells. Wood joint phase can differ because the new implementation uses world-space UVs. These intentional corrections do not alter furniture maps.
 
-A fresh anonymous clone of the published code was started with Node only, without node_modules or npm installation. All five warm views rendered with the bundled Three modules. The five downloaded 1440 x 900 PNGs were byte-identical to the source captures, and browser console errors were empty.
+The upstream exterior grass remains bright under Neutral tone mapping. Its grass token was not changed as part of the floor task. Old bathroom floor overlays are omitted in warm so the new complete tile finish is visible; default and toy retain their original geometry.

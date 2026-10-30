@@ -13,3 +13,7 @@ Normalization summary: 5967 display fragments, 0 display-copy comments and 122 d
 ## Look-development addition
 
 The optional Toy v1 candidate and isolated real-render workstation are now included for review. This supersedes the earlier statement excluding all appearance experiments. The product default remains unchanged; no deployment data or original Git history is included. New workstation UI and instructions are English.
+
+## Explicitly approved upstream reference exception
+
+The supplied 2026-10-29 reviewer bundle is retained verbatim, including its original README and three reference-sheet captions, as explicitly requested by the user. This exception is limited to those reference artifacts and does not relax implementation-source, credential, account, deployment or personal-path normalization. IMPORT_PROVENANCE.json records all 24 original file hashes.

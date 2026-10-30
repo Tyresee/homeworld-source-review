@@ -1,0 +1,16 @@
+{
+  "scope": "Disposable loopback application, fictional students only",
+  "currentAppearance": "approved warm-v6",
+  "currentRoundSelections": 14,
+  "totalFinishReceiptsIncludingPriorRound": 28,
+  "allFinishAmountsZero": true,
+  "firstStudentWalletBefore": 96081,
+  "firstStudentWalletAfter": 96081,
+  "secondStudentWalletUnchanged": 150000,
+  "bedroomFinish": "wood-herringbone-walnut",
+  "kitchenFinish": "tile-charcoal",
+  "secondStudentFinish": null,
+  "refreshVerified": true,
+  "studentSwitchVerified": true,
+  "productionWrites": false
+}

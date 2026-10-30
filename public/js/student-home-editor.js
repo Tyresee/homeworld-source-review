@@ -11,6 +11,7 @@ import {SHOP_CATALOG,ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade,listOwnedRes
 import {getHomeStairs} from './home-staircase-shape.js';
 import {applyChange,PALETTE} from './home-engine.js';
 import {getHomeSwatches} from './home-theme.js';
+import {getWarmFloorMenu} from './student-home-floor-menu.js';
 import {roomRect} from './home-layout.js';
 import {getStoredPlacementGroups} from './home-inventory-menu.js';
 import {cloneRobotActivity,sameRobotActivity,isRobotActivityShape} from './student-home-robot-state.js';
@@ -176,7 +177,7 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     pending??={signature,id:job?.id??crypto.randomUUID(),value};busy=true;if(owner)owner.pending=pending;
     const request=pending,storedJob=activity?outbox?.markSent(boundActor,boundStudent,request.id,home.revision):value.type==='setObjectState'?objectOutbox.markSent(boundActor,boundStudent,request.id,home.revision):null;
     let complete;const flight={promise:new Promise(done=>{complete=done;})};commandInFlight=flight;if(owner)owner.flight=flight;
-    onStatus(activity?"DisplayText3800…":value.type==='setObjectState'?"DisplayText3801…":"DisplayText3802…");
+    onStatus(activity?"DisplayText3800…":value.type==='setObjectState'?"DisplayText3801…":value.type==='setFloorFinish'?"DisplayText4700 · DisplayText4701":"DisplayText3802…");
     try{const result=await onCommand(value,request.id,{actorId:boundActor,studentId:boundStudent,expectedRevision:storedJob?.expectedRevision??home.revision,keepalive});
       if(activity)outbox?.acknowledge(boundActor,boundStudent,request.id,result,{supersede:true});
       if(value.type==='setObjectState')objectOutbox.acknowledge(boundActor,boundStudent,request.id,result);
@@ -397,7 +398,18 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     if(data.surfaceId==='avatar')items.unshift({id:'robot',label:"DisplayText3710",action:()=>onRobot?.({x:request.clientX,y:request.clientY})});
     const danceSelection=floorDanceSelection(request);
     if(danceSelection)items.unshift({id:'stage-dance-here',label:"DisplayText3895",detail:"DisplayText3896, DisplayText3897",action:()=>danceAtSelection(danceSelection)});
-    menu.open({x:request.clientX,y:request.clientY,title:product?.name??(request.view==='estate'?"DisplayText3898":`${floor+1} DisplayText0931 · DisplayText3899`),subtitle:"DisplayText3900",items,returnFocus:container.querySelector('canvas')});
+    const editEpoch=identityEpoch,editFloor=floor,surfaceId=data.surfaceId;
+    const floorMenu=request.view==='interior'&&!owned?getWarmFloorMenu({homeFloor:getFloorHome(home.commerce,floor),surfaceId,async onSelect(finish){
+      if(disposed||!home||editEpoch!==identityEpoch||editFloor!==floor||world.getView()!=='interior'||!isCurrentFloorSurface(surfaceId))return {ok:false,error:"DisplayText3785, DisplayText4702, DisplayText4703."};
+      const current=getFloorHome(home.commerce,floor),match=/^room:([a-z\d_.:-]+)\.floor$/i.exec(surfaceId);
+      const appearance=surfaceId==='floor.main'?current.surfaces['floor.main']:current.rooms.find(room=>room.id===match?.[1])?.floor;
+      if(appearance?.finishId===finish.id){onStatus("DisplayText4704"+finish.label+" · DisplayText4705.");return {ok:true,unchanged:true};}
+      const result=await command({type:'setFloorFinish',surfaceId,finishId:finish.id,storey:editFloor});
+      if(result.ok&&!result.detached&&editEpoch===identityEpoch)onStatus("DisplayText4706"+finish.label+" · DisplayText4707.");
+      return result;
+    }}):null;
+    if(floorMenu)items.unshift(floorMenu);
+    menu.open({x:request.clientX,y:request.clientY,title:product?.name??(request.view==='estate'?"DisplayText3898":`${floor+1} DisplayText0931 · DisplayText3899`),subtitle:floorMenu?"DisplayText4708 · DisplayText4709":"DisplayText3900",items,returnFocus:container.querySelector('canvas')});
   }
   const shop=createHomeShop({catalog,accountMode:true,getState:state,getThumbnail:thumbnails.image,onCartChange:addToCart,getResaleQuote:resaleQuote,onSell:sell,onTryClothing:skuId=>openWardrobe({previewSku:skuId}),async onCheckout(){const result=await command({type:'checkout',lines:cart.map(row=>({...row}))});if(result.ok){cart=[];result.order=home.commerce.orders.at(-1);}return result;},onPlace:beginPlacement,onPlanConstruction:()=>{shop.close();openFloor();},onChooseElevator:()=>{shop.close();openElevators();}});
   const wardrobe=createStudentHomeWardrobe({getState:state,getColors:()=>home?.avatar.colors,getThumbnail:thumbnails.image,onEquip:(skuId,slot)=>command({type:'equipClothing',skuId,slot}),onAddToCart:addToCart,onShop:()=>openShop('clothing')});

@@ -11,6 +11,8 @@ import {ROBOT_CLOTHING_PRODUCTS} from '../public/js/robot-wardrobe-catalog.js';
 import * as commerce from '../public/js/home-commerce.js';
 import {applyChange,PALETTE} from '../public/js/home-engine.js';
 import {getHomeSwatches,HOME_THEMES} from '../public/js/home-theme.js';
+import {getWarmFloorMenu} from '../public/js/student-home-floor-menu.js';
+import {FLOOR_FINISHES} from '../public/js/home-floor-finishes.js';
 import {roomRect} from '../public/js/home-layout.js';
 import {getStoredPlacementGroups} from '../public/js/home-inventory-menu.js';
 import {getHomeStairs} from '../public/js/home-staircase-shape.js';
@@ -70,7 +72,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
     setTimeout,clearTimeout,document,
     cloneRobotActivity:jsonCall(cloneRobotActivity),sameRobotActivity:jsonCall(sameRobotActivity),isRobotActivityShape:jsonCall(isRobotActivityShape),createStudentHomeRobotOutbox:()=>createStudentHomeRobotOutbox({storage:null}),
     getKitchenFit,areKitchenModulesCompatible:getKitchenPair, getKitchenDockPose:getDockPose,
-    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),
+    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),getWarmFloorMenu:options=>getWarmFloorMenu({...options,theme}),
     ELEVATOR_UPGRADE_PRODUCT:commerce.ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade:jsonCall(commerce.quoteStaircaseUpgrade),getHomeStairs,
     listOwnedResaleQuotes:jsonCall(commerce.listOwnedResaleQuotes),
     getFloorHomes:commerce.getFloorHomes,getFloorHome:commerce.getFloorHome,roomRect,
@@ -568,4 +570,22 @@ for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test(`right-click color
   assert.equal(choices.length,8);assert.deepEqual(f.saved(),before);assert.equal(f.requests.length,0,'opening theme colors does not mutate a home');
   choices[0].action();assert.equal(f.requests.length,1);assert.equal(f.requests[0].command.type,'updateItem');assert.equal(f.requests[0].command.id,bed.id);
   assert.equal(f.requests[0].command.patch.color,getHomeSwatches(PALETTE,theme)[0].color);f.requests[0].accept();await new Promise(resolve=>setImmediate(resolve));f.editor.dispose();
+});
+
+test('warm floor click saves once for free, restores the chosen sample and refuses stale student actions',async()=>{
+  const f=fixture(ownedHome(),{id:'warm'});await f.show();const before=f.saved(),balance=f.state().wallet.balance;
+  const open=()=>{f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'floor.main'},clientX:100,clientY:180});return f.menu.calls.raw.at(-1)[0].items.find(item=>item.id==='floor-finish');};
+  const menu=open();assert.equal(menu.children.length,14);assert.equal(f.requests.length,0);
+  const pending=menu.children[6].action();assert.equal(f.requests.length,1);
+  assert.deepEqual(f.requests[0].command,{type:'setFloorFinish',surfaceId:'floor.main',finishId:FLOOR_FINISHES[6].id,storey:0});
+  f.requests[0].accept();assert.equal((await pending).ok,true);
+  assert.equal(f.saved().commerce.home.surfaces['floor.main'].finishId,FLOOR_FINISHES[6].id);
+  assert.equal(f.saved().revision,before.revision+1);assert.equal(f.state().wallet.balance,balance);
+  const repeat=open().children[6];assert.equal(repeat.current,true);assert.equal((await repeat.action()).unchanged,true);assert.equal(f.requests.length,1);
+  const stale=open().children[2].action;await f.show(ownedHome(B));assert.equal((await stale()).ok,false);assert.equal(f.requests.length,1);
+  f.editor.dispose();
+});
+for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test('the '+theme.id+' context menu keeps its pre-warm floor actions',async()=>{
+  const f=fixture(ownedHome(),theme);await f.show();f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'floor.main'}});
+  assert.equal(f.menu.calls.raw.at(-1)[0].items.some(item=>item.id==='floor-finish'),false);assert.equal(f.requests.length,0);f.editor.dispose();
 });

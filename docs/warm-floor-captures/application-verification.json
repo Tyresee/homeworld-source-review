@@ -1,0 +1,36 @@
+{
+  "scope": "Actual authenticated application on a disposable loopback platform, fictional students only",
+  "uiFinishOperations": 14,
+  "freeDeliveredReceipts": 14,
+  "allReceiptAmountsZero": true,
+  "firstStudent": {
+    "bedroomFinish": "wood-herringbone-walnut",
+    "kitchenFinish": "tile-charcoal",
+    "mainFinish": null,
+    "walletBefore": 96081,
+    "walletAfter": 96081
+  },
+  "secondStudent": {
+    "rooms": 1,
+    "mainFinish": null,
+    "walletUnchanged": 150000
+  },
+  "browserChecks": {
+    "refreshPreserved": true,
+    "selectedRadioRestored": true,
+    "switchToOtherStudentAndBackPreserved": true
+  },
+  "oldColorAndMaterialRetained": {
+    "bedroom": {
+      "color": "#f2e0dc",
+      "material": "oak",
+      "finishId": "wood-herringbone-walnut"
+    },
+    "kitchen": {
+      "color": "#e3e6da",
+      "material": "oak",
+      "finishId": "tile-charcoal"
+    }
+  },
+  "productionWrites": false
+}

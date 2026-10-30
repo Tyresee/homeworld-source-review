@@ -1,6 +1,6 @@
 {
-  "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 253,
+  "edition": "source-review-v3-warm-floors",
+  "totalFiles": 287,
   "files": [
     {
       "path": ".gitignore",
@@ -12,7 +12,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 22084
+      "bytes": 25492
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 1886
+      "bytes": 1909
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -36,7 +36,7 @@
     },
     {
       "path": "README.md",
-      "bytes": 6251
+      "bytes": 6651
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
@@ -45,6 +45,10 @@
     {
       "path": "VENDORED_THREE.md",
       "bytes": 2018
+    },
+    {
+      "path": "WARM_FLOORS_REVIEW.md",
+      "bytes": 5657
     },
     {
       "path": "docs/look-dev-captures/README.md",
@@ -103,6 +107,102 @@
       "bytes": 2677
     },
     {
+      "path": "docs/warm-floor-captures/README.md",
+      "bytes": 3149
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
+      "bytes": 437315
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-herringbone-oak.png",
+      "bytes": 403638
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-herringbone-walnut.png",
+      "bytes": 422077
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-light-oak.png",
+      "bytes": 377160
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-walnut.png",
+      "bytes": 415549
+    },
+    {
+      "path": "docs/warm-floor-captures/app--bedroom--wood-washed-oak.png",
+      "bytes": 339375
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-blue.png",
+      "bytes": 352581
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-caramel.png",
+      "bytes": 359808
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-charcoal.png",
+      "bytes": 356636
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-sand.png",
+      "bytes": 340273
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-stone.png",
+      "bytes": 345629
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-terracotta-deep.png",
+      "bytes": 381816
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-terracotta-light.png",
+      "bytes": 361167
+    },
+    {
+      "path": "docs/warm-floor-captures/app--kitchen--tile-terracotta.png",
+      "bytes": 371156
+    },
+    {
+      "path": "docs/warm-floor-captures/application-verification.json",
+      "bytes": 920
+    },
+    {
+      "path": "docs/warm-floor-captures/default-toy-final-comparison.json",
+      "bytes": 1530
+    },
+    {
+      "path": "docs/warm-floor-captures/verification.json",
+      "bytes": 1637
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-floors--bathroom.png",
+      "bytes": 774487
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-floors--bedroom.png",
+      "bytes": 958796
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-floors--exterior.png",
+      "bytes": 476697
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-floors--kitchen.png",
+      "bytes": 807926
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-floors--living.png",
+      "bytes": 959246
+    },
+    {
+      "path": "docs/warm-floor-captures/warm-render-readback.json",
+      "bytes": 19748
+    },
+    {
       "path": "game.manifest.json",
       "bytes": 1681
     },
@@ -132,7 +232,7 @@
     },
     {
       "path": "public/home-context-menu.css",
-      "bytes": 13166
+      "bytes": 14801
     },
     {
       "path": "public/home-floor-planner.css",
@@ -188,7 +288,7 @@
     },
     {
       "path": "public/js/home-commerce.js",
-      "bytes": 82900
+      "bytes": 83156
     },
     {
       "path": "public/js/home-construction-grid.js",
@@ -196,7 +296,7 @@
     },
     {
       "path": "public/js/home-context-menu.js",
-      "bytes": 21210
+      "bytes": 22043
     },
     {
       "path": "public/js/home-context-placement.js",
@@ -216,7 +316,7 @@
     },
     {
       "path": "public/js/home-engine.js",
-      "bytes": 66210
+      "bytes": 67534
     },
     {
       "path": "public/js/home-estate-landmarks.js",
@@ -235,8 +335,16 @@
       "bytes": 9197
     },
     {
+      "path": "public/js/home-floor-finishes.js",
+      "bytes": 3458
+    },
+    {
       "path": "public/js/home-floor-planner.js",
       "bytes": 19802
+    },
+    {
+      "path": "public/js/home-floor-textures.js",
+      "bytes": 11862
     },
     {
       "path": "public/js/home-furniture-capabilities.js",
@@ -248,7 +356,7 @@
     },
     {
       "path": "public/js/home-house-overview.js",
-      "bytes": 13188
+      "bytes": 13515
     },
     {
       "path": "public/js/home-household-collection.js",
@@ -360,7 +468,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 25750
+      "bytes": 27162
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -384,7 +492,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 105599
+      "bytes": 107387
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -432,7 +540,7 @@
     },
     {
       "path": "public/js/home-theme.js",
-      "bytes": 5860
+      "bytes": 6210
     },
     {
       "path": "public/js/home-utility-daily-collection.js",
@@ -468,7 +576,11 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 50080
+      "bytes": 51393
+    },
+    {
+      "path": "public/js/student-home-floor-menu.js",
+      "bytes": 1634
     },
     {
       "path": "public/js/student-home-loader.js",
@@ -536,7 +648,7 @@
     },
     {
       "path": "public/js/student-home-scene.js",
-      "bytes": 11543
+      "bytes": 11760
     },
     {
       "path": "public/js/student-home-stage-camera.js",
@@ -615,24 +727,28 @@
       "bytes": 5940
     },
     {
+      "path": "scripts/qa/look-dev-presets/warm-floors.json",
+      "bytes": 3391
+    },
+    {
       "path": "scripts/qa/look-dev-review.mjs",
       "bytes": 4114
     },
     {
       "path": "scripts/qa/look-dev-runtime.mjs",
-      "bytes": 15463
+      "bytes": 16306
     },
     {
       "path": "scripts/qa/look-dev-ui.css",
-      "bytes": 7525
+      "bytes": 7589
     },
     {
       "path": "scripts/qa/look-dev-ui.html",
-      "bytes": 2591
+      "bytes": 2672
     },
     {
       "path": "scripts/qa/look-dev-ui.mjs",
-      "bytes": 19379
+      "bytes": 21447
     },
     {
       "path": "scripts/qa/look-dev-zip.mjs",
@@ -664,7 +780,7 @@
     },
     {
       "path": "server/student-homes/commerce.mjs",
-      "bytes": 9942
+      "bytes": 10334
     },
     {
       "path": "server/student-homes/errors.mjs",
@@ -695,6 +811,14 @@
       "bytes": 4337
     },
     {
+      "path": "tests/home-floor-finishes.test.mjs",
+      "bytes": 7071
+    },
+    {
+      "path": "tests/home-floor-textures.test.mjs",
+      "bytes": 10021
+    },
+    {
       "path": "tests/home-theme-rooms.test.mjs",
       "bytes": 10917
     },
@@ -705,6 +829,10 @@
     {
       "path": "tests/look-dev-ui.test.mjs",
       "bytes": 4462
+    },
+    {
+      "path": "tests/look-dev-warm-floors.test.mjs",
+      "bytes": 1587
     },
     {
       "path": "tests/student-home-account-world.test.mjs",
@@ -737,6 +865,10 @@
     {
       "path": "tests/student-home-facade-a.test.mjs",
       "bytes": 8621
+    },
+    {
+      "path": "tests/student-home-floor-menu.test.mjs",
+      "bytes": 2705
     },
     {
       "path": "tests/student-home-floor-planner.test.mjs",
@@ -792,7 +924,7 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 61502
+      "bytes": 63444
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
@@ -824,7 +956,7 @@
     },
     {
       "path": "tests/student-home-robot-state-editor.test.mjs",
-      "bytes": 25084
+      "bytes": 25175
     },
     {
       "path": "tests/student-home-robot-swim-controller.test.mjs",
@@ -909,6 +1041,10 @@
     {
       "path": "tests/student-homes-elevator-commerce.test.mjs",
       "bytes": 16088
+    },
+    {
+      "path": "tests/student-homes-floor-finishes.test.mjs",
+      "bytes": 4588
     },
     {
       "path": "tests/student-homes-object-state.test.mjs",

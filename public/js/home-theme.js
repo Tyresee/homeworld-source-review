@@ -22,6 +22,10 @@ export const HOME_THEMES=freeze({
   // Empty overrides deliberately leave the existing renderer/CSS defaults in
   // their original owners. Room entries reference the original kind records.
   default:{id:'default',rooms:defaultRooms,surfaceRemap:{},shell:{},manor:{},lighting:{},swatches:null},
+  // Floor candidate only until the reviewer supplies the approved warm-v6
+  // lighting/wall/backdrop preset. Inheritance is deliberate, not guessed color.
+  warm:{id:'warm',rooms:defaultRooms,surfaceRemap:{},shell:{},manor:{},lighting:{},swatches:null,floorFinishes:true,
+    appearanceSource:{id:'warm-v6',status:'awaiting-source'}},
   toy:{
     id:'toy',backdrop:{inner:'#bfe6f5',outer:'#7cc3e6'},
     rooms:{
@@ -48,15 +52,15 @@ export const HOME_THEMES=freeze({
     manor:{wall:'#f4efe4',trim:'#ffffff',base:'#6b4129',wood:'#a85f2a',glass:'#74c4ee',leaf:'#2d9c46',flower:'#e5483d',gold:'#ffc93a'},
     lighting:{editor:light(3.8),student:light(2.9)},
     swatches:[
-      {id:'cream',label:"DisplayText4677",color:'#f6f1e6'}, {id:'oak',label:"DisplayText1901",color:'#d58b48'},
-      {id:'red',label:"DisplayText4678",color:'#e5483d'}, {id:'green',label:"DisplayText4679",color:'#15864a'},
-      {id:'blue',label:"DisplayText4680",color:'#2d63b8'}, {id:'yellow',label:"DisplayText4681",color:'#ffc93a'},
-      {id:'orange',label:"DisplayText4682",color:'#ff8a3d'}, {id:'cocoa',label:"DisplayText4683",color:'#6b4129'},
+      {id:'cream',label:"DisplayText4693",color:'#f6f1e6'}, {id:'oak',label:"DisplayText1901",color:'#d58b48'},
+      {id:'red',label:"DisplayText4694",color:'#e5483d'}, {id:'green',label:"DisplayText4695",color:'#15864a'},
+      {id:'blue',label:"DisplayText4696",color:'#2d63b8'}, {id:'yellow',label:"DisplayText4697",color:'#ffc93a'},
+      {id:'orange',label:"DisplayText4698",color:'#ff8a3d'}, {id:'cocoa',label:"DisplayText4699",color:'#6b4129'},
     ],
   },
 });
 
-/** Pure parser for tests/review tools; only these two opt-in values exist. */
+/** Pure parser for the explicit, presentation-only candidate switches. */
 export function resolveHomeTheme(search='') {
   try{const id=new URLSearchParams(search).get('theme');return Object.hasOwn(HOME_THEMES,id)?HOME_THEMES[id]:HOME_THEMES.default;}
   catch{return HOME_THEMES.default;}
@@ -84,7 +88,7 @@ export function getRoomTheme(kind,roomState,theme=getHomeTheme()) {
   // all other saved colors remain authoritative, with no data migration.
   const color=part=>{
     const saved=roomState?.[part]?.color;
-    return theme.id==='toy'&&saved?.toLowerCase()===definition[part]?.toLowerCase()
+    return ['toy','warm'].includes(theme.id)&&saved?.toLowerCase()===definition[part]?.toLowerCase()
       ?skin[part]??saved:saved??skin[part]??definition[part];
   };
   return {...definition,

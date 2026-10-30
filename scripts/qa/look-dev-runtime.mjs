@@ -7,6 +7,7 @@ import {createStudentHomeRobotController} from '../../public/js/student-home-rob
 import {HOME_THEMES} from '../../public/js/home-theme.js';
 import {getRoomKind} from '../../public/js/home-layout.js';
 import {validateHomeState,MATERIALS} from '../../public/js/home-engine.js';
+import {isFloorFinishId} from '../../public/js/home-floor-finishes.js';
 import {createLookDevFixture,LOOK_DEV_SIZE,LOOK_DEV_VIEWS} from './look-dev-fixtures.mjs';
 import {paintLookDevBackdrop} from './look-dev-backdrop.mjs';
 
@@ -29,6 +30,11 @@ const materialCopy=(skin,role,part)=>{
   if(!skin)return;
   if(hex(role?.[part]))skin.color=role[part];
   if(validMaterial(role?.[part+'Material']))skin.material=role[part+'Material'];
+  if(part==='floor'&&Object.hasOwn(role??{},'floorFinishId')) {
+    if(role.floorFinishId===null)delete skin.finishId;
+    else if(isFloorFinishId(role.floorFinishId))skin.finishId=role.floorFinishId;
+    else throw new TypeError('Unknown floor finish in review preset');
+  }
 };
 /** Explicit role edits affect only fresh QA fixture data, never source defaults. */
 export function resolveLookDevBuild(fixture,preset) {
@@ -40,6 +46,7 @@ export function resolveLookDevBuild(fixture,preset) {
     for(const room of floor.rooms) {
       const kind=getRoomKind(room.kind),role=patch.rooms?.[kind?.baseKind??room.kind]??patch.rooms?.[room.kind];
       if(room.id==='living') {
+        materialCopy(floor.surfaces['floor.main'],role,'floor');
         if(hex(role?.floor)){floor.surfaces['floor.main'].color=role.floor;if(theme.surfaceRemap['floor.main'])theme.surfaceRemap['floor.main'].to=role.floor;}
         if(validMaterial(role?.floorMaterial))floor.surfaces['floor.main'].material=role.floorMaterial;
         if(hex(role?.wall))for(const id of ['wall.inner','wall.outer','wall.side']){floor.surfaces[id].color=role.wall;if(theme.surfaceRemap[id])theme.surfaceRemap[id].to=role.wall;}
@@ -51,6 +58,7 @@ export function resolveLookDevBuild(fixture,preset) {
     const first=floor.rooms[0],kind=getRoomKind(first?.kind),role=patch.rooms?.[kind?.baseKind??first?.kind]??patch.rooms?.[first?.kind];
     // Unallocated slabs and outer wall parts retain real global surfaces. When
     // editing this reference room, do not let that skin overwrite the role.
+    materialCopy(floor.surfaces['floor.main'],role,'floor');
     if(hex(role?.floor)){floor.surfaces['floor.main'].color=role.floor;if(theme.surfaceRemap['floor.main'])theme.surfaceRemap['floor.main'].to=role.floor;}
     if(validMaterial(role?.floorMaterial))floor.surfaces['floor.main'].material=role.floorMaterial;
     if(hex(role?.wall))for(const id of ['wall.inner','wall.outer','wall.side']){floor.surfaces[id].color=role.wall;if(theme.surfaceRemap[id])theme.surfaceRemap[id].to=role.wall;}
@@ -95,8 +103,9 @@ export async function createLookDevRuntime({container,preset,fixtureId='living',
         if(!material.color)continue;
         const surfaceId=mesh.userData.surfaceId??null;
         const roomId=mesh.userData.roomId??mesh.userData.themeRoomId??(/^room:(.+)\.(?:floor|wall)$/.exec(surfaceId??'')?.[1])??null;
-        const materialKey=material.map?(textures.find(([,texture])=>texture===material.map)?.[0]??'unregistered'):null;
+        const materialKey=material.map?(textures.find(([,texture])=>texture===material.map)?.[0]??(material.map.userData?.floorPattern?'floor:'+material.map.userData.floorPattern:'unregistered')):null;
         const row={roomId,surfaceId,part,color:'#'+material.color.getHexString(),materialKey};
+        if(material.map?.userData?.floorPattern)Object.assign(row,{finishId:material.map.userData.finishId??null,pattern:material.map.userData.floorPattern,worldTileMetres:material.map.userData.worldTileMetres,repeat:material.map.repeat.toArray(),offset:material.map.offset.toArray()});
         rows.set(JSON.stringify(row),row);
       }
     }

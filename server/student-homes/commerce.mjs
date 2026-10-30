@@ -83,6 +83,11 @@ export function prepareCommerceCommand(current,command,commandId){
       const changed=checked(applyChange(home,{type:'furniture',id:command.id,...command.patch}));
       result=reconcileHome(state,changed.state,options);break;
     }
+    case 'setFloorFinish':{
+      expectKeys(command,['surfaceId','finishId','storey']);const options=floorOptions(command),home=getFloorHome(state,options.storey);
+      const changed=checked(applyChange(home,{type:'setFloorFinish',surfaceId:command.surfaceId,finishId:command.finishId}));
+      result=changed.changed?reconcileHome(state,changed.state,options):{ok:true,state};break;
+    }
     case 'placeRoom':expectKeys(command,['id','pose','storey']);result=placeOwnedRoom(state,command.id,command.pose,floorOptions(command));break;
     case 'resizeRoom':expectKeys(command,['id','size','storey']);result=resizeOwnedRoom(state,command.id,command.size,commandId,floorOptions(command));break;
     case 'constructFloor':expectKeys(command,['selection']);result=purchaseFloorConstruction(state,command.selection,commandId);break;

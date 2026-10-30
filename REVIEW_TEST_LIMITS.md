@@ -1,6 +1,6 @@
 # Validation of the normalized copy
 
-All 692 included checks were attempted in this review copy: 637 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. The 55 failing test names are identical to the previous snapshot; there are no new failing test names. This is not a production test result.
+All 718 included checks were attempted in this review copy: 663 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. The 55 failing test names are identical to the previous snapshot; there are no new failing test names. This is not a production test result.
 
 The default core subset passes 379/379. The new look-development preset/safety/ZIP tests pass 4/4 without installing dependencies. The real no-node_modules browser matrix is recorded separately in LOOK_DEV_REVIEW.md.
 

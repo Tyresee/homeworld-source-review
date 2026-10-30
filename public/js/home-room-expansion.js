@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
 import { getHomeTheme, getRoomTheme } from './home-theme.js';
+import {resolveHomeFloorFinish} from './home-floor-finishes.js';
+import {getDefaultFloorAppearance} from './home-engine.js';
+import {createHomeFloorTextureManager} from './home-floor-textures.js';
 import { splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs } from './home-staircase.js';
 
 export { ROOM_KINDS, getRoomKind, roomRect, layoutBounds };
@@ -38,10 +41,12 @@ const PALETTE = Object.freeze({ trim: '#e6c49e', plinth: '#d0bb9b', accent: '#c8
  * them into a room. Floor and wall skins carry `surfaceId`
  * (`room:<id>.floor` / `room:<id>.wall`) so they can be painted separately.
  */
-export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile, theme = getHomeTheme() } = {}) {
+export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includeWalls = true, includeGrid = true, stairs = null, staircases, slab = null, profile, theme = getHomeTheme(), surfaces = null, floorTextureManager = null } = {}) {
   stairs = Array.isArray(stairs) ? stairs : getHomeStairs({stairs,staircases});
   const group = new THREE.Group(); group.name = 'room-expansion';
   const geometries = new Set(), materials = new Set();
+  const floorTextures=theme.id==='warm'?(floorTextureManager??createHomeFloorTextureManager()):null;
+  const ownsFloorTextures=!!floorTextures&&!floorTextureManager;
   // Keep the empty fixtures bucket for callers that inspect older roomParts.
   const parts = { floor: [], walls: [], border: [], zones: [], columns: [], accents: [], windows: [], fixtures: [] };
   let definition, disposed = false, currentRoom = null, boundarySkinRoom = null;
@@ -121,6 +126,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   }
   /** Colored inlaid tiles are part of the paintable floor, not furniture. */
   function floorAccents(rect, kind) {
+    if(theme.id==='warm')return;
     const w = rect.width, d = rect.depth, x0 = rect.minX, z0 = rect.minZ;
     const tileAt = (size, position, color, radius) => {
       const tile = box(size, position, color, 'zones', radius);
@@ -155,6 +161,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     }
   }
   function clear() {
+    for(const mesh of parts.floor)floorTextures?.release(mesh);
     for (const list of Object.values(parts)) { list.length = 0; }
     group.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
     geometries.clear(); materials.clear(); group.clear();
@@ -169,7 +176,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     for(const piece of splitFloorAroundOpening(rect,stairs)) {
       const floor=box([piece.maxX-piece.minX,.06,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,.03,(piece.minZ+piece.maxZ)/2],floorColor,'floor',.012,{mapKey:room.floor?.material??'oak'});floor.castShadow=false;
     }
-    if (includeGrid) {
+    if (includeGrid && theme.id!=='warm') {
       for (let z = rect.minZ + .45; z < rect.maxZ - .25; z += .68) { const seam = box([w - .4, .003, .008], [rect.x, .063, z], PALETTE.grid, 'zones', .001); seam.castShadow = false; }
       for (let x = rect.minX + .5; x < rect.maxX - .25; x += 1.4) { const seam = box([.008, .003, d - .4], [x, .064, rect.z], PALETTE.grid, 'zones', .001); seam.castShadow = false; }
     }
@@ -275,7 +282,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       }
       for(const object of Object.values(parts).flat()) if(!before.has(object)) {
         object.userData.surfaceId=surfaceId;object.userData.floorBoundary={...edge};
-        if(theme.id==='toy'&&!legacy&&boundarySkinRoom&&object.userData.roomPart==='walls')object.userData.themeRoomId=boundarySkinRoom.id;
+        if(['toy','warm'].includes(theme.id)&&!legacy&&boundarySkinRoom&&object.userData.roomPart==='walls')object.userData.themeRoomId=boundarySkinRoom.id;
         if(full)object.userData.wallId=edge.owner?`room:${edge.owner.id}:${edge.side}:${edge.from}:${edge.to}`:`slab:${edge.side}:${edge.at}:${edge.from}:${edge.to}`;
       }
     }
@@ -311,7 +318,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     currentRoom=null;
   }
   function build(rooms) {
-    const home={rooms:resolveRooms(rooms),...(slab?{slab}:{}),profile};
+    const home={rooms:resolveRooms(rooms),...(slab?{slab}:{}),profile,surfaces};
     const slabMode=!!slab,standalone=slabMode&&!hasStarterRoom(home);
     if(slabMode){
       const bounds=getFloorBounds(home);
@@ -325,17 +332,29 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     group.userData.rooms = definition.rooms; group.userData.roomCount = definition.count;
     group.userData.roomBounds = definition.bounds; group.userData.roomDimensions = { width: definition.width, depth: definition.depth, height: WALL_HEIGHT };
     group.userData.roomParts = parts;
+    syncFloorFinishes(home);
     group.userData.surfaceIds = Object.fromEntries(definition.rooms.filter(room=>room.id!=='living').flatMap(room => [[`${room.id}.floor`, `room:${room.id}.floor`], [`${room.id}.wall`, `room:${room.id}.wall`]]));
     if(slabMode)Object.assign(group.userData.surfaceIds,{'slab.floor':'floor.main','slab.back':'wall.inner','slab.left':'wall.side'});
     group.userData.slab=slab;group.userData.standalone=standalone;group.userData.slabMode=slabMode;
     group.userData.roomTier = Array.isArray(rooms) ? describeStage(definition.count) : rooms;
   }
+  function syncFloorFinishes(home) {
+    if(!floorTextures)return;
+    for(const mesh of parts.floor) {
+      const owner=home.rooms.find(room=>room.id===mesh.userData.roomId)??home.rooms.find(room=>room.id==='living')??home.rooms[0];
+      const publicFloor=mesh.userData.surfaceId==='floor.main',kind=owner?.kind??'living';
+      const appearance=publicFloor?(home.surfaces?.['floor.main']??getDefaultFloorAppearance()):(owner?.floor??{color:getRoomKind(kind).floor,material:'oak'});
+      const finish=resolveHomeFloorFinish(kind,appearance,{themeId:theme.id,...publicFloor?{legacyDefault:getDefaultFloorAppearance()}:{} });
+      floorTextures.apply(mesh,finish);
+    }
+  }
+  group.syncFloorFinishes=syncFloorFinishes;
   const describeStage = count => count >= 5 ? 'mansion' : count >= 3 ? 'atrium' : count >= 2 ? 'suite' : 'starter';
   build(tier ?? rooms);
-  group.setRooms = (value, options = {}) => { if (disposed) throw new Error('Cannot change a disposed room expansion.'); if(Object.hasOwn(options,'staircases'))stairs=getHomeStairs(options);else if(Object.hasOwn(options,'stairs'))stairs=Array.isArray(options.stairs)?options.stairs:getHomeStairs(options);if(Object.hasOwn(options,'slab'))slab=options.slab;if(Object.hasOwn(options,'profile'))profile=options.profile; clear(); build(value); return group; };
+  group.setRooms = (value, options = {}) => { if (disposed) throw new Error('Cannot change a disposed room expansion.'); if(Object.hasOwn(options,'staircases'))stairs=getHomeStairs(options);else if(Object.hasOwn(options,'stairs'))stairs=Array.isArray(options.stairs)?options.stairs:getHomeStairs(options);if(Object.hasOwn(options,'slab'))slab=options.slab;if(Object.hasOwn(options,'profile'))profile=options.profile;if(Object.hasOwn(options,'surfaces'))surfaces=options.surfaces; clear(); build(value); return group; };
   group.setTier = value => group.setRooms(getRoomTierDefinition(value).id);
   group.getDefinition = () => definition;
-  group.dispose = () => { if (disposed) return; disposed = true; clear(); group.userData.roomParts = null; };
+  group.dispose = () => { if (disposed) return; disposed = true; clear();if(ownsFloorTextures)floorTextures.dispose(); group.userData.roomParts = null; };
   return group;
 }
 export { CELL };

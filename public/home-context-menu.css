@@ -123,3 +123,18 @@
 .room-resize-note,.room-resize-status{font-size:11px;line-height:1.7;margin:12px 0 0;color:#7b836e}.room-resize-status{color:#32644d;font-weight:700}
 .plan-slab{fill:#e7ebdb;stroke:#a5b697;stroke-width:.35}.plan-stairs{fill:#bba479;stroke:#8e774e;stroke-width:.3;pointer-events:none}
 .plan-room-proposal{fill:#d0ddb688;stroke:#64835c;stroke-width:.6;stroke-dasharray:2 1;pointer-events:none}.room-menu-option:disabled{opacity:.55;cursor:not-allowed}
+
+/* Optional warm-floor choices. Other context menus keep their original layout. */
+.scene-context-submenu[data-finish-menu=true]{width:390px}
+.scene-context-submenu[data-finish-menu=true] .scene-context-submenu-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.floor-finish-group-heading{grid-column:1/-1;padding:5px 3px 2px;font-size:11px;font-weight:800;color:#6d604e}
+.scene-context-submenu[data-finish-menu=true] .scene-context-submenu-item{min-height:83px;flex-direction:column;align-items:stretch;gap:5px;padding:5px;border:1px solid transparent}
+.scene-context-submenu[data-finish-menu=true] .scene-context-item-thumbnail{width:100%;height:42px;border-radius:6px;background:#f2e6d5}
+.scene-context-submenu[data-finish-menu=true] .scene-context-item-thumbnail img{object-fit:cover;background:#f2e6d5}
+.floor-finish-chip{position:absolute;right:4px;bottom:4px;z-index:2;width:13px;height:13px;border:1px solid #fff9ef;border-radius:3px;background:var(--finish-color);box-shadow:0 1px 3px #47352730}
+.scene-context-submenu[data-finish-menu=true] .scene-context-label{font-size:11px;line-height:1.35}
+.scene-context-submenu[data-finish-menu=true] .scene-context-detail{font-size:9px;line-height:1.3;color:#8b7863}
+.scene-context-submenu[data-finish-menu=true] .scene-context-item-copy{gap:2px}
+.scene-context-submenu[data-finish-menu=true] .is-current{border-color:#bd976a;background:#f4e7d2}
+.scene-context-submenu[data-finish-menu=true] .is-current .scene-context-label::after{content:" ✓";color:#947044}
+@media(max-width:420px){.scene-context-submenu[data-finish-menu=true]{width:calc(100vw - 24px)}}

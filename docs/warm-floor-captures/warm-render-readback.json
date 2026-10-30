@@ -1,0 +1,865 @@
+[
+  {
+    "fixtureId": "living",
+    "presetId": "warm-floors",
+    "ready": true,
+    "size": {
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "canvasWidth": 1440,
+      "canvasHeight": 900
+    },
+    "render": {
+      "toneMapping": "aces",
+      "exposure": 1.1,
+      "hemisphere": {
+        "sky": "#fff8e6",
+        "ground": "#9daa98",
+        "intensity": 2.1
+      },
+      "sun": {
+        "color": "#fff4d9",
+        "intensity": 3.4,
+        "position": [
+          4.022870397928836,
+          12.64165439543057,
+          8.548321594722037
+        ],
+        "target": [
+          0,
+          1.9140000009536742,
+          0.5025807988643645
+        ]
+      },
+      "fill": {
+        "color": "#dceceb",
+        "intensity": 1
+      },
+      "shadowRadius": 4,
+      "environmentIntensity": 1
+    },
+    "backdrop": {
+      "inner": "#fcf7df",
+      "outer": "#e5edce"
+    },
+    "capabilities": {
+      "contactShadow": false
+    },
+    "camera": {
+      "position": [
+        7.006067814845707,
+        8.462499996870756,
+        7.006067814845708
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260623,
+        0.11626808663848794,
+        0.880206311539509
+      ],
+      "left": -6.727362456708042,
+      "right": 6.727362456708044,
+      "top": 4.204601535442528,
+      "bottom": -4.204601535442526,
+      "near": 6.061434633125124,
+      "far": 18.46691631022204,
+      "zoom": 1
+    },
+    "items": [
+      {
+        "id": "lookdev:lounge-sofa",
+        "kind": "sofa",
+        "storey": 0,
+        "color": "#eeaaa4",
+        "material": "velvet",
+        "defaultColor": "#eeaaa4",
+        "defaultMaterial": "velvet"
+      },
+      {
+        "id": "lookdev:coffee-table",
+        "kind": "lcCoffeeTable",
+        "storey": 0,
+        "color": "#c89f72",
+        "material": "oak",
+        "defaultColor": "#c89f72",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:television",
+        "kind": "ipRetroTelevision",
+        "storey": 0,
+        "color": "#c99563",
+        "material": "oak",
+        "defaultColor": "#c99563",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:floor-lamp",
+        "kind": "hhTripodLamp",
+        "storey": 0,
+        "color": "#d6bc85",
+        "material": "linen",
+        "defaultColor": "#d6bc85",
+        "defaultMaterial": "linen"
+      },
+      {
+        "id": "lookdev:lounge-rug",
+        "kind": "rug",
+        "storey": 0,
+        "color": "#a6cbb6",
+        "material": "wool",
+        "defaultColor": "#a6cbb6",
+        "defaultMaterial": "wool"
+      },
+      {
+        "id": "lookdev:lounge-plant",
+        "kind": "plant",
+        "storey": 0,
+        "color": "#91ac77",
+        "material": "ceramic",
+        "defaultColor": "#91ac77",
+        "defaultMaterial": "ceramic"
+      }
+    ],
+    "roomSurfaces": [
+      {
+        "roomId": null,
+        "surfaceId": "floor.main",
+        "part": "floor",
+        "color": "#d8b58c",
+        "materialKey": "floor:wide",
+        "finishId": "wood-light-oak",
+        "pattern": "wide",
+        "worldTileMetres": 2.4,
+        "repeat": [
+          2.333333293596904,
+          2.166666587193807
+        ],
+        "offset": [
+          -1.166666646798452,
+          -1.0833332935969036
+        ]
+      },
+      {
+        "roomId": "living",
+        "surfaceId": "wall.inner",
+        "part": "walls",
+        "color": "#f7ead7",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "living",
+        "surfaceId": "wall.side",
+        "part": "walls",
+        "color": "#d0dcca",
+        "materialKey": "ceramic"
+      }
+    ],
+    "revisions": [
+      6
+    ],
+    "stats": {
+      "frame": 3,
+      "calls": 185,
+      "triangles": 95042,
+      "points": 0,
+      "lines": 0,
+      "geometries": 185,
+      "textures": 9,
+      "surfaceCount": 19
+    }
+  },
+  {
+    "fixtureId": "bedroom",
+    "presetId": "warm-floors",
+    "ready": true,
+    "size": {
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "canvasWidth": 1440,
+      "canvasHeight": 900
+    },
+    "render": {
+      "toneMapping": "aces",
+      "exposure": 1.1,
+      "hemisphere": {
+        "sky": "#fff8e6",
+        "ground": "#9daa98",
+        "intensity": 2.1
+      },
+      "sun": {
+        "color": "#fff4d9",
+        "intensity": 3.4,
+        "position": [
+          4.022870397928836,
+          12.64165439543057,
+          8.548321594722037
+        ],
+        "target": [
+          0,
+          1.9140000009536742,
+          0.5025807988643645
+        ]
+      },
+      "fill": {
+        "color": "#dceceb",
+        "intensity": 1
+      },
+      "shadowRadius": 4,
+      "environmentIntensity": 1
+    },
+    "backdrop": {
+      "inner": "#fcf7df",
+      "outer": "#e5edce"
+    },
+    "capabilities": {
+      "contactShadow": false
+    },
+    "camera": {
+      "position": [
+        7.006067814845707,
+        8.462499996870756,
+        7.006067814845708
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260623,
+        0.11626808663848794,
+        0.880206311539509
+      ],
+      "left": -6.727362456708042,
+      "right": 6.727362456708044,
+      "top": 4.204601535442528,
+      "bottom": -4.204601535442526,
+      "near": 6.061434633125124,
+      "far": 18.46691631022204,
+      "zoom": 1
+    },
+    "items": [
+      {
+        "id": "lookdev:timber-bed",
+        "kind": "bedTimber",
+        "storey": 0,
+        "color": "#c99362",
+        "material": "oak",
+        "defaultColor": "#c99362",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:bedside",
+        "kind": "bedsideCabinet",
+        "storey": 0,
+        "color": "#c99362",
+        "material": "oak",
+        "defaultColor": "#c99362",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:bedside-lamp",
+        "kind": "taskLamp",
+        "storey": 0,
+        "color": "#a6cbb6",
+        "material": "ceramic",
+        "defaultColor": "#a6cbb6",
+        "defaultMaterial": "ceramic"
+      },
+      {
+        "id": "lookdev:clothes-rack",
+        "kind": "udHangerRack",
+        "storey": 0,
+        "color": "#bfa276",
+        "material": "oak",
+        "defaultColor": "#bfa276",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:bedside-rug",
+        "kind": "rug",
+        "storey": 0,
+        "color": "#a6cbb6",
+        "material": "wool",
+        "defaultColor": "#a6cbb6",
+        "defaultMaterial": "wool"
+      }
+    ],
+    "roomSurfaces": [
+      {
+        "roomId": null,
+        "surfaceId": "floor.main",
+        "part": "floor",
+        "color": "#d8b58c",
+        "materialKey": "floor:wide",
+        "finishId": "wood-light-oak",
+        "pattern": "wide",
+        "worldTileMetres": 2.4,
+        "repeat": [
+          2.333333293596904,
+          2.166666587193807
+        ],
+        "offset": [
+          -1.166666646798452,
+          -1.0833332935969036
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "room:lookdev-room.floor",
+        "part": "floor",
+        "color": "#d8b58c",
+        "materialKey": "floor:wide",
+        "finishId": "wood-light-oak",
+        "pattern": "wide",
+        "worldTileMetres": 2.4,
+        "repeat": [
+          2.333333293596904,
+          2.166666587193807
+        ],
+        "offset": [
+          -1.166666646798452,
+          -1.0833332935969036
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.inner",
+        "part": "walls",
+        "color": "#f7ead7",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.side",
+        "part": "walls",
+        "color": "#d0dcca",
+        "materialKey": "ceramic"
+      }
+    ],
+    "revisions": [
+      5
+    ],
+    "stats": {
+      "frame": 2,
+      "calls": 168,
+      "triangles": 86408,
+      "points": 0,
+      "lines": 0,
+      "geometries": 168,
+      "textures": 8,
+      "surfaceCount": 17
+    }
+  },
+  {
+    "fixtureId": "kitchen",
+    "presetId": "warm-floors",
+    "ready": true,
+    "size": {
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "canvasWidth": 1440,
+      "canvasHeight": 900
+    },
+    "render": {
+      "toneMapping": "aces",
+      "exposure": 1.1,
+      "hemisphere": {
+        "sky": "#fff8e6",
+        "ground": "#9daa98",
+        "intensity": 2.1
+      },
+      "sun": {
+        "color": "#fff4d9",
+        "intensity": 3.4,
+        "position": [
+          4.022870397928836,
+          12.64165439543057,
+          8.548321594722037
+        ],
+        "target": [
+          0,
+          1.9140000009536742,
+          0.5025807988643645
+        ]
+      },
+      "fill": {
+        "color": "#dceceb",
+        "intensity": 1
+      },
+      "shadowRadius": 4,
+      "environmentIntensity": 1
+    },
+    "backdrop": {
+      "inner": "#fcf7df",
+      "outer": "#e5edce"
+    },
+    "capabilities": {
+      "contactShadow": false
+    },
+    "camera": {
+      "position": [
+        7.006067814845707,
+        8.462499996870756,
+        7.006067814845708
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260623,
+        0.11626808663848794,
+        0.880206311539509
+      ],
+      "left": -6.727362456708042,
+      "right": 6.727362456708044,
+      "top": 4.204601535442528,
+      "bottom": -4.204601535442526,
+      "near": 6.061434633125124,
+      "far": 18.46691631022204,
+      "zoom": 1
+    },
+    "items": [
+      {
+        "id": "lookdev:cooker",
+        "kind": "mkDoubleGas",
+        "storey": 0,
+        "color": "#b98a54",
+        "material": "oak",
+        "defaultColor": "#b98a54",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:kitchen-sink",
+        "kind": "mkSingleSink",
+        "storey": 0,
+        "color": "#e7d8b5",
+        "material": "ceramic",
+        "defaultColor": "#e7d8b5",
+        "defaultMaterial": "ceramic"
+      },
+      {
+        "id": "lookdev:base-cabinet",
+        "kind": "mkBaseDrawers",
+        "storey": 0,
+        "color": "#b98a54",
+        "material": "oak",
+        "defaultColor": "#b98a54",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:dining-table",
+        "kind": "diningTable",
+        "storey": 0,
+        "color": "#f7ead7",
+        "material": "marble",
+        "defaultColor": "#f7ead7",
+        "defaultMaterial": "marble"
+      },
+      {
+        "id": "lookdev:dining-chair-left",
+        "kind": "diningChair",
+        "storey": 0,
+        "color": "#c99362",
+        "material": "oak",
+        "defaultColor": "#c99362",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:dining-chair-right",
+        "kind": "diningChair",
+        "storey": 0,
+        "color": "#c99362",
+        "material": "oak",
+        "defaultColor": "#c99362",
+        "defaultMaterial": "oak"
+      }
+    ],
+    "roomSurfaces": [
+      {
+        "roomId": null,
+        "surfaceId": "floor.main",
+        "part": "floor",
+        "color": "#b9755a",
+        "materialKey": "floor:tile",
+        "finishId": "tile-terracotta",
+        "pattern": "tile",
+        "worldTileMetres": 1.4,
+        "repeat": [
+          3.999999931880406,
+          3.7142855780465265
+        ],
+        "offset": [
+          -1.999999965940203,
+          -1.8571427890232632
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "room:lookdev-room.floor",
+        "part": "floor",
+        "color": "#b9755a",
+        "materialKey": "floor:tile",
+        "finishId": "tile-terracotta",
+        "pattern": "tile",
+        "worldTileMetres": 1.4,
+        "repeat": [
+          3.999999931880406,
+          3.7142855780465265
+        ],
+        "offset": [
+          -1.999999965940203,
+          -1.8571427890232632
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.inner",
+        "part": "walls",
+        "color": "#f7ead7",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.side",
+        "part": "walls",
+        "color": "#d0dcca",
+        "materialKey": "ceramic"
+      }
+    ],
+    "revisions": [
+      6
+    ],
+    "stats": {
+      "frame": 2,
+      "calls": 216,
+      "triangles": 89340,
+      "points": 0,
+      "lines": 0,
+      "geometries": 216,
+      "textures": 8,
+      "surfaceCount": 18
+    }
+  },
+  {
+    "fixtureId": "bathroom",
+    "presetId": "warm-floors",
+    "ready": true,
+    "size": {
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "canvasWidth": 1440,
+      "canvasHeight": 900
+    },
+    "render": {
+      "toneMapping": "aces",
+      "exposure": 1.1,
+      "hemisphere": {
+        "sky": "#fff8e6",
+        "ground": "#9daa98",
+        "intensity": 2.1
+      },
+      "sun": {
+        "color": "#fff4d9",
+        "intensity": 3.4,
+        "position": [
+          4.022870397928836,
+          12.64165439543057,
+          8.548321594722037
+        ],
+        "target": [
+          0,
+          1.9140000009536742,
+          0.5025807988643645
+        ]
+      },
+      "fill": {
+        "color": "#dceceb",
+        "intensity": 1
+      },
+      "shadowRadius": 4,
+      "environmentIntensity": 1
+    },
+    "backdrop": {
+      "inner": "#fcf7df",
+      "outer": "#e5edce"
+    },
+    "capabilities": {
+      "contactShadow": false
+    },
+    "camera": {
+      "position": [
+        7.006067814845707,
+        8.462499996870756,
+        7.006067814845708
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260623,
+        0.11626808663848794,
+        0.880206311539509
+      ],
+      "left": -6.727362456708042,
+      "right": 6.727362456708044,
+      "top": 4.204601535442528,
+      "bottom": -4.204601535442526,
+      "near": 6.061434633125124,
+      "far": 18.46691631022204,
+      "zoom": 1
+    },
+    "items": [
+      {
+        "id": "lookdev:toilet",
+        "kind": "compactToilet",
+        "storey": 0,
+        "color": "#f7ead7",
+        "material": "ceramic",
+        "defaultColor": "#f7ead7",
+        "defaultMaterial": "ceramic"
+      },
+      {
+        "id": "lookdev:bathroom-vanity",
+        "kind": "bathroomVanity",
+        "storey": 0,
+        "color": "#a7c8e5",
+        "material": "oak",
+        "defaultColor": "#a7c8e5",
+        "defaultMaterial": "oak"
+      },
+      {
+        "id": "lookdev:towel-ladder",
+        "kind": "hhTowelLadder",
+        "storey": 0,
+        "color": "#bb9467",
+        "material": "oak",
+        "defaultColor": "#bb9467",
+        "defaultMaterial": "oak"
+      }
+    ],
+    "roomSurfaces": [
+      {
+        "roomId": null,
+        "surfaceId": "floor.main",
+        "part": "floor",
+        "color": "#9aabb8",
+        "materialKey": "floor:tile",
+        "finishId": "tile-blue",
+        "pattern": "tile",
+        "worldTileMetres": 1.4,
+        "repeat": [
+          3.999999931880406,
+          3.7142855780465265
+        ],
+        "offset": [
+          -1.999999965940203,
+          -1.8571427890232632
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "room:lookdev-room.floor",
+        "part": "floor",
+        "color": "#9aabb8",
+        "materialKey": "floor:tile",
+        "finishId": "tile-blue",
+        "pattern": "tile",
+        "worldTileMetres": 1.4,
+        "repeat": [
+          3.999999931880406,
+          3.7142855780465265
+        ],
+        "offset": [
+          -1.999999965940203,
+          -1.8571427890232632
+        ]
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.inner",
+        "part": "walls",
+        "color": "#f7ead7",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "lookdev-room",
+        "surfaceId": "wall.side",
+        "part": "walls",
+        "color": "#d0dcca",
+        "materialKey": "ceramic"
+      }
+    ],
+    "revisions": [
+      3
+    ],
+    "stats": {
+      "frame": 2,
+      "calls": 149,
+      "triangles": 83012,
+      "points": 0,
+      "lines": 0,
+      "geometries": 149,
+      "textures": 7,
+      "surfaceCount": 15
+    }
+  },
+  {
+    "fixtureId": "exterior",
+    "presetId": "warm-floors",
+    "ready": true,
+    "size": {
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "canvasWidth": 1440,
+      "canvasHeight": 900
+    },
+    "render": {
+      "toneMapping": "aces",
+      "exposure": 1.1,
+      "hemisphere": {
+        "sky": "#fff8e6",
+        "ground": "#9daa98",
+        "intensity": 2.1
+      },
+      "sun": {
+        "color": "#fff4d9",
+        "intensity": 3.4,
+        "position": [
+          4.59037032163489,
+          14.366654395430569,
+          8.548321594722037
+        ],
+        "target": [
+          0.5674999237060545,
+          3.6390000009536743,
+          0.5025807988643645
+        ]
+      },
+      "fill": {
+        "color": "#dceceb",
+        "intensity": 1
+      },
+      "shadowRadius": 4,
+      "environmentIntensity": 1
+    },
+    "backdrop": {
+      "inner": "#fcf7df",
+      "outer": "#e5edce"
+    },
+    "capabilities": {
+      "contactShadow": false
+    },
+    "camera": {
+      "position": [
+        19.057464010428184,
+        23.01444008989336,
+        19.560044809292545
+      ],
+      "quaternion": [
+        -0.28069599163380765,
+        0.3645933919260624,
+        0.11626808663848795,
+        0.880206311539509
+      ],
+      "left": -19.395649122444635,
+      "right": 19.39564912244464,
+      "top": 12.122280701527899,
+      "bottom": -12.122280701527899,
+      "near": 0.01,
+      "far": 53.67626700520704,
+      "zoom": 1
+    },
+    "items": [
+      {
+        "id": "lookdev:exterior-sofa",
+        "kind": "sofa",
+        "storey": 0,
+        "color": "#eeaaa4",
+        "material": "velvet",
+        "defaultColor": "#eeaaa4",
+        "defaultMaterial": "velvet"
+      },
+      {
+        "id": "lookdev:upper-bed",
+        "kind": "bedTimber",
+        "storey": 1,
+        "color": "#c99362",
+        "material": "oak",
+        "defaultColor": "#c99362",
+        "defaultMaterial": "oak"
+      }
+    ],
+    "roomSurfaces": [
+      {
+        "roomId": null,
+        "surfaceId": "floor.main",
+        "part": "floor",
+        "color": "#d8b58c",
+        "materialKey": "floor:wide",
+        "finishId": "wood-light-oak",
+        "pattern": "wide",
+        "worldTileMetres": 2.4,
+        "repeat": [
+          3.4999998410542807,
+          2.166666587193807
+        ],
+        "offset": [
+          -1.1666665871938071,
+          -1.0833332935969036
+        ]
+      },
+      {
+        "roomId": "lookdev-kitchen",
+        "surfaceId": "room:lookdev-kitchen.floor",
+        "part": "floor",
+        "color": "#b9755a",
+        "materialKey": "floor:tile",
+        "finishId": "tile-terracotta",
+        "pattern": "tile",
+        "worldTileMetres": 1.4,
+        "repeat": [
+          1.999999965940203,
+          3.7142855780465265
+        ],
+        "offset": [
+          2.000000017029898,
+          -1.8571427890232632
+        ]
+      },
+      {
+        "roomId": null,
+        "surfaceId": "wall.inner",
+        "part": "walls",
+        "color": "#f7ead7",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "living",
+        "surfaceId": "wall.side",
+        "part": "walls",
+        "color": "#d0dcca",
+        "materialKey": "ceramic"
+      },
+      {
+        "roomId": "lookdev-kitchen",
+        "surfaceId": "room:lookdev-kitchen.wall",
+        "part": "walls",
+        "color": "#f2efe3",
+        "materialKey": "ceramic"
+      }
+    ],
+    "revisions": [
+      2,
+      2
+    ],
+    "stats": {
+      "frame": 2,
+      "calls": 238,
+      "triangles": 128646,
+      "points": 0,
+      "lines": 0,
+      "geometries": 238,
+      "textures": 3,
+      "surfaceCount": 17
+    }
+  }
+]

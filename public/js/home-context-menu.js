@@ -86,6 +86,7 @@ export function createSceneContextMenu({ onClose } = {}) {
     thumbnailObserver?.disconnect();
     thumbnailObserver = null;
     flyout.hidden = true;
+    delete flyout.dataset.finishMenu;
     flyout.replaceChildren();
     if (restoreFocus && parent?.isConnected) parent.focus({ preventScroll: true });
   }
@@ -113,7 +114,7 @@ export function createSceneContextMenu({ onClose } = {}) {
     flyout.dataset.horizontal = leftSide ? 'left' : 'right';
   }
   function focusChildFirst() {
-    (flyout.querySelector('[role="menuitem"]:not(:disabled)') ?? flyout).focus({ preventScroll: true });
+    (flyout.querySelector('[role="menuitem"]:not(:disabled),[role="menuitemradio"]:not(:disabled)') ?? flyout).focus({ preventScroll: true });
   }
   function openChild(item, parent, { focus = false } = {}) {
     cancelChildTimers();
@@ -133,13 +134,18 @@ export function createSceneContextMenu({ onClose } = {}) {
     if (!Array.isArray(items) || !items.length) items = [{ id: 'empty', label: failed ? "DisplayText0707" : "DisplayText0708", detail: failed ? "DisplayText0709." : "DisplayText0710.", disabled: true }];
     const currentChildRevision = childRevision;
     const pendingImages = new Map();
+    flyout.dataset.finishMenu=String(item.id==='floor-finish');
+    let previousGroup=null;
     for (const child of items) {
+      if(child.finishId&&child.group!==previousGroup){const group=node('div','floor-finish-group-heading',child.groupLabel);group.setAttribute('role','presentation');list.append(group);previousGroup=child.group;}
       const action = makeButton('', 'scene-context-item scene-context-submenu-item', () => runAction(child, action));
       action.dataset.contextAction = child.id;
-      action.setAttribute('role', 'menuitem');
+      action.setAttribute('role', child.finishId?'menuitemradio':'menuitem');
+      if(child.finishId){action.dataset.floorFinish=child.finishId;action.setAttribute('aria-checked',String(child.current===true));action.classList.toggle('is-current',child.current===true);}
       action.disabled = Boolean(child.disabled);
       const art = node('span', 'scene-context-item-thumbnail', child.icon ?? '◇');
       art.setAttribute('aria-hidden', 'true');
+      if(child.finishId&&/^#[a-f\d]{6}$/i.test(child.swatchColor??'')){const chip=node('i','floor-finish-chip');chip.style.setProperty('--finish-color',child.swatchColor);art.append(chip);}
       if (child.image) pendingImages.set(action, { art, image: child.image });
       const copy = node('span', 'scene-context-item-copy');
       copy.append(node('span', 'scene-context-label', child.label));
@@ -407,7 +413,7 @@ export function createSceneContextMenu({ onClose } = {}) {
       return;
     }
     const menu = inChild ? flyout : popup;
-    const actions = [...menu.querySelectorAll('[role="menuitem"]:not(:disabled)')];
+    const actions = [...menu.querySelectorAll('[role="menuitem"]:not(:disabled),[role="menuitemradio"]:not(:disabled)')];
     if (!actions.length) return;
     const index = actions.indexOf(document.activeElement);
     let next = null;

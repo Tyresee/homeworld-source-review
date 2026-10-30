@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "id": "warm-floors",
+  "label": "Warm floors (appearance source pending)",
+  "build": {
+    "theme": {
+      "id": "warm",
+      "rooms": {
+        "living": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        },
+        "bedroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        },
+        "study": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        },
+        "kitchen": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "tile-terracotta"
+        },
+        "playroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        },
+        "bathroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "tile-blue"
+        },
+        "gallery": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        },
+        "sunroom": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "tile-sand"
+        },
+        "hallway": {
+          "floor": null,
+          "wall": null,
+          "trim": null,
+          "floorMaterial": null,
+          "wallMaterial": null,
+          "floorFinishId": "wood-light-oak"
+        }
+      },
+      "surfaceRemap": {},
+      "shell": {
+        "trim": null,
+        "plinth": null,
+        "frame": null,
+        "glass": null,
+        "wallCap": null
+      },
+      "manor": {
+        "wall": null,
+        "trim": null,
+        "base": null,
+        "wood": null,
+        "glass": null,
+        "leaf": null,
+        "flower": null,
+        "gold": null
+      },
+      "lighting": {},
+      "swatches": null
+    },
+    "furniture": {
+      "mode": "default",
+      "examples": {}
+    }
+  },
+  "render": {
+    "toneMapping": "aces",
+    "exposure": 1.1,
+    "hemisphere": {
+      "sky": "#fff8e6",
+      "ground": "#9daa98",
+      "intensity": 2.1
+    },
+    "sun": {
+      "color": "#fff4d9",
+      "intensity": 3.4,
+      "azimuth": null,
+      "altitude": null
+    },
+    "fill": {
+      "color": "#dceceb",
+      "intensity": 1
+    },
+    "shadowRadius": 4,
+    "contactShadow": null,
+    "environmentIntensity": 1
+  },
+  "backdrop": {
+    "inner": "#fcf7df",
+    "outer": "#e5edce"
+  },
+  "reviewStatus": {
+    "appearanceSource": "warm-v6",
+    "appearanceStatus": "awaiting-source",
+    "referenceComparison": "awaiting-reviewer-images",
+    "note": "Floor candidate only. Existing default lighting, walls and backdrop are inherited until the approved source preset is provided."
+  }
+}

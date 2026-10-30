@@ -3,6 +3,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {createRoomExpansion} from './home-room-expansion.js';
+import {roomRect} from './home-layout.js';
 import {createRobotAvatar,poseRobotAvatar,setRobotPalette,disposeRobotAvatar} from './robot-avatar.js';
 import {getHomeTheme} from './home-theme.js';
 
@@ -75,8 +76,8 @@ export function createStudentHomeScene(stage,{onRobot=()=>{},onContextMenu}={}) 
   function reset(){camera.zoom=1;controls.target.set(0,.7,0);camera.position.set(9,8.6,11).add(controls.target);controls.update();resize();}
   function clear(){++token;motion=null;rect=null;if(robot){disposeRobotAvatar(robot);robot=null;}if(room){room.removeFromParent();room.dispose();room=null;}renderer.shadowMap.needsUpdate=true;requestRender();}
   async function show(home){
-    clear();const own=token,floor=home.house.floors[0];rect={...floor.rooms[0].bounds};
-    room=createRoomExpansion({rooms:floor.rooms,slab:floor.slab,profile:'upper',includeGrid:false});display.add(room);reset();
+    clear();const own=token,floor=theme.id==='warm'&&home.commerce?.home?home.commerce.home:home.house.floors[0];rect=theme.id==='warm'?roomRect(floor.rooms[0]):{...floor.rooms[0].bounds};
+    room=createRoomExpansion({rooms:floor.rooms,slab:floor.slab,profile:theme.id==='warm'?(floor.profile??'upper'):'upper',includeGrid:false,theme,surfaces:floor.surfaces});display.add(room);reset();
     sourcePromise??=new GLTFLoader().loadAsync(new URL('../assets/asset-lab/robot-v1/models/v4/robot.glb',import.meta.url).href).then(gltf=>source=gltf.scene).catch(error=>{sourcePromise=null;throw error;});
     const model=await sourcePromise;if(dead||own!==token)return;
     robot=createRobotAvatar(model);robot.position.set(0,.07,.45);robot.rotation.y=.25;robot.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}});display.add(robot);

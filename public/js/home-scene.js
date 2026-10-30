@@ -5,6 +5,9 @@ import { createLuxuryItem } from './home-luxury-models.js';
 import { createStaticUpgrade, STATIC_UPGRADE_SURFACES } from './home-static-upgrades.js';
 import { getWallAttachmentOffset, STARTER_WALL_BLOCKS } from './home-building-collision.js';
 import { createRoomExpansion } from './home-room-expansion.js';
+import {resolveHomeFloorFinish} from './home-floor-finishes.js';
+import {createHomeFloorTextureManager} from './home-floor-textures.js';
+import {getDefaultFloorAppearance} from './home-engine.js';
 import { getFloorBounds, floorContainsRect, hasStarterRoom } from './home-layout.js';
 import { createEstateOutdoor, getEstateForRoomCount } from './home-estate-outdoor.js';
 import { createOutdoorWorld } from './home-outdoor-world.js';
@@ -29,6 +32,14 @@ import {getHomeTheme,getHomeSurfaceAppearance,getRoomTheme} from './home-theme.j
 
 const WALL_WIDTH = 5.6, WALL_HEIGHT = 2.85, TABLE_WIDTH = 2.25, TABLE_DEPTH = 1.35, TABLE_Y = 1.12;
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+/** One continuous warm finish layer. The texture owns board/tile seams;
+ * clipping the mesh keeps a real upper-floor opening without new strip joints. */
+export function createWarmStarterFloorSurface(stairs=null) {
+  const floor=new THREE.Mesh(new RoundedBoxGeometry(5.6,.07,5.2,3,.012),new THREE.MeshStandardMaterial({color:'#e7cfaa',roughness:.76}));
+  floor.name='starter-floor-surface';floor.position.set(0,.025,0);floor.castShadow=true;floor.receiveShadow=true;
+  clipFloorMeshToOpening(floor,stairs);return floor;
+}
 
 /** Build every real connection on the selected floor. Kept independent of
  * WebGL so floor targets and the cutaway can be verified with real geometry. */
@@ -66,6 +77,7 @@ export function applyFloorElevatorFrame(group, frame) {
 // Each editable part owns its material. Appearance changes never mutate a shared asset.
 export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
   const lighting=theme.lighting.editor??{};
+  const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
   const scene = new THREE.Scene();
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   // A retina display at DPR 2 quadruples the canvas pixels while the scene is
@@ -213,7 +225,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const sofaFabricMaps = createSofaFabricMaps();
   Object.values(sofaFabricMaps).forEach(texture => textures.push(texture));
   const maps = { oak: grain('oak'), stone: grain('stone'), ceramic: grain('ceramic'), walnut: grain('oak'), marble: grain('stone'), wool: grain('wool'), linen: grain('linen'), velvet: grain('velvet'), ...Object.fromEntries(Object.entries(sofaFabricMaps).map(([name, texture]) => [`sofa-${name}`, texture])) };
-  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme }); root.add(roomExpansion);
+  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures }); root.add(roomExpansion);
   // The outdoor estate is an isolated scene layer. Its house is generated from
   // the same floor plan as the interior, so adding a room inside changes the
   // silhouette outside; it never participates in interior surfaces or bounds.
@@ -251,7 +263,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
 
   function starterWallBlock(id) {
     const block = STARTER_WALL_BLOCKS.find(block => block.id === id);
-    const color=theme.id==='toy'?(id.includes('body')?theme.rooms.living.wall:id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):block.color;
+    const color=(['toy','warm'].includes(theme.id)?(id.includes('body')?theme.rooms.living.wall:id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):null)??block.color;
     return box(starterShell, color, block.size, block.position, block.radius);
   }
   // A miniature architectural slice, with real inner/outer skins on the editable wall.
@@ -269,7 +281,9 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
         box(starterFloor,color,[p.maxX-p.minX,height,p.maxZ-p.minZ],[(p.minX+p.maxX)/2,y,(p.minZ+p.maxZ)/2],radius);
     };
     slab(6,5.65,.38,-.3,'#d0bb9b',.07);slab(5.85,5.5,.13,-.065,'#f8e9cb',.04);
-    for(let i=0;i<13;i++) {
+    if(theme.id==='warm') {
+      const floor=createWarmStarterFloorSurface(stairs);starterFloor.add(floor);adopt(floor);floorParts.push(floor);
+    }else for(let i=0;i<13;i++) {
       const z=-2.4+i*.405;
       for(const p of splitFloorAroundOpening({minX:-2.8,maxX:2.8,minZ:z-.1975,maxZ:z+.1975},stairs)) {
         const plank=box(starterFloor,i%3===0?'#e7cfaa':i%3===1?'#ecd7b5':'#f1dfc1',[p.maxX-p.minX,.07,p.maxZ-p.minZ],[(p.minX+p.maxX)/2,.025,(p.minZ+p.maxZ)/2],.012);
@@ -480,7 +494,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     for (const object of descendants) if (object.userData.transportType === 'elevator' && typeof object.userData.setElevatorFrame === 'function') {
       object.userData.dispose(resource=>{ownedGeometries.delete(resource);ownedMaterials.delete(resource);});
     }
-    group.traverse(o => { if (o.isMesh) { o.geometry.dispose(); ownedGeometries.delete(o.geometry); o.material.dispose(); ownedMaterials.delete(o.material); } });
+    group.traverse(o => { if (o.isMesh) { floorTextures?.release(o);o.geometry.dispose(); ownedGeometries.delete(o.geometry); o.material.dispose(); ownedMaterials.delete(o.material); } });
     group.removeFromParent(); for (let i = pickables.length - 1; i >= 0; i--) if (descendants.has(pickables[i])) pickables.splice(i, 1);
   }
   function syncDynamic(next) {
@@ -654,10 +668,17 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     syncStaircase(next);
     syncFixedModels(next);
     table.position.set(next.table.x, .03, next.table.z); table.rotation.y = THREE.MathUtils.degToRad(next.table.rotation);
-    const themeRooms=theme.id==='toy'?new Map(next.rooms.map(room=>[room.id,room])):null;
+    const themeRooms=['toy','warm'].includes(theme.id)?new Map(next.rooms.map(room=>[room.id,room])):null;
     for (const [id, objects] of parts) {
       const a = surfaceAppearance(next, id); if (!a) continue;
       for (const o of objects) {
+        if(floorTextures&&(id==='floor.main'||parseRoomSurfaceId(id)?.part==='floor')&&o.userData.roomPart!=='zones') {
+          const roomId=parseRoomSurfaceId(id)?.roomId,owner=next.rooms.find(room=>room.id===(roomId??o.userData.roomId))??next.rooms.find(room=>room.id==='living')??next.rooms[0];
+          const publicFloor=id==='floor.main',skin=publicFloor?next.surfaces['floor.main']:owner?.floor;
+          const finish=resolveHomeFloorFinish(owner?.kind??'living',skin,{themeId:theme.id,...publicFloor?{legacyDefault:getDefaultFloorAppearance()}:{} });
+          if(finish&&floorTextures.apply(o,finish))continue;
+          floorTextures.release(o);
+        }
         const room=themeRooms?.get(o.userData.themeRoomId);
         const appearance=room?getHomeSurfaceAppearance(id,next.surfaces[id]??a,theme,room):a;
         o.material.color.set(appearance.color);
@@ -666,7 +687,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
         o.material.roughness = a.material === 'gold' ? .35 : a.material === 'ceramic' ? .45 : ['stone','marble'].includes(a.material) ? .4 : .72; o.material.metalness = a.material === 'gold' ? .6 : 0;
       }
     }
-    syncUpgrades(next); root.updateMatrixWorld(true); syncDynamic(next); syncView(); root.updateMatrixWorld(true); updateSelection(); markShadowsDirty();
+    syncUpgrades(next);roomExpansion.syncFloorFinishes?.(next); root.updateMatrixWorld(true); syncDynamic(next); syncView(); root.updateMatrixWorld(true); updateSelection(); markShadowsDirty();
     if(!capturingHouse){
       avatarActor.setWorld(next,activeFloor,{floors:floorHomes,arrivalPoint:pendingAvatarArrival?.index===activeFloor?pendingAvatarArrival.point:null});
       pendingAvatarArrival=null;
@@ -1508,6 +1529,6 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     zoom(direction) { stageCamera?.exit({restore:false});interruptCameraMotion(); zoom = boundedZoom(zoom + direction * .1, view); frameCamera(lastCameraBounds); },
     showCollision(volume) { showWallBlock(volume, true); },
     getStats() { return { ...renderer.info.render, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, surfaceCount: parts.size }; },
-    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose(); estateOutdoor.dispose(); estateManor.dispose(); renderer.domElement.remove(); }
+    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose(); renderer.domElement.remove(); }
   };
 }

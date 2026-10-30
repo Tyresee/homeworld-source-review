@@ -1,3 +1,4 @@
+import {isFloorFinishId} from './home-floor-finishes.js';
 import {areKitchenModulesCompatible} from './home-kitchen-fit.js';
 /** Local-only furnishing rules. No student identity, network or browser storage. */
 import {
@@ -114,6 +115,8 @@ const DEFAULT_SURFACES = Object.freeze({
   'plant.pot': { color: '#d79d7c', material: 'ceramic' }, 'toy.body': { color: '#f8e4c9', material: 'ceramic' },
   'rug.main': { color: '#d9e3d3', material: 'ceramic' },
 });
+/** Read-only callers receive a copy; the stored legacy default stays unchanged. */
+export function getDefaultFloorAppearance(){return {...DEFAULT_SURFACES['floor.main']};}
 const EPSILON = 1e-9;
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value)
   && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
@@ -429,14 +432,15 @@ function isPlacement(value, scope, objectId) {
   const rect = scopeRect(scope);
   return isNumberIn(value.x, rect.minX + envelope.halfX, rect.maxX - envelope.halfX) && isNumberIn(value.z, rect.minZ + envelope.halfZ, rect.maxZ - envelope.halfZ);
 }
-function isRoomSkin(value) {
-  return isRecord(value) && hasOnlyKeys(value, ['color', 'material']) && isHex(value.color) && MATERIAL_IDS.has(value.material);
+function isRoomSkin(value, floor = false) {
+  return isRecord(value) && hasOnlyKeys(value, ['color', 'material', ...(floor ? ['finishId'] : [])]) && isHex(value.color) && MATERIAL_IDS.has(value.material)
+    && (!Object.hasOwn(value,'finishId') || floor && isFloorFinishId(value.finishId));
 }
 function isRoomList(value, home = {}) {
   if (!Array.isArray(value) || !isLayoutValid(value,home)) return false;
   return value.every(room => room.id==='living'
     ? hasOnlyKeys(room, ['id', 'kind', 'cx', 'cz'])
-    : hasOnlyKeys(room, ['id', 'kind', 'cx', 'cz', 'bounds', 'floor', 'wall']) && isRoomSkin(room.floor) && isRoomSkin(room.wall));
+    : hasOnlyKeys(room, ['id', 'kind', 'cx', 'cz', 'bounds', 'floor', 'wall']) && isRoomSkin(room.floor,true) && isRoomSkin(room.wall));
 }
 /** Schema v1 and v2 validators are kept verbatim so old saves migrate through their real rules. */
 function validateCommon(value, legacy, previousV2 = false) {
@@ -485,7 +489,7 @@ function validateV3(value) {
     || !Array.isArray(value.props) || value.props.length > HOME_LIMITS.maxProps
     || !Array.isArray(value.furniture) || value.furniture.length > HOME_LIMITS.maxFurniture
     || !isTable(value.table) || !isRoomList(value.rooms,value)) return false;
-  for (const { id } of SURFACES) if (!isRoomSkin(value.surfaces[id])) return false;
+  for (const { id } of SURFACES) if (!isRoomSkin(value.surfaces[id],id==='floor.main')) return false;
   if (!isRecord(value.upgrades) || Object.keys(value.upgrades).length !== STATIC_OBJECT_IDS.length || !STATIC_OBJECT_IDS.every(id => isLevel(value.upgrades[id]))) return false;
   if (!isRecord(value.plans) || Object.keys(value.plans).length !== STATIC_OBJECT_IDS.length || !hasOnlyKeys(value.plans, STATIC_OBJECT_IDS) || !STATIC_OBJECT_IDS.every(id => isPlan(value.plans[id]))) return false;
   if (!isRecord(value.placements) || !hasOnlyKeys(value.placements, PLACED_OBJECT_IDS) || !PLACED_OBJECT_IDS.every(id => isPlacement(value.placements[id], ['upper','account'].includes(value.profile) ? getLayoutPreset('starter').rooms : value.rooms, id))) return false;
@@ -698,6 +702,18 @@ export function applyChange(state, change) {
     if(!getFloorRects(state).every(rect=>floorContainsRect(candidate,rect)))return failure("DisplayText0803.");
     if(!isLayoutValid(state.rooms,candidate)||!getHomeStairs(state).every(stair=>staircaseFitsFloor(stair,candidate)))return failure("DisplayText0804.");
     apply=next=>{next.slab=slab;remapSlabWallMounts(state,next);};
+  } else if(change.type==='setFloorFinish') {
+    if(Object.keys(change).length!==3||!hasOnlyKeys(change,['type','surfaceId','finishId'])
+      ||!Object.hasOwn(change,'finishId')||change.finishId!==null&&!isFloorFinishId(change.finishId))return failure("DisplayText4677.");
+    const surface=change.surfaceId==='floor.main'?SURFACE_BY_ID.get('floor.main'):null;
+    const parsed=parseRoomSurfaceId(change.surfaceId),entity=parsed?.part==='floor'?entityTarget(state,change.surfaceId):null;
+    if(!surface&&!entity)return failure("DisplayText4678.");
+    const target=surface?state.surfaces[surface.id]:entity.item;
+    if(change.finishId===null?!Object.hasOwn(target,'finishId'):target.finishId===change.finishId)return noop(state);
+    apply=next=>{
+      const record=surface?next.surfaces[surface.id]:next.rooms[entity.index].floor;
+      if(change.finishId===null)delete record.finishId;else record.finishId=change.finishId;
+    };
   } else if (change.type === 'paint' || change.type === 'material') {
     const surface = SURFACE_BY_ID.get(change.surfaceId), entity = entityTarget(state, change.surfaceId);
     if (!surface && !entity) return failure("DisplayText0805.");

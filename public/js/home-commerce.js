@@ -1,3 +1,4 @@
+import {isFloorFinishId} from './home-floor-finishes.js';
 /** Local demo commerce. A single serializable snapshot owns the home, wallet and inventory.
  * This is not an authoritative payment service; replace its adapter when platform points arrive.
  */
@@ -239,8 +240,9 @@ function validRoomItem(item) {
   if (keysAre(item, ['id', 'kind'])) return true;
   if (!keysAre(item, ['id', 'kind', 'cx', 'cz', 'floor', 'wall', ...item.bounds ? ['bounds'] : []]) || !Number.isInteger(item.cx) || !Number.isInteger(item.cz)) return false;
   if (item.bounds && (!keysAre(item.bounds,['minX','minZ','width','depth']) || ![item.bounds.minX,item.bounds.minZ].every(gridNumber) || !validRoomSize(item.bounds))) return false;
-  return ['floor', 'wall'].every(part => keysAre(item[part], ['color', 'material'])
-    && /^#[a-f\d]{6}$/i.test(item[part].color) && MATERIAL_IDS.has(item[part].material));
+  return ['floor', 'wall'].every(part => record(item[part]) && keysAre(item[part], ['color', 'material', ...(part==='floor'&&Object.hasOwn(item[part],'finishId')?['finishId']:[])])
+    && /^#[a-f\d]{6}$/i.test(item[part].color) && MATERIAL_IDS.has(item[part].material)
+    && (!Object.hasOwn(item[part],'finishId')||part==='floor'&&isFloorFinishId(item[part].finishId)));
 }
 function validOwnedItem(item, product) {
   if (isClothingProduct(product)) return keysAre(item, ['id', 'kind']) && idIsValid(item.id) && item.kind === product.kind;

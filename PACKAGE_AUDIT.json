@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 114,
-    "tests": 70,
-    "selectedSourceFiles": 213,
-    "packagedFiles": 253
+    "modules": 117,
+    "tests": 75,
+    "selectedSourceFiles": 222,
+    "packagedFiles": 287
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -16,31 +16,30 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "syntaxCheckedFiles": 204,
-    "coreTestFiles": 49,
     "coreTestsPassed": 379,
     "coreTestsFailed": 0,
-    "lookDevTestsPassed": 4,
-    "lookDevTestsFailed": 0,
-    "allIncludedTestsAttempted": 692,
-    "allIncludedTestsPassed": 637,
+    "floorFocusedTestsPassed": 27,
+    "floorFocusedTestsFailed": 0,
+    "allIncludedTestsAttempted": 718,
+    "allIncludedTestsPassed": 663,
     "allIncludedTestsWithDisplayExpectationDifferences": 55,
     "sameDisplayFailureNamesAsPreviousSnapshot": true,
     "offlineVendorVerification": "passed",
-    "browserSourceRender": "Passed real ACES/Neutral/AgX controls, ceramic map, JSON import/export, fixed-resolution ZIP capture",
-    "freshCloneBrowserVerification": {
-      "status": "passed",
-      "nodeModulesPresent": false,
-      "codeCommit": "20e80051150052b1d415119a9533ce47783a930f",
-      "views": 5,
-      "presets": 2,
-      "pngs": 10,
-      "width": 1440,
-      "height": 900,
-      "sameCameraPerPair": true,
-      "allFurnitureDefaultColors": true,
-      "browserConsoleErrors": 0
-    }
+    "sourceAccountTestsPassed": 688,
+    "sourceFocusedTestsPassed": 44,
+    "sourceFullTests": {
+      "total": 803,
+      "passed": 802,
+      "preExistingCatalogueCountFailures": 1
+    },
+    "defaultToyPngsByteIdentical": 10,
+    "warmLookDevRenders": 5,
+    "actualApplicationFinishSelections": 14,
+    "allFinishReceiptsZero": true,
+    "refreshAndStudentIsolationVerified": true,
+    "warmAppearanceSource": "awaiting warm-v6 and reviewer comparison images",
+    "freshCloneBrowserVerification": "pending-final-commit-clone-check",
+    "deploymentPerformed": false
   },
   "previousSnapshotValidation": {
     "syntaxCheckedFiles": 184,
@@ -54,10 +53,10 @@
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 213,
-    "changedSourceFiles": 0,
+    "normalizedSourceFiles": 222,
+    "changedSourceFiles": 3,
     "stableSeedLabels": 4676,
-    "newDisplayLabels": 7,
+    "newDisplayLabels": 41,
     "identityDataIncluded": false
   }
 }

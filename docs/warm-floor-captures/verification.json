@@ -1,0 +1,61 @@
+{
+  "candidate": "warm-floors",
+  "status": "floor-implementation-verified-appearance-source-pending",
+  "appearanceSource": {
+    "id": "warm-v6",
+    "available": false,
+    "referenceImagesAvailable": false,
+    "inherits": "existing default lights, walls and backdrop"
+  },
+  "lookDev": {
+    "views": 5,
+    "width": 1440,
+    "height": 900,
+    "allFurnitureDefaultColorsAndMaterials": true,
+    "camerasMatchDefault": true
+  },
+  "actualApplication": {
+    "screenshots": 14,
+    "woodBedroom": 6,
+    "tileKitchen": 8,
+    "fictionalStudentsOnly": true,
+    "allReceiptsZero": true,
+    "refreshVerified": true,
+    "studentIsolationVerified": true
+  },
+  "baseline": {
+    "defaultViews": 5,
+    "toyViews": 5,
+    "allTenByteIdentical": true
+  },
+  "sourceValidation": {
+    "accountTestsPassed": 688,
+    "accountTestsFailed": 0,
+    "focusedPassed": 44,
+    "focusedFailed": 0,
+    "allTests": 803,
+    "allPassed": 802,
+    "allFailed": 1,
+    "existingFailure": "unchanged catalogue-count assertion, 376 actual vs 311 expected"
+  },
+  "publicValidation": {
+    "coreTestsPassed": 379,
+    "coreTestsFailed": 0,
+    "focusedPassed": 27,
+    "focusedFailed": 0,
+    "allIncludedTests": {
+      "total": 718,
+      "passed": 663,
+      "failed": 55,
+      "sameFailureNamesAsPreviousSnapshot": true
+    }
+  },
+  "deploymentPerformed": false,
+  "limitations": [
+    "warm-v6 preset and reviewer comparison images are missing",
+    "Legacy repaint back to the exact original color/material pair cannot be distinguished from an untouched save"
+  ],
+  "offlineFreshClone": {
+    "status": "pending-final-commit-clone-check"
+  }
+}

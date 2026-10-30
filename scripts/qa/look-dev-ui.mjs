@@ -1,5 +1,6 @@
 import {createLookDevRuntime} from '/qa/look-dev-runtime.mjs';
 import {ROOM_KINDS} from '/js/home-layout.js';
+import {FLOOR_FINISHES,getFloorFinish} from '/js/home-floor-finishes.js';
 import {paintLookDevBackdrop} from '/qa/look-dev-backdrop.mjs';
 import {zipFiles} from '/qa/look-dev-zip.mjs';
 import {assertSafePresetKeys,MAX_LOOK_DEV_PRESET_BYTES} from '/qa/look-dev-preset-safety.mjs';
@@ -15,7 +16,7 @@ const get=(value,path)=>path.reduce((result,key)=>result?.[key],value);
 function put(path,value){let target=preset;for(const key of path.slice(0,-1))target=target[key]??={};target[path.at(-1)]=value;queueApply();}
 function node(tag,className,text){const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element;}
 function status(message,error=false){$('status').textContent=message;$('status').dataset.error=String(error);}
-let preset,loadedPreset,runtime,roomId='living',renderRoomControlsView=()=>{},activeView='living',pendingPreset,pendingView,applying=false,applyPromise=Promise.resolve(),capturing=false,dirty=false,sourceCanvas;
+let preset,loadedPreset,runtime,roomId='living',renderRoomControlsView=()=>{},activeView='living',pendingPreset,pendingView,applyNotice=null,applying=false,applyPromise=Promise.resolve(),capturing=false,dirty=false,sourceCanvas;
 const query=new URLSearchParams(location.search);
 if(views.some(([id])=>id===query.get('view')))activeView=query.get('view');
 if(rooms.some(([id])=>id===activeView))roomId=activeView;
@@ -35,7 +36,7 @@ function drain(){
         if(pendingPreset){const next=pendingPreset;pendingPreset=null;await runtime.setPreset(next);}
         if(pendingView){const next=pendingView;pendingView=null;await runtime.setFixture(next);activeView=next;if(rooms.some(([id])=>id===next)){roomId=next;renderRoomControlsView();}renderViews();}
       }
-      snapshot();status(dirty?'Candidate updated in memory. Export JSON to keep it.':'Preset loaded. No account or home data is read or written.');
+      snapshot();status(applyNotice??(dirty?'Candidate updated in memory. Export JSON to keep it.':'Preset loaded. No account or home data is read or written.'));applyNotice=null;
     }catch(error){status(error.message||String(error),true);}
     finally{applying=false;if(pendingPreset||pendingView)void drain();}
   })();return applyPromise;
@@ -48,7 +49,7 @@ function colorControl(parent,label,path,{fallback='#808080',inherit=true}={}){
   color.addEventListener('input',()=>{text.value=color.value;put(path,color.value);});
   text.addEventListener('input',()=>{text.setCustomValidity(hex.test(text.value)?'':'Use a six-digit hex color');if(hex.test(text.value)){color.value=text.value;put(path,text.value);}});
   text.addEventListener('blur',()=>{if(!hex.test(text.value)){text.value=color.value;text.setCustomValidity('');}});
-  controls.append(color,text);row.append(heading.line,controls);parent.append(row);
+  controls.append(color,text);row.append(heading.line,controls);parent.append(row);return row;
 }
 function numberControl(parent,label,path,{min=0,max=5,step=.05,fallback=0,inherit=false,unit=''}={}){
   const row=node('div','control-row'),heading=fieldLabel(label,inherit),controls=node('div','number-controls'),range=document.createElement('input'),number=document.createElement('input');range.type='range';number.type='number';range.min=number.min=min;range.max=number.max=max;range.step=number.step=step;
@@ -59,6 +60,23 @@ function numberControl(parent,label,path,{min=0,max=5,step=.05,fallback=0,inheri
   range.addEventListener('input',()=>update(range,number));number.addEventListener('input',()=>update(number,range));controls.append(range,number);row.append(heading.line,controls);parent.append(row);
 }
 function selectControl(parent,label,path,options){const row=node('label','control-row'),title=node('span','control-label',label),select=document.createElement('select');for(const[value,text]of options){const option=new Option(text,value);select.append(option);}select.value=get(preset,path)??'';select.addEventListener('change',()=>put(path,select.value||null));row.append(title,select);parent.append(row);return select;}
+function floorFinishControl(parent,path){
+  const row=node('label','control-row'),title=node('span','control-label','Floor material / finish'),select=document.createElement('select');
+  for(const[value,text]of materials)select.append(new Option(text,value));
+  for(const group of ['wood','tile']){
+    const section=document.createElement('optgroup');section.label=group==='wood'?'Wood finishes · 6':'Tile finishes · 8';
+    for(const finish of FLOOR_FINISHES.filter(finish=>finish.group===group))section.append(new Option(finish.id.split('-').slice(1).join(' ').replace(/\b[a-z]/g,letter=>letter.toUpperCase()),'finish:'+finish.id));
+    select.append(section);
+  }
+  const role=get(preset,path),finish=getFloorFinish(role?.floorFinishId);select.value=finish?'finish:'+finish.id:role?.floorMaterial??'';
+  select.addEventListener('change',()=>{
+    const role=get(preset,path),finish=select.value.startsWith('finish:')?getFloorFinish(select.value.slice(7)):null;
+    role.floorFinishId=finish?.id??null;role.floorMaterial=finish?null:select.value||null;
+    if(finish&&preset.build.theme.id!=='warm'){preset.build.theme.id='warm';applyNotice='Warm floor candidate enabled. Your other room and lighting edits are preserved.';}
+    queueApply();renderRoomControlsView();
+  });
+  row.append(title,select);parent.append(row);
+}
 function section(title,note,open=false){const details=node('details','control-section');details.open=open;details.append(node('summary','',title));const body=node('div','section-body');if(note)body.append(node('p','section-note',note));details.append(body);$('controls').append(details);return body;}
 const subtitle=(parent,text)=>parent.append(node('h3','control-subtitle',text));
 function renderControls(){
@@ -85,7 +103,13 @@ function renderControls(){
     [...tabs.children].forEach((button,index)=>button.setAttribute('aria-pressed',String(rooms[index][0]===roomId)));roomControls.replaceChildren();
     const kind=ROOM_KINDS.find(kind=>kind.id===roomId),path=['build','theme','rooms',roomId];
     colorControl(roomControls,'Wall color',[...path,'wall'],{fallback:kind.wall});selectControl(roomControls,'Wall material',[...path,'wallMaterial'],materials);
-    colorControl(roomControls,'Floor color',[...path,'floor'],{fallback:kind.floor});selectControl(roomControls,'Floor material',[...path,'floorMaterial'],materials);
+    const floorColor=colorControl(roomControls,'Floor color',[...path,'floor'],{fallback:kind.floor}),finish=getFloorFinish(get(preset,[...path,'floorFinishId']));
+    if(finish){
+      floorColor.classList.add('is-finish-controlled');floorColor.title='Color is included in the selected finish.';
+      for(const input of floorColor.querySelectorAll('input')){input.disabled=true;if(input.type==='color'||input.type==='text')input.value=finish.color;}
+    }
+    floorFinishControl(roomControls,path);
+    roomControls.append(node('p','section-note',finish?'This finish includes its own color and texture. Choose a legacy material or Inherit to edit Floor color.':'Finish presets include color and texture. Legacy materials remain available for custom-color experiments.'));
     colorControl(roomControls,'Room trim',[...path,'trim'],{fallback:'#e6c49e'});
   }
   renderRoomControlsView=renderRoomControls;renderRoomControls();

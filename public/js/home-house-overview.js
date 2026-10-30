@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { getFloorRects } from './home-layout.js';
+import {retainHomeFloorTexture,releaseHomeFloorTexture} from './home-floor-textures.js';
 
 const OMIT_MATERIAL_KEYS = new Set(['id', 'uuid', 'name', 'userData', 'version', '_listeners']);
 const materialFunctions = new WeakMap();
@@ -67,7 +68,7 @@ export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floor
   const group = new THREE.Group();
   group.name = `house-overview-floor-${floorIndex}`;
   const roots = (Array.isArray(sourceRoots) ? sourceRoots : [sourceRoots]).filter(Boolean);
-  const buckets = new Map(), materialKeys = new WeakMap(), visited = new Set();
+  const buckets = new Map(), materialKeys = new WeakMap(), visited = new Set(), floorMaps = new Set();
   let meshCount = 0, partCount = 0;
   const instance = new THREE.Matrix4(), transform = new THREE.Matrix4(), tint = new THREE.Color();
 
@@ -103,6 +104,7 @@ export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floor
           let bucket = buckets.get(key);
           if (!bucket) {
             const clonedMaterial = material.clone();
+            if(clonedMaterial.map&&!floorMaps.has(clonedMaterial.map)&&retainHomeFloorTexture(clonedMaterial.map))floorMaps.add(clonedMaterial.map);
             if (tintKey && clonedMaterial.color) clonedMaterial.color.multiply(tint);
             // Material.clone intentionally omits custom shader callbacks.
             clonedMaterial.onBeforeCompile = material.onBeforeCompile;
@@ -141,6 +143,7 @@ export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floor
     if (disposed) return;
     disposed = true;
     for (const mesh of group.children) { mesh.geometry.dispose(); mesh.material.dispose(); }
+    floorMaps.forEach(releaseHomeFloorTexture);floorMaps.clear();
     group.clear(); group.removeFromParent();
   };
   return group;

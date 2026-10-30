@@ -1,0 +1,14 @@
+[
+  {
+    "check": "zoom controls and reset keep current building view",
+    "passed": true
+  },
+  {
+    "check": "text input does not invoke P/1/2/3/0",
+    "passed": true
+  },
+  {
+    "check": "presentation dropdown selects Robin through existing student controller",
+    "passed": true
+  }
+]

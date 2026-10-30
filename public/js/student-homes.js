@@ -2,8 +2,9 @@ import {loadStudentHomeScene} from './student-home-loader.js';
 import {createStudentHomeContextMenu} from './student-home-context-menu.js';
 import {CATALOG_VERSION} from './home-catalog-version.js';
 import {applyHomeTheme,preserveHomeTheme} from './home-theme.js';
+import {createStudentHomeWarmUI} from './student-home-warm-ui.js';
 
-applyHomeTheme(document);
+const homeTheme=applyHomeTheme(document);
 
 const $=id=>document.getElementById(id),api='/games/homeworld/api/v1';
 const selectedStudentKey='homeworld:student-homes:selected-student:v1';
@@ -18,9 +19,16 @@ const contextMenu=createStudentHomeContextMenu({
   onPalette:point=>{if(home&&!writing)openPalette(point);},
   onWave:()=>{if(home)scene?.wave();},onReset:()=>{if(home)scene?.reset();},
 });
+const warmUI=homeTheme.id==='warm'?createStudentHomeWarmUI({document,window,themeId:homeTheme.id,
+  getState:()=>({ready:!!home&&!$('home-tools').hidden,busy:writing||changingStudent,view:scene?.getView()??'interior',stageActive:$('stage-toggle').getAttribute('aria-pressed')==='true',stageCamera:stageCameraState,students,selectedId:selected?.id}),
+  onView:view=>$('view-'+view).click(),onStage:()=>$('stage-toggle').click(),onStageCamera:()=>$('stage-camera-toggle').click(),
+  onZoom:direction=>scene?.zoom?.(direction),onReset:()=>scene?.reset(),onRefit:()=>scene?.refit?.(),onSelectStudent:id=>selectStudent(students.find(student=>student.id===id)),onError:error=>errorStatus(error),
+}):null;
+function showBalance(value){if(warmUI)warmUI.setBalance(value,session?.actor?.id+':'+selected?.id);else $('balance').textContent=value.toLocaleString('en');}
+function clearBalance(){if(warmUI)warmUI.clearBalance();else $('balance').textContent='—';}
 function openContextMenu(context){if(!home||writing)return;$('palette').hidden=true;contextMenu.open(context);}
-function status(message,retry=null,retryLabel="DisplayText3806"){$('status').textContent=message;retryAction=retry;$('retry').hidden=!retry;$('retry').textContent=retryLabel;}
-function errorStatus(error,retry=null){if(error.status===401){$('login').hidden=false;$('login').href='/login/?next='+encodeURIComponent(preserveHomeTheme('/games/homeworld/student-homes.html'));}status(error.message,error.status===401?null:retry);}
+function status(message,retry=null,retryLabel="DisplayText3806",{persistent=false}={}){$('status').textContent=message;retryAction=retry;$('retry').hidden=!retry;$('retry').textContent=retryLabel;warmUI?.notify({persistent:persistent||!!retry||!$('login').hidden});}
+function errorStatus(error,retry=null){if(error.status===401){$('login').hidden=false;$('login').href='/login/?next='+encodeURIComponent(preserveHomeTheme('/games/homeworld/student-homes.html'));}status(error.message,error.status===401?null:retry,"DisplayText3806",{persistent:true});}
 function message(text){$('scene-message').textContent=text;$('scene-message').hidden=!text;}
 // Remember only this tab's selection; authentication and saves still come from the server.
 function rememberStudent(student){
@@ -42,32 +50,32 @@ async function request(path,body,method='GET',options={}){
   if(!response.ok){const error=new Error(data.error?.message||"DisplayText0716, DisplayText0974.");error.status=response.status;error.code=data.error?.code;throw error;}
   return data;
 }
-function syncStage(active){$('stage-toggle').setAttribute('aria-pressed',String(active));$('stage-toggle').textContent=active?"DisplayText3771 · DisplayText3772":"DisplayText4217";}
+function syncStage(active){$('stage-toggle').setAttribute('aria-pressed',String(active));$('stage-toggle').textContent=active?"DisplayText3771 · DisplayText3772":"DisplayText4217";warmUI?.refresh();}
 function syncStageCamera(value=stageCameraState){
   stageCameraState=value??{active:false,returning:false,available:false,suppressed:false};const button=$('stage-camera-toggle'),camera=stageCameraState;
   button.hidden=!home||scene?.getView()!=='interior'||!(camera.available||camera.active||camera.returning);
   button.disabled=writing||camera.returning||button.hidden;button.setAttribute('aria-pressed',String(camera.active));
   button.textContent=camera.returning?"DisplayText3760…":camera.active?"DisplayText3761":"DisplayText3762";
-  button.title=camera.active||camera.returning?"DisplayText3763, DisplayText4218":"DisplayText4219, DisplayText4220";
+  button.title=camera.active||camera.returning?"DisplayText3763, DisplayText4218":"DisplayText4219, DisplayText4220";warmUI?.refresh();
 }
-function syncView(view){$('stage-toggle').disabled=writing||view!=='interior';syncStageCamera();for(const key of views)$('view-'+key).setAttribute('aria-pressed',String(key===view));}
-function busy(value){writing=value;if(value)contextMenu.close();$('palette-colors').disabled=value;$('wardrobe-open').disabled=value;$('stage-toggle').disabled=value||scene?.getView()!=='interior';syncStageCamera();$('claim').disabled=value;$('search').disabled=value;for(const view of views)$('view-'+view).disabled=value;document.querySelectorAll('.student').forEach(button=>button.disabled=value);}
+function syncView(view){$('stage-toggle').disabled=writing||view!=='interior';syncStageCamera();for(const key of views)$('view-'+key).setAttribute('aria-pressed',String(key===view));warmUI?.refresh();}
+function busy(value){writing=value;if(value)contextMenu.close();$('palette-colors').disabled=value;$('wardrobe-open').disabled=value;$('stage-toggle').disabled=value||scene?.getView()!=='interior';syncStageCamera();$('claim').disabled=value;$('search').disabled=value;for(const view of views)$('view-'+view).disabled=value;document.querySelectorAll('.student').forEach(button=>button.disabled=value);warmUI?.refresh();}
 function renderStudents(){
   const query=$('search').value.trim().toLocaleLowerCase(),visible=students.filter(student=>student.displayName.toLocaleLowerCase().includes(query));
   $('students').replaceChildren();for(const student of visible){const button=document.createElement('button');button.type='button';button.className='student';button.dataset.studentId=student.id;button.setAttribute('aria-pressed',String(selected?.id===student.id));button.disabled=writing;
     const initial=document.createElement('span');initial.className='initial';initial.setAttribute('aria-hidden','true');initial.textContent=Array.from(student.displayName)[0];const name=document.createElement('span');name.className='student-name';name.textContent=student.displayName;
     button.append(initial,name);button.addEventListener('click',()=>selectStudent(student));$('students').append(button);}
-  $('roster-note').textContent=visible.length?`${visible.length} DisplayText4221`:(query?"DisplayText4222":"DisplayText4223, DisplayText4224.");
+  $('roster-note').textContent=visible.length?`${visible.length} DisplayText4221`:(query?"DisplayText4222":"DisplayText4223, DisplayText4224.");warmUI?.refresh();
 }
 function syncPalette(){for(const key of['shell','accent'])document.querySelectorAll(`[data-${key}]`).forEach(button=>button.setAttribute('aria-pressed',String(button.dataset[key]===home?.avatar.colors[key])));}
 async function drawHome(own){
-  if(own!==selection)return;$('welcome').hidden=!!home;$('home-tools').hidden=true;$('scene-hint').hidden=true;
+  if(own!==selection)return;$('welcome').hidden=!!home;$('home-tools').hidden=true;$('scene-hint').hidden=true;warmUI?.refresh();
   if(!home){message('');$('home-caption').textContent="DisplayText4225";status("DisplayText4226, DisplayText4227.");return;}
   $('home-caption').textContent=`${home.house.floors.length} DisplayText4228 · ${home.commerce?.owned.filter(item=>item.status!=='sold').length??0} DisplayText4229 · DisplayText0006`;message("DisplayText4230…");syncPalette();
-  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onStageChange:syncStage,onStageCameraChange:syncStageCamera});
+  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onStageChange:syncStage,onStageCameraChange:syncStageCamera,warmUI:homeTheme.id==='warm',onRobotPalette:openPalette});
     const restored=await scene.replayRobotActivity?.({actorId:session.actor.id,studentId:selected.id,home,robotActivity});if(own!==selection)return;
     if(restored?.home){home=restored.home;robotActivity=restored.robotActivity??null;}
-    await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;if(latestWallet)scene.setWallet?.(latestWallet);syncView(scene.getView());message('');$('home-tools').hidden=false;$('scene-hint').hidden=false;status(restored?.pending?"DisplayText4231, DisplayText3811.":"DisplayText4232 · DisplayText4233 / Outdoors, DisplayText4202.");}
+    await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;if(latestWallet)scene.setWallet?.(latestWallet);syncView(scene.getView());message('');$('home-tools').hidden=false;$('scene-hint').hidden=false;warmUI?.refresh();status(restored?.pending?"DisplayText4231, DisplayText3811.":homeTheme.id==='warm'?"DisplayText4232 · DisplayText4763, DisplayText4764.":"DisplayText4232 · DisplayText4233 / Outdoors, DisplayText4202.");}
   catch{if(own!==selection)return;message("DisplayText4234");status("DisplayText4235, DisplayText4236.",()=>drawHome(own));}
 }
 async function refreshWallet(own=selection,student=selected){
@@ -77,9 +85,9 @@ async function refreshWallet(own=selection,student=selected){
     if(result.grant?.programId!=='student-starter-v1'||result.grant.amount!==50000||typeof result.duplicate!=='boolean')throw new Error("DisplayText4240, DisplayText0974.");
     if(result.baseline?.programId!=='student-starter-baseline-v2'||result.baseline.amount!==150000
       ||!Number.isSafeInteger(result.baseline.creditedAmount)||result.baseline.creditedAmount<150000)throw new Error("15 DisplayText4241, DisplayText0974.");
-    latestWallet=wallet;scene?.setWallet?.(wallet);$('balance').textContent=wallet.balance.toLocaleString('en');$('balance').title="DisplayText4242 Learning Platform DisplayText4243";
+    latestWallet=wallet;scene?.setWallet?.(wallet);showBalance(wallet.balance);$('balance').title="DisplayText4242 Learning Platform DisplayText4243";
     $('starter-note').textContent="DisplayText4244 150,000 · DisplayText4245, DisplayText4246";
-  }catch(error){if(own===selection&&ownWallet===walletRequest){$('balance').textContent='—';$('balance').title=error.message;$('starter-note').textContent="DisplayText4247 · DisplayText4248";if(error.code==='identity_changed')await reloadIdentity();else errorStatus(error,()=>refreshWallet());}}
+  }catch(error){if(own===selection&&ownWallet===walletRequest){clearBalance();$('balance').title=error.message;$('starter-note').textContent="DisplayText4247 · DisplayText4248";if(error.code==='identity_changed')await reloadIdentity();else errorStatus(error,()=>refreshWallet());}}
   finally{if(own===selection&&ownWallet===walletRequest)$('refresh-wallet').disabled=false;}
 }
 async function executeCommand(command,commandId,options={}){
@@ -94,7 +102,7 @@ async function executeCommand(command,commandId,options={}){
   try{const result=await request(`/students/${studentId}/home/commands`,{expectedUserId:actorId,expectedRevision,commandId,command,...command.type==='checkout'?{expectedCatalogVersion:CATALOG_VERSION}:{}},'POST',{keepalive:options.keepalive===true});
     if(!active()){if(bound)return result;throw new Error("DisplayText3783, DisplayText4239.");}
     home=result.home;robotActivity=result.robotActivity??null;
-    if(result.wallet){latestWallet=result.wallet;$('balance').textContent=result.wallet.balance.toLocaleString('en');scene?.setWallet?.(result.wallet);}
+    if(result.wallet){latestWallet=result.wallet;showBalance(result.wallet.balance);scene?.setWallet?.(result.wallet);}
     $('home-caption').textContent=`${home.house.floors.length} DisplayText4228 · ${home.commerce?.owned.filter(item=>item.status!=='sold').length??0} DisplayText4229 · DisplayText0006`;
     return result;
   }catch(error){
@@ -113,13 +121,13 @@ async function selectStudent(student){
   student=students.find(item=>item.id===student?.id);if(!student)return;
   const leavingActor=session.actor.id;
   if(home&&scene?.prepareLeave){
-    changingStudent=true;
+    changingStudent=true;warmUI?.refresh();
     try{await scene.prepareLeave();}catch{status("DisplayText4231, DisplayText3811.");}
-    finally{changingStudent=false;}
+    finally{changingStudent=false;warmUI?.refresh();}
     if(session?.actor?.id!==leavingActor)return;
   }
   rememberStudent(student);
-  contextMenu.close();selected=student;home=null;robotActivity=null;latestWallet=null;const own=++selection;++walletRequest;$('refresh-wallet').disabled=true;$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;$('balance').textContent='—';$('balance').title='';$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";scene?.clear();
+  contextMenu.close();selected=student;home=null;robotActivity=null;latestWallet=null;const own=++selection;++walletRequest;$('refresh-wallet').disabled=true;$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;clearBalance();$('balance').title='';$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";scene?.clear();
   $('home-title').textContent=`${student.displayName}DisplayText4252`;renderStudents();message("DisplayText4253…");status("DisplayText4254…");
   void loadStudentHomeScene().catch(()=>{});
   try{const result=await request(`/students/${student.id}/home`);if(own!==selection)return;home=result.home;robotActivity=result.robotActivity??null;await drawHome(own);}
@@ -153,17 +161,17 @@ for(const [key,colors]of[['shell',shellColors],['accent',accentColors]])for(cons
 $('search').addEventListener('input',renderStudents);$('claim').addEventListener('click',claim);$('retry').addEventListener('click',()=>retryAction?.());$('refresh-wallet').addEventListener('click',()=>refreshWallet());
 $('wardrobe-open').addEventListener('click',()=>{if(home&&!writing){$('palette').hidden=true;scene?.openWardrobe();}});
 $('stage-camera-toggle').addEventListener('click',()=>{if(home&&!writing&&!stageCameraState.returning){const result=scene?.toggleStageCamera();if(result?.error)status(result.error);}});
-$('palette-open').addEventListener('click',()=>openPalette());$('palette-close').addEventListener('click',()=>{$('palette').hidden=true;$('palette-open').focus();});$('stage-toggle').addEventListener('click',()=>{if(home&&!writing){$('palette').hidden=true;scene?.toggleStage();}});$('wave').addEventListener('click',()=>scene?.wave());$('reset-view').addEventListener('click',()=>scene?.reset());
+$('palette-open').addEventListener('click',()=>openPalette());$('palette-close').addEventListener('click',()=>{$('palette').hidden=true;if(warmUI)warmUI.focusHome();else $('palette-open').focus();});$('stage-toggle').addEventListener('click',()=>{if(home&&!writing){$('palette').hidden=true;scene?.toggleStage();}});$('wave').addEventListener('click',()=>scene?.wave());$('reset-view').addEventListener('click',()=>scene?.reset());
 for(const view of views)$('view-'+view).addEventListener('click',()=>{if(!home||writing)return;$('palette').hidden=true;scene?.setView(view);});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('palette').hidden){$('palette').hidden=true;$('palette-open').focus();}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('palette').hidden){$('palette').hidden=true;if(warmUI)warmUI.focusHome();else $('palette-open').focus();}});
 addEventListener('pagehide',event=>{contextMenu.close();
   // Capture synchronously before clearing a renderer. The editor persists its
   // identity-bound outbox before attempting an unload-safe request.
   void scene?.prepareLeave?.({keepalive:true});
-  if(!event.persisted){contextMenu.dispose();scene?.dispose();}
+  if(!event.persisted){warmUI?.dispose();contextMenu.dispose();scene?.dispose();}
 });
 async function reloadIdentity(){
-  contextMenu.close();++selection;++walletRequest;selected=null;home=null;robotActivity=null;session=null;students=[];scene?.clear();$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;$('balance').textContent='—';$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";$('home-title').textContent="DisplayText4267?";$('refresh-wallet').disabled=true;renderStudents();message("DisplayText4268, DisplayText4269…");busy(false);await boot();
+  contextMenu.close();++selection;++walletRequest;selected=null;home=null;robotActivity=null;session=null;students=[];scene?.clear();$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;clearBalance();$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";$('home-title').textContent="DisplayText4267?";$('refresh-wallet').disabled=true;renderStudents();message("DisplayText4268, DisplayText4269…");busy(false);await boot();
 }
 
 async function boot(){

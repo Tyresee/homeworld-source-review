@@ -25,7 +25,7 @@ import {getObjectQuickActions,getQuickActionOwned} from './student-home-quick-ac
 
 /** Formal account editor. Cart and placement previews are ephemeral; every
  * owned object, payment and structural edit is acknowledged by the server. */
-export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=>{},onViewChange=()=>{},onStageChange=()=>{},onStageCameraChange=()=>{}}={}){
+export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot,warmUI=false,onCommand,onStatus=()=>{},onViewChange=()=>{},onStageChange=()=>{},onStageCameraChange=()=>{}}={}){
   let world,home,wallet=null,cart=[],floor=0,placing=null,busy=false,pending=null,disposed=false,opening;
   let robotActivity=null,activityIntent=null,activitySerial=0,identityEpoch=0,desiredActivity=null,activityRetry=null,activitySaving=null;
   let actorId=null,binding=null,commandInFlight=null,leaving=false,leaveCount=0,suppressActivity=false,savedDeparture=null;
@@ -38,9 +38,9 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
   function captureRobotActivity(){if(!home||!world)return;const activity=world.captureRobotActivity?.({emit:false});if(activity!==undefined)queueRobotActivity(activity);}
   const catalog=[...SHOP_CATALOG.filter(p=>!['clothing','storey'].includes(p.productType)),...ROBOT_CLOTHING_PRODUCTS],products=new Map(catalog.map(p=>[p.skuId,p]));
   const thumbnails=createStudentHomeThumbnails(),menu=createSceneContextMenu();
-  let quickSelection=null;
-  const quickActions=createStudentHomeQuickActions({onAction:runQuickAction,onStop:()=>{if(!home||isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};world?.standAvatar();return {ok:true};},onClose:()=>{quickSelection=null;}});
-  function closeQuickActions(){quickSelection=null;quickActions.close();}
+  let quickSelection=null,quickRobotPage='main';
+  const quickActions=createStudentHomeQuickActions({onAction:runQuickAction,onStop:()=>{if(!home||isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};world?.standAvatar();return {ok:true};},onClose:()=>{quickSelection=null;quickRobotPage='main';}});
+  function closeQuickActions(){quickSelection=null;quickRobotPage='main';quickActions.close();}
   function quickActivityStatus(model){
     const activity=activityIntent;if(!activity||activity.storey!==floor)return null;
     if(model.targetId==='avatar'&&activity.kind==='dance'){
@@ -69,11 +69,17 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
   function quickModel(){
     if(!quickSelection||!world||!home||quickSelection.epoch!==identityEpoch||quickSelection.floor!==floor||quickSelection.view!==world.getView())return null;
     const {data,view}=quickSelection;
-    if(data.surfaceId==='avatar'){const camera=world.getStageCameraState?.()??emptyStageCamera();return {targetId:'avatar',title:"DisplayText3715",actions:[
+    if(data.surfaceId==='avatar'){
+      if(warmUI&&quickRobotPage==='dress')return {targetId:'avatar',title:"DisplayText4716",prompt:"DisplayText4717, DisplayText4718.",actions:[
+        {id:'avatar:wardrobe',label:"DisplayText3890",icon:'wardrobe',detail:"DisplayText4719",command:{type:'wardrobe'}},
+        {id:'avatar:palette',label:"DisplayText3710",icon:'palette',detail:"DisplayText4720",disabled:typeof onRobotPalette!=='function',reason:"DisplayText4721",command:{type:'palette'}},
+        {id:'avatar:back',label:"DisplayText4722",icon:'back',command:{type:'robot-main'}},
+      ]};
+      const camera=world.getStageCameraState?.()??emptyStageCamera();return {targetId:'avatar',title:"DisplayText3715",actions:[
       {id:'stage:dance',label:"DisplayText3754",icon:'dance',detail:view==='interior'?"DisplayText3755 · DisplayText3756 · DisplayText3757":"DisplayText3758",disabled:view!=='interior',reason:"DisplayText3759",command:{type:'dance'}},
       ...(view==='interior'&&(camera.available||camera.active||camera.returning)?[{id:'stage:camera',label:camera.returning?"DisplayText3760…":camera.active?"DisplayText3761":"DisplayText3762",icon:'admire',detail:camera.active||camera.returning?"DisplayText3763, DisplayText3764":"DisplayText3765, DisplayText3766",disabled:camera.returning,reason:"DisplayText3767, DisplayText3345",command:{type:'stage-camera'}}]:[]),
       {id:'avatar:wave',label:"DisplayText3711",icon:'stand',command:{type:'wave'}},
-      {id:'avatar:wardrobe',label:"DisplayText3768",icon:'wardrobe',command:{type:'wardrobe'}},
+      ...(warmUI?[{id:'avatar:dress',label:"Dress up",icon:'wardrobe',detail:"DisplayText4191 · DisplayText3710",command:{type:'dress'}}]:[{id:'avatar:wardrobe',label:"DisplayText3768",icon:'wardrobe',command:{type:'wardrobe'}}]),
     ]};}
     if(data.stairId){const stair=world.getAvatarStairs().find(row=>row.id===data.stairId);return stair?{targetId:`stair:${stair.id}`,title:"DisplayText3769",actions:[{id:`stairs:${stair.id}`,label:stair.label,icon:'stairs',disabled:stair.disabled,reason:stair.reason??stair.error,command:{type:'stairs',id:stair.id}}]}:null;}
     const owned=getQuickActionOwned(home.commerce,data,view,floor);if(!owned)return null;
@@ -90,13 +96,13 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     // never the generic selection prompt, owns an active object's status.
     const activityStatus=quickActivityStatus(model);
     const stopLabel=activityIntent?.kind==='dance'?"DisplayText3771 · DisplayText3772":activityIntent?.kind==='swim'?"DisplayText3773":activityIntent?.kind==='football'?"DisplayText3774":"DisplayText3775";
-    quickActions.show({...model,busy:isCommerceBusy(),stopLabel,...activityStatus?{status:activityStatus}:keepStatus?{}:{status:model.actions.length?"DisplayText3776, DisplayText3777.":"DisplayText3778; DisplayText3779."}});
+    quickActions.show({...model,busy:isCommerceBusy(),stopLabel,...activityStatus?{status:activityStatus}:keepStatus?{}:{status:model.prompt??(model.actions.length?"DisplayText3776, DisplayText3777.":"DisplayText3778; DisplayText3779.")}});
     if(quickSelection.view==='interior'&&model.owned)world.selectSurface(model.targetId);
   }
   function openQuickActions(request){
     menu.close({restoreFocus:false});
     if(!home||isCommerceBusy()||placing||!request.data){closeQuickActions();return;}
-    quickSelection={data:{...request.data},view:request.view,floor,epoch:identityEpoch};refreshQuickActions();
+    quickRobotPage='main';quickSelection={data:{...request.data},view:request.view,floor,epoch:identityEpoch};refreshQuickActions();
   }
   async function runQuickAction(id,targetId){
     if(isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
@@ -113,7 +119,9 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     else if(c.type==='dance')result=world.danceAvatar();
     else if(c.type==='stage-camera')result=toggleStageCamera();
     else if(c.type==='wave')result={ok:world.waveAvatar()!==false};
-    else if(c.type==='wardrobe'){openWardrobe();result={ok:true};}
+    else if(c.type==='wardrobe'){if(warmUI)closeQuickActions();openWardrobe();result={ok:true};}
+    else if(c.type==='dress'||c.type==='robot-main'){quickRobotPage=c.type==='dress'?'dress':'main';refreshQuickActions();result={ok:true};}
+    else if(c.type==='palette'){closeQuickActions();onRobotPalette?.();result={ok:true};}
     if(epoch!==identityEpoch)return {ok:false,error:"DisplayText3783."};
     if(result?.error)onStatus(result.error);return result??{ok:true};
   }
@@ -178,7 +186,7 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     pending??={signature,id:job?.id??crypto.randomUUID(),value};busy=true;if(owner)owner.pending=pending;
     const request=pending,storedJob=activity?outbox?.markSent(boundActor,boundStudent,request.id,home.revision):value.type==='setObjectState'?objectOutbox.markSent(boundActor,boundStudent,request.id,home.revision):null;
     let complete;const flight={promise:new Promise(done=>{complete=done;})};commandInFlight=flight;if(owner)owner.flight=flight;
-    onStatus(activity?"DisplayText3800…":value.type==='setObjectState'?"DisplayText3801…":value.type==='setFloorFinish'?"DisplayText4716 · DisplayText4714":value.type==='setWallFinish'?"DisplayText4717 · DisplayText4714":"DisplayText3802…");
+    onStatus(activity?"DisplayText3800…":value.type==='setObjectState'?"DisplayText3801…":value.type==='setFloorFinish'?"DisplayText4723 · DisplayText4714":value.type==='setWallFinish'?"DisplayText4724 · DisplayText4714":"DisplayText3802…");
     try{const result=await onCommand(value,request.id,{actorId:boundActor,studentId:boundStudent,expectedRevision:storedJob?.expectedRevision??home.revision,keepalive});
       if(activity)outbox?.acknowledge(boundActor,boundStudent,request.id,result,{supersede:true});
       if(value.type==='setObjectState')objectOutbox.acknowledge(boundActor,boundStudent,request.id,result);
@@ -401,26 +409,26 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
     if(danceSelection)items.unshift({id:'stage-dance-here',label:"DisplayText3895",detail:"DisplayText3896, DisplayText3897",action:()=>danceAtSelection(danceSelection)});
     const editEpoch=identityEpoch,editFloor=floor,surfaceId=data.surfaceId;
     const floorMenu=request.view==='interior'&&!owned?getWarmFloorMenu({homeFloor:getFloorHome(home.commerce,floor),surfaceId,async onSelect(finish){
-      if(disposed||!home||editEpoch!==identityEpoch||editFloor!==floor||world.getView()!=='interior'||!isCurrentFloorSurface(surfaceId))return {ok:false,error:"DisplayText3785, DisplayText4718, DisplayText4719."};
+      if(disposed||!home||editEpoch!==identityEpoch||editFloor!==floor||world.getView()!=='interior'||!isCurrentFloorSurface(surfaceId))return {ok:false,error:"DisplayText3785, DisplayText4725, DisplayText4726."};
       const current=getFloorHome(home.commerce,floor),match=/^room:([a-z\d_.:-]+)\.floor$/i.exec(surfaceId);
       const appearance=surfaceId==='floor.main'?current.surfaces['floor.main']:current.rooms.find(room=>room.id===match?.[1])?.floor;
-      if(appearance?.finishId===finish.id){onStatus("DisplayText4720"+finish.label+" · DisplayText4721.");return {ok:true,unchanged:true};}
+      if(appearance?.finishId===finish.id){onStatus("DisplayText4727"+finish.label+" · DisplayText4728.");return {ok:true,unchanged:true};}
       const result=await command({type:'setFloorFinish',surfaceId,finishId:finish.id,storey:editFloor});
-      if(result.ok&&!result.detached&&editEpoch===identityEpoch)onStatus("DisplayText4722"+finish.label+" · DisplayText4723.");
+      if(result.ok&&!result.detached&&editEpoch===identityEpoch)onStatus("DisplayText4729"+finish.label+" · DisplayText4730.");
       return result;
     }}):null;
     if(floorMenu)items.unshift(floorMenu);
     const wallMenu=request.view==='interior'&&!owned?getWarmWallMenu({homeFloor:getFloorHome(home.commerce,floor),surfaceId,async onSelect(patch,choice){
       const current=home?.commerce&&getFloorHome(home.commerce,floor),target=getWallMenuTarget(current,surfaceId);
-      if(disposed||!home||editEpoch!==identityEpoch||editFloor!==floor||world.getView()!=='interior'||!target)return {ok:false,error:"DisplayText3785, DisplayText4718, DisplayText4724."};
+      if(disposed||!home||editEpoch!==identityEpoch||editFloor!==floor||world.getView()!=='interior'||!target)return {ok:false,error:"DisplayText3785, DisplayText4725, DisplayText4731."};
       const key=Object.hasOwn(patch,'styleId')?'styleId':'colorId',skins=surfaceId.startsWith('wall.')?['wall.inner','wall.outer','wall.side'].map(id=>current.surfaces[id]):[target.appearance];
-      if(skins.every(skin=>skin?.[key]===patch[key])){onStatus("DisplayText4720"+choice.label+" · DisplayText4721.");return {ok:true,unchanged:true};}
+      if(skins.every(skin=>skin?.[key]===patch[key])){onStatus("DisplayText4727"+choice.label+" · DisplayText4728.");return {ok:true,unchanged:true};}
       const result=await command({type:'setWallFinish',surfaceId,...patch,storey:editFloor});
-      if(result.ok&&!result.detached&&editEpoch===identityEpoch)onStatus("DisplayText4725"+choice.label+" · DisplayText4723.");
+      if(result.ok&&!result.detached&&editEpoch===identityEpoch)onStatus("DisplayText4732"+choice.label+" · DisplayText4730.");
       return result;
     }}):null;
     if(wallMenu)items.unshift(wallMenu);
-    menu.open({x:request.clientX,y:request.clientY,title:product?.name??(request.view==='estate'?"DisplayText3898":`${floor+1} DisplayText0931 · DisplayText3899`),subtitle:wallMenu?"DisplayText4726 · DisplayText4727, DisplayText4728":floorMenu?"DisplayText4729 · DisplayText4713":"DisplayText3900",items,returnFocus:container.querySelector('canvas')});
+    menu.open({x:request.clientX,y:request.clientY,title:product?.name??(request.view==='estate'?"DisplayText3898":`${floor+1} DisplayText0931 · DisplayText3899`),subtitle:wallMenu?"DisplayText4733 · DisplayText4734, DisplayText4735":floorMenu?"DisplayText4736 · DisplayText4713":"DisplayText3900",items,returnFocus:container.querySelector('canvas')});
   }
   const shop=createHomeShop({catalog,accountMode:true,getState:state,getThumbnail:thumbnails.image,onCartChange:addToCart,getResaleQuote:resaleQuote,onSell:sell,onTryClothing:skuId=>openWardrobe({previewSku:skuId}),async onCheckout(){const result=await command({type:'checkout',lines:cart.map(row=>({...row}))});if(result.ok){cart=[];result.order=home.commerce.orders.at(-1);}return result;},onPlace:beginPlacement,onPlanConstruction:()=>{shop.close();openFloor();},onChooseElevator:()=>{shop.close();openElevators();}});
   const wardrobe=createStudentHomeWardrobe({getState:state,getColors:()=>home?.avatar.colors,getThumbnail:thumbnails.image,onEquip:(skuId,slot)=>command({type:'equipClothing',skuId,slot}),onAddToCart:addToCart,onShop:()=>openShop('clothing')});
@@ -458,6 +466,10 @@ export function createStudentHomeScene(container,{onRobot,onCommand,onStatus=()=
       try{if(changed)world.setView(['swim','football'].includes(activity?.kind)||activity?.kind==='stand'&&activity.environment==='estate'?'estate':'interior');sync();}
       finally{suppressActivity=false;onStageChange(world?.getStageState?.().requested===true);stageCameraChanged(world?.getStageCameraState?.()??emptyStageCamera());}
     },prepareLeave:flushBeforeLeave,flushRobotActivity:flushBeforeLeave,replayRobotActivity,
-    openWardrobe,toggleStage,toggleStageCamera,setWallet(value){wallet=value;shop.refresh();},palette:colors=>world?.palette(colors),wave:()=>world?.waveAvatar?.(),moveTo:point=>world?.walkAvatar(point),reset:()=>world?.reset(),setView,getView:()=>world?.getView()??'interior',clear,
+    openWardrobe,toggleStage,toggleStageCamera,setWallet(value){wallet=value;shop.refresh();},palette:colors=>world?.palette(colors),wave:()=>world?.waveAvatar?.(),moveTo:point=>world?.walkAvatar(point),reset:()=>world?.reset(),
+    zoom(direction){if(disposed||!home||!world||isCommerceBusy()||!Number.isFinite(direction))return false;world.zoom?.(direction);return true;},
+    refit(){if(disposed||!home||!world)return false;world.refit?.();return true;},
+    openRobotQuickActions(){if(disposed||!home||!world||isCommerceBusy())return false;openQuickActions({view:world.getView(),data:{surfaceId:'avatar'}});return true;},
+    setView,getView:()=>world?.getView()??'interior',clear,
     dispose(){if(disposed)return;const wasLeaving=leaving;leaving=true;captureRobotActivity();leaving=wasLeaving;globalThis.removeEventListener?.('pagehide',lifecycle);globalThis.document?.removeEventListener?.('visibilitychange',hidden);globalThis.document?.removeEventListener?.('keydown',quickEscape);disposed=true;identityEpoch++;desiredActivity=null;activityRetry=null;quickActions.dispose();menu.dispose();shop.dispose();wardrobe.dispose();floorPlanner.dispose();roomPlanner.dispose();thumbnails.dispose();world?.dispose();}};
 }

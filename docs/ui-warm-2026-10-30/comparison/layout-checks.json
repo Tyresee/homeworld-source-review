@@ -1,0 +1,174 @@
+{
+  "source": "Parent-provided live DOM readback of presentation control geometry; independently checked arithmetic. This audit performed no browser actions and does not claim per-frame DOM reads.",
+  "readbackFile": "docs/ui-warm-2026-10-30/public-ui-readback.json",
+  "readbackSHA256": "1fab55e9cda600ff9cc580a5dcc475bc339b32468c7d06598ab948e9d69c0832",
+  "finalCaptureSet": "Final code, clean fictional Robin starter home, eight recaptured public PNGs; every PNG opened and inspected independently.",
+  "frames": [
+    {
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "scrollHeight": 900,
+      "noDocumentOverflow": true,
+      "insideViewport": [
+        {
+          "className": "wallet",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-view-dock",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-show",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-camera-dock",
+          "insideViewport": true
+        },
+        {
+          "className": "home-quick-remote",
+          "insideViewport": true
+        }
+      ],
+      "dockToShowGap": 52,
+      "remoteToCameraGap": 16,
+      "titleFont": "30px",
+      "balanceFont": "34px",
+      "remoteScreen": "radial-gradient(at 40% 10%, rgb(74, 68, 64), rgb(43, 38, 34) 76%)"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scrollWidth": 1920,
+      "scrollHeight": 1080,
+      "noDocumentOverflow": true,
+      "insideViewport": [
+        {
+          "className": "wallet",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-view-dock",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-show",
+          "insideViewport": true
+        },
+        {
+          "className": "warm-camera-dock",
+          "insideViewport": true
+        }
+      ],
+      "dockToShowGap": 52
+    }
+  ],
+  "finalScreenshotVisualChecks": [
+    {
+      "mode": "normal",
+      "file": "docs/ui-warm-2026-10-30/screenshots/normal-1440.png",
+      "sha256": "e4f426f64619204fc594d3189db3479e67ec972414ac69197ee65e2e5fa7f6c7",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "present",
+      "file": "docs/ui-warm-2026-10-30/screenshots/present-1440.png",
+      "sha256": "f421fef7d30ae449e1055861d7d67ea9e6b80f977782acc4a723869e81954c6f",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "remote",
+      "file": "docs/ui-warm-2026-10-30/screenshots/remote-1440.png",
+      "sha256": "7fc88a03dd79ee04e1b6fa36266a3389f2ab8ea0c2d10dcf24d202d0abc6e265",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "building",
+      "file": "docs/ui-warm-2026-10-30/screenshots/building-1440.png",
+      "sha256": "d8547ffde2da6de46d6ad801015f105eaf7e4627658de728e0e3212f62ced54b",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "normal",
+      "file": "docs/ui-warm-2026-10-30/screenshots/normal-1920.png",
+      "sha256": "5fdadc2838f513c47a9f17f8d9060aece4e5eb68d04f3e7a09e1651b5f7e49f8",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "present",
+      "file": "docs/ui-warm-2026-10-30/screenshots/present-1920.png",
+      "sha256": "d8d6725f3ae8a0e2d23545c68a2d248124e2b1aba96ab60ddde73003ac411e57",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "remote",
+      "file": "docs/ui-warm-2026-10-30/screenshots/remote-1920.png",
+      "sha256": "edddf7ac3241d20aebd5b7540cfec6ea465c5e15d5e7ee585c60522d1431e104",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    },
+    {
+      "mode": "building",
+      "file": "docs/ui-warm-2026-10-30/screenshots/building-1920.png",
+      "sha256": "2abf928a491438a404d235e51e06fb6c082cd5cfc810182fc14f88f9c0704656",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "visuallyReviewed": true,
+      "blockingControlOverlapObserved": false,
+      "visibleTextOverflowObserved": false,
+      "offscreenRequiredControlObserved": false
+    }
+  ]
+}

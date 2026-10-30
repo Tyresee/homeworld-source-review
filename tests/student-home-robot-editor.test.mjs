@@ -34,7 +34,7 @@ function ownedHome(studentId=A){
   const home=createStudentHome(studentId),prepared=prepareCommerceCommand(home.commerce,{type:'checkout',lines:[{skuId:outfit,quantity:1},{skuId:'bed-classic',quantity:1}]},'robot-editor-fixture-buy');
   return {...home,commerce:prepared.commerce,house:houseFromCommerce(prepared.commerce),revision:1};
 }
-function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
+function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false}={}){
   let saved=clone(initial),savedActivity=null,balance=46_440,serial=0;
   const bindings={},requests=[],statuses=[],retries=[],frames=[],listeners=new Map(),calls={activity:[],commerce:[],interactions:[],stairs:[],placements:[],views:[],stage:[],stageCamera:[],danceRequests:[],exitCamera:0,resumeCamera:0,dance:0,stopDance:0,clear:0,stand:0};
   let stageState={requested:false,active:false},stageFloor=0;
@@ -47,6 +47,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
   const world={
     setCommerce(value,avatar,floor,robotActivity){calls.commerce.push(clone({commerce:value,avatar,floor,robotActivity}));if(floor!==stageFloor)stageState={requested:false,active:false};stageFloor=floor;if(robotActivity?.kind==='dance'&&robotActivity.storey===floor)stageState={requested:true,active:true};},
     setRobotActivity(value){calls.activity.push(clone(value));},
+    zoom(direction){(calls.zooms??=[]).push(direction);},refit(){calls.refits=(calls.refits??0)+1;},
     setObjectStates(value){(calls.objectStates??=[]).push(clone(value));},unlockObjectAudio(){calls.unlock=(calls.unlock??0)+1;},
     getRobotSource:()=>robotSource,setView(value){calls.views.push(value);if(value!=='interior')stageState={requested:false,active:false};},getView:()=>calls.views.at(-1)??'interior',
     getStageState:()=>({...stageState}),
@@ -88,6 +89,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
   };
   runInNewContext(source.replace(/^import[^\n]+\n/gm,'').replace('export function createStudentHomeScene','function createStudentHomeScene')+'\nglobalThis.makeEditor=createStudentHomeScene;',context,{filename:'student-home-editor.js'});
   const editor=context.makeEditor({querySelector:()=>({fixtureCanvas:true})},{
+    warmUI,onRobotPalette:()=>{calls.paletteOpen=(calls.paletteOpen??0)+1;},
     onStatus(message,retry){statuses.push(message);retries.push(retry);},onStageChange:value=>calls.stage.push(value),onStageCameraChange:value=>calls.stageCamera.push(clone(value)),
     onCommand(value,id){const requestHome=clone(saved),requestActivity=clone(savedActivity);return new Promise((resolve,reject)=>requests.push({command:clone(value),id,
       accept(){const activity=value.type==='setRobotActivity',prepared=activity?{commerce:requestHome.commerce,changed:true,amount:0,detail:{robotActivity:clone(value.activity)}}:prepareCommerceCommand(requestHome.commerce,clone(value),id);
@@ -613,4 +615,36 @@ test('warm wall clicks save independent style and color for free, synchronize st
 for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test('the '+theme.id+' wall menu keeps its original actions without finish controls',async()=>{
   const f=fixture(ownedHome(),theme);await f.show();f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'wall.inner'}});
   assert.equal(f.menu.calls.raw.at(-1)[0].items.some(item=>item.id==='wall-finish'),false);assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+
+test('Warm robot dressing stays inside the remote and opens real wardrobe or palette without account writes',async()=>{
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();const before=f.saved();
+  assert.equal(f.editor.openRobotQuickActions(),true);assert.equal(f.calls.quick.targetId,'avatar');
+  assert.equal(f.calls.quick.actions.some(action=>action.id==='avatar:wardrobe'),false);
+  assert.equal(f.calls.quick.actions.find(action=>action.id==='avatar:dress').label,"Dress up");
+  await f.bindings.quick.onAction('avatar:dress','avatar');
+  assert.equal(f.calls.quick.title,"DisplayText4716");assert.deepEqual(clone(f.calls.quick.actions.map(action=>action.id)),['avatar:wardrobe','avatar:palette','avatar:back']);
+  await f.bindings.quick.onAction('avatar:back','avatar');assert.equal(f.calls.quick.title,"DisplayText3715");
+  await f.bindings.quick.onAction('avatar:dress','avatar');await f.bindings.quick.onAction('avatar:palette','avatar');
+  assert.equal(f.calls.paletteOpen,1);assert.equal(f.calls.quick,null);
+  f.editor.openRobotQuickActions();await f.bindings.quick.onAction('avatar:dress','avatar');await f.bindings.quick.onAction('avatar:wardrobe','avatar');
+  assert.equal(f.wardrobe.calls.open.length,1);assert.equal(f.calls.quick,null);assert.equal(f.requests.length,0);assert.deepEqual(f.saved(),before);f.editor.dispose();
+});
+
+test('Default and Toy robot remotes retain the original actions and dressing selections cannot survive a student switch',async()=>{
+  for(const theme of [HOME_THEMES.default,HOME_THEMES.toy]){
+    const f=fixture(ownedHome(),theme);await f.show();f.editor.openRobotQuickActions();
+    assert.deepEqual(clone(f.calls.quick.actions.map(row=>row.id)),['stage:dance','avatar:wave','avatar:wardrobe']);f.editor.dispose();
+  }
+  const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();f.editor.openRobotQuickActions();await f.bindings.quick.onAction('avatar:dress','avatar');
+  await f.show(ownedHome(B));assert.equal(f.calls.quick,null);assert.equal((await f.bindings.quick.onAction('avatar:palette','avatar')).ok,false);assert.equal(f.calls.paletteOpen,undefined);
+  f.editor.openRobotQuickActions();assert.equal(f.calls.quick.title,"DisplayText3715");assert.equal(f.calls.quick.actions.some(row=>row.id==='avatar:dress'),true);f.editor.dispose();
+});
+
+test('camera toolbar adapters forward real zoom and refit for each view without saved mutations',async()=>{
+  const f=fixture();assert.equal(f.editor.zoom(1),false);assert.equal(f.editor.refit(),false);assert.equal(f.editor.openRobotQuickActions(),false);await f.show();const before=f.saved();
+  for(const view of ['interior','estate','building']){f.editor.setView(view);assert.equal(f.editor.zoom(1),true);assert.equal(f.editor.zoom(-1),true);assert.equal(f.editor.refit(),true);}
+  assert.deepEqual(f.calls.zooms,[1,-1,1,-1,1,-1]);assert.equal(f.calls.refits,3);assert.equal(f.editor.zoom(NaN),false);assert.equal(f.editor.zoom(Infinity),false);
+  assert.deepEqual(f.saved(),before);assert.equal(f.requests.length,0);f.editor.clear();assert.equal(f.editor.zoom(1),false);assert.equal(f.editor.refit(),false);f.editor.dispose();assert.equal(f.editor.openRobotQuickActions(),false);
 });

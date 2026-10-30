@@ -2,6 +2,8 @@ const ART_BASE=new URL('../assets/quick-actions/',import.meta.url);
 const actionArt={'sofa-sit':'sit.webp',watch:'watch.webp','watch-sofa':'watch.webp',tidy:'tidy.webp','tidy-cushion':'tidy.webp'};
 const iconPaths={
   wardrobe:'M5 3h14v18H5zM12 3v18M9 11v3m6-3v3',
+  palette:'M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.5-3.3 1.5 1.5 0 0 1 1.1-2.5H18A4 4 0 0 0 22 11 10 10 0 0 0 12 3ZM6.5 10h.01M10 6.5h.01M15 7h.01M18 10.5h.01',
+  back:'M10 5 3 12l7 7M3 12h18',
   dance:'M14 3h.01M9 7l5 1 3 5 4-1M14 8l-3 6 5 7M11 14l-5 6M9 7l-4 5-3-2M19 3v4m-2-2h4',
   sit:'M5 13V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v5M5 11H3v8h18v-8h-2M5 16h14M6 19v2m12-2v2',
   watch:'M4 6h16v12H4zM8 22h8M12 18v4M9 2l3 3 3-3',

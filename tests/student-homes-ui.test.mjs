@@ -38,7 +38,7 @@ const savedSelection=(student=A,actorId=ACTOR)=>JSON.stringify({actorId,studentI
 // stubbed; fetch promises are completed explicitly in each test to reproduce
 // out-of-order responses without timers or real student data. Passing the same
 // storage to two fresh VM contexts reproduces a tab reload without retaining JS state.
-function fixture({loadScene,storage=tabStorage(),themeSearch=''}={}) {
+function fixture({loadScene,storage=tabStorage(),themeSearch='',warm=false}={}) {
   class Element {
     constructor(tag='div') {
       this.tagName=tag;this.children=[];this.attributes={};this.dataset={};this.events={};
@@ -48,6 +48,8 @@ function fixture({loadScene,storage=tabStorage(),themeSearch=''}={}) {
     append(...children){this.children.push(...children);}
     replaceChildren(...children){this.children=[...children];}
     setAttribute(name,value){this.attributes[name]=String(value);}
+    getAttribute(name){return this.attributes[name]??null;}
+    click(){if(!this.disabled)return this.events.click?.();}
     addEventListener(name,callback){this.events[name]=callback;}
     focus(){}
     getBoundingClientRect(){return {width:900,height:700,top:0,left:0};}
@@ -72,7 +74,8 @@ function fixture({loadScene,storage=tabStorage(),themeSearch=''}={}) {
     clear(){sceneCalls.clear++;},wave(){},reset(){},dispose(){},
     getView:()=>view,setView(value){view=value;sceneCalls.views.push(value);sceneOptions.onViewChange(value);},
   };
-  const context={document,CATALOG_VERSION,applyHomeTheme,preserveHomeTheme:value=>preserveHomeTheme(value,themeSearch),location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
+  let warmOptions;const warmCalls={balance:[],notices:[],refresh:0,disposed:0};
+  const context={document,CATALOG_VERSION,applyHomeTheme:warm?()=>({id:'warm'}):applyHomeTheme,window:{},createStudentHomeWarmUI(options){warmOptions=options;return{refresh(){warmCalls.refresh++;},notify(value){warmCalls.notices.push(clone(value));},setBalance(value,scope){warmCalls.balance.push({value,scope});$('balance').textContent=value.toLocaleString('en');},clearBalance(){warmCalls.balance.push({value:null});$('balance').textContent='—';},dispose(){warmCalls.disposed++;}};},preserveHomeTheme:value=>preserveHomeTheme(value,themeSearch),location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
     ...(storage?{sessionStorage:storage}:{}),
     fetch(url,options){
       return new Promise((resolve,reject)=>calls.push({url,options,taken:false,
@@ -88,7 +91,7 @@ function fixture({loadScene,storage=tabStorage(),themeSearch=''}={}) {
     globalThis.app={boot,selectStudent,claim,changeColor,refreshWallet,reloadIdentity,executeCommand,
       snapshot:()=>({session,students,selected,home,writing,selection}),retry:()=>retryAction?.()};
   `,context,{filename:'student-homes.js'});
-  return {app:context.app,$,calls,events,sceneCalls,scene,storage,
+  return {app:context.app,$,calls,events,sceneCalls,scene,storage,warmCalls,get warmOptions(){return warmOptions;},
     snapshot:()=>clone(context.app.snapshot()),
     async next(path,method=path.endsWith('/wallet/starter-grant')?'POST':'GET'){
       await flush();const call=calls.find(item=>!item.taken);assert.ok(call,`Expected ${method} ${path}`);
@@ -489,4 +492,18 @@ for(const themeSearch of ['?theme=toy','?theme=default','?theme=not-a-theme'])te
   assert.equal(login.pathname,'/login/');assert.equal(next.pathname,'/games/homeworld/student-homes.html');
   assert.equal(next.searchParams.get('theme'),themeSearch.includes('not-a-theme')?null:themeSearch.slice(7));
   assert.equal(f.$('login').hidden,false);assert.equal(f.calls.length,1,'theme resolution cannot request a save or a wallet write');
+});
+
+
+test('Warm presentation student selector uses the existing authenticated selection path and clears the old wallet first',async()=>{
+  const f=fixture({warm:true});await f.boot();await f.open(A,savedHome(A),99);assert.equal(f.warmOptions.getState().selectedId,A.id);assert.equal(f.warmOptions.getState().ready,true);
+  const opening=f.warmOptions.onSelectStudent(B.id);const read=await f.next(`/students/${B.id}/home`);assert.equal(f.$('balance').textContent,'—');assert.equal(f.warmCalls.balance.at(-1).value,null);
+  read.reply({home:savedHome(B)});(await f.next(`/students/${B.id}/wallet/starter-grant`)).reply(wallet(B,17));await opening;
+  assert.equal(f.snapshot().selected.id,B.id);assert.equal(f.snapshot().home.studentId,B.id);assert.equal(f.$('balance').textContent,'17');assert.equal(f.warmCalls.balance.at(-1).scope,ACTOR+':'+B.id);assert.equal(f.sceneCalls.showOptions.at(-1).actorId,ACTOR);
+  const count=f.calls.length;await f.warmOptions.onSelectStudent('not-a-current-student');assert.equal(f.calls.length,count);assert.equal(f.snapshot().selected.id,B.id);
+});
+
+test('Warm 401 login errors stay visible even without a retry action and chrome disposes on departure',async()=>{
+  const f=fixture({warm:true});const task=f.app.boot();(await f.next('/session')).reply(failure('unauthenticated'),401);await task;
+  assert.equal(f.$('login').hidden,false);assert.equal(f.$('retry').hidden,true);assert.equal(f.warmCalls.notices.at(-1).persistent,true);f.events.pagehide({persisted:false});assert.equal(f.warmCalls.disposed,1);
 });

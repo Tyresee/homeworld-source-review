@@ -90,7 +90,7 @@ export function prepareCommerceCommand(current,command,commandId){
     }
     case 'setWallFinish':{
       const hasStyle=Object.hasOwn(command,'styleId'),hasColor=Object.hasOwn(command,'colorId');
-      if(hasStyle===hasColor)throw invalid("DisplayText4737.");
+      if(hasStyle===hasColor)throw invalid("DisplayText4765.");
       const field=hasStyle?'styleId':'colorId';
       expectKeys(command,['surfaceId',field,'storey']);const options=floorOptions(command),home=getFloorHome(state,options.storey);
       const changed=checked(applyChange(home,{type:'setWallFinish',surfaceId:command.surfaceId,[field]:command[field]}));

@@ -1,0 +1,138 @@
+[
+  {
+    "balanceFont": "34px",
+    "controls": [
+      {
+        "className": "wallet",
+        "rect": {
+          "bottom": 186.796875,
+          "height": 160.796875,
+          "left": 1165,
+          "right": 1410,
+          "top": 26,
+          "width": 245,
+          "x": 1165,
+          "y": 26
+        }
+      },
+      {
+        "className": "warm-view-dock",
+        "rect": {
+          "bottom": 872,
+          "height": 114.1875,
+          "left": 28,
+          "right": 278,
+          "top": 757.8125,
+          "width": 250,
+          "x": 28,
+          "y": 757.8125
+        }
+      },
+      {
+        "className": "warm-show",
+        "rect": {
+          "bottom": 872,
+          "height": 64,
+          "left": 330,
+          "right": 493.09375,
+          "top": 808,
+          "width": 163.09375,
+          "x": 330,
+          "y": 808
+        }
+      },
+      {
+        "className": "warm-camera-dock",
+        "rect": {
+          "bottom": 872,
+          "height": 176,
+          "left": 1360,
+          "right": 1412,
+          "top": 696,
+          "width": 52,
+          "x": 1360,
+          "y": 696
+        }
+      },
+      {
+        "className": "home-quick-remote",
+        "rect": {
+          "bottom": 842.8828125,
+          "height": 609.765625,
+          "left": 1048,
+          "right": 1344,
+          "top": 233.1171875,
+          "width": 296,
+          "x": 1048,
+          "y": 233.1171875
+        }
+      }
+    ],
+    "height": 900,
+    "remoteScreen": "radial-gradient(at 40% 10%, rgb(74, 68, 64), rgb(43, 38, 34) 76%)",
+    "scrollHeight": 900,
+    "scrollWidth": 1440,
+    "titleFont": "30px",
+    "width": 1440
+  },
+  {
+    "controls": [
+      {
+        "className": "wallet",
+        "rect": {
+          "bottom": 186.796875,
+          "height": 160.796875,
+          "left": 1645,
+          "right": 1890,
+          "top": 26,
+          "width": 245,
+          "x": 1645,
+          "y": 26
+        }
+      },
+      {
+        "className": "warm-view-dock",
+        "rect": {
+          "bottom": 1052,
+          "height": 114.1875,
+          "left": 28,
+          "right": 278,
+          "top": 937.8125,
+          "width": 250,
+          "x": 28,
+          "y": 937.8125
+        }
+      },
+      {
+        "className": "warm-show",
+        "rect": {
+          "bottom": 1052,
+          "height": 64,
+          "left": 330,
+          "right": 493.09375,
+          "top": 988,
+          "width": 163.09375,
+          "x": 330,
+          "y": 988
+        }
+      },
+      {
+        "className": "warm-camera-dock",
+        "rect": {
+          "bottom": 1052,
+          "height": 176,
+          "left": 1840,
+          "right": 1892,
+          "top": 876,
+          "width": 52,
+          "x": 1840,
+          "y": 876
+        }
+      }
+    ],
+    "height": 1080,
+    "scrollHeight": 1080,
+    "scrollWidth": 1920,
+    "width": 1920
+  }
+]

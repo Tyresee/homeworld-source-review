@@ -1,6 +1,6 @@
 {
-  "edition": "source-review-v2-offline-look-dev-walls",
-  "totalFiles": 465,
+  "edition": "source-review-v2-offline-look-dev",
+  "totalFiles": 511,
   "files": [
     {
       "path": ".gitignore",
@@ -9,54 +9,6 @@
     {
       "path": "CORE_TESTS.json",
       "bytes": 2369
-    },
-    {
-      "path": "FILE_INDEX.json",
-      "bytes": 46363
-    },
-    {
-      "path": "LOOK_DEV_REVIEW.md",
-      "bytes": 5390
-    },
-    {
-      "path": "MODULE_MAP.md",
-      "bytes": 5462
-    },
-    {
-      "path": "NORMALIZATION_NOTES.md",
-      "bytes": 2304
-    },
-    {
-      "path": "PACKAGE_AUDIT.json",
-      "bytes": 3464
-    },
-    {
-      "path": "PROJECT_BRIEF.md",
-      "bytes": 29622
-    },
-    {
-      "path": "README.md",
-      "bytes": 6738
-    },
-    {
-      "path": "REVIEW_TEST_LIMITS.md",
-      "bytes": 1856
-    },
-    {
-      "path": "VENDORED_THREE.md",
-      "bytes": 2018
-    },
-    {
-      "path": "WARM_FLOORS_REVIEW.md",
-      "bytes": 6545
-    },
-    {
-      "path": "docs/WALL_SYSTEM_HANDOFF.md",
-      "bytes": 7170
-    },
-    {
-      "path": "docs/look-dev-captures/README.md",
-      "bytes": 1427
     },
     {
       "path": "docs/look-dev-captures/default--bathroom.png",
@@ -83,16 +35,20 @@
       "bytes": 17111
     },
     {
+      "path": "docs/look-dev-captures/README.md",
+      "bytes": 1427
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
+      "bytes": 2267373
+    },
+    {
       "path": "docs/look-dev-captures/review-2026-10-29/IMPORT_PROVENANCE.json",
       "bytes": 5807
     },
     {
       "path": "docs/look-dev-captures/review-2026-10-29/README.md",
       "bytes": 1908
-    },
-    {
-      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
-      "bytes": 2267373
     },
     {
       "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
@@ -183,10 +139,6 @@
       "bytes": 11610
     },
     {
-      "path": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
-      "bytes": 1286
-    },
-    {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/matrix-kitchen.png",
       "bytes": 839138
     },
@@ -201,6 +153,10 @@
     {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/prototype/wall-proto.patch",
       "bytes": 5607
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
+      "bytes": 1286
     },
     {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--kitchen.png",
@@ -351,10 +307,6 @@
       "bytes": 2677
     },
     {
-      "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
-      "bytes": 8933
-    },
-    {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/acceptance-plan.json",
       "bytes": 869
     },
@@ -393,10 +345,6 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/baseline-verification.json",
       "bytes": 1530
-    },
-    {
-      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/REPORT.md",
-      "bytes": 6792
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/actual-matrix-kitchen.png",
@@ -439,6 +387,10 @@
       "bytes": 662598
     },
     {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/REPORT.md",
+      "bytes": 6792
+    },
+    {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--bathroom.png",
       "bytes": 832375
     },
@@ -461,6 +413,10 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/fresh-clone-verification.json",
       "bytes": 1299
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
+      "bytes": 8933
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/render-readbacks.json",
@@ -595,8 +551,164 @@
       "bytes": 3557
     },
     {
-      "path": "docs/warm-floor-captures/README.md",
-      "bytes": 3600
+      "path": "docs/ui-review-2026-10-30/CODEX_TASK.md",
+      "bytes": 7301
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/IMPORT_PROVENANCE.json",
+      "bytes": 16486
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/prototype/dock.js",
+      "bytes": 4631
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/prototype/skin.css",
+      "bytes": 1708
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/prototype/ui-harness.mjs",
+      "bytes": 3426
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/01-current-default.png",
+      "bytes": 900833
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/02-current-warm.png",
+      "bytes": 1051304
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/03-current-context-menu.png",
+      "bytes": 939271
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/04-current-remote.png",
+      "bytes": 1119202
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/05-proposed-skin.png",
+      "bytes": 1050052
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/06-proposed-presentation-mode.png",
+      "bytes": 1274108
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/07-proposed-icon-dock.png",
+      "bytes": 1210295
+    },
+    {
+      "path": "docs/ui-review-2026-10-30/screenshots/08-proposed-dock-building-view.png",
+      "bytes": 961451
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/layout-checks.json",
+      "bytes": 5344
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-building-1440.png",
+      "bytes": 1204077
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-building-1920.png",
+      "bytes": 1404255
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-normal-1440.png",
+      "bytes": 1277546
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-normal-1920.png",
+      "bytes": 1465268
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-present-1440.png",
+      "bytes": 1332482
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-present-1920.png",
+      "bytes": 1527001
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-remote-1440.png",
+      "bytes": 1654037
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pair-remote-1920.png",
+      "bytes": 1866720
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/pairs.json",
+      "bytes": 6199
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/REPORT.md",
+      "bytes": 8757
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/default-toy-ui-regression.json",
+      "bytes": 783
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/look-dev-regression.json",
+      "bytes": 2521
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/public-ui-readback.json",
+      "bytes": 2879
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/README.md",
+      "bytes": 4290
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/building-1440.png",
+      "bytes": 629762
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/building-1920.png",
+      "bytes": 809100
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/normal-1440.png",
+      "bytes": 631663
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/normal-1920.png",
+      "bytes": 800610
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/present-1440.png",
+      "bytes": 597096
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/present-1920.png",
+      "bytes": 768386
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/remote-1440.png",
+      "bytes": 779720
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/screenshots/remote-1920.png",
+      "bytes": 972344
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/source-ui-checks.json",
+      "bytes": 294
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/tests.json",
+      "bytes": 9792
+    },
+    {
+      "path": "docs/WALL_SYSTEM_HANDOFF.md",
+      "bytes": 7170
+    },
+    {
+      "path": "docs/WARM_UI_HANDOFF.md",
+      "bytes": 10278
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -663,6 +775,10 @@
       "bytes": 1530
     },
     {
+      "path": "docs/warm-floor-captures/README.md",
+      "bytes": 3600
+    },
+    {
       "path": "docs/warm-floor-captures/verification.json",
       "bytes": 1937
     },
@@ -689,14 +805,6 @@
     {
       "path": "docs/warm-floor-captures/warm-render-readback.json",
       "bytes": 19748
-    },
-    {
-      "path": "docs/warm-v6-validation/README.md",
-      "bytes": 7163
-    },
-    {
-      "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
-      "bytes": 2782
     },
     {
       "path": "docs/warm-v6-validation/app/tile-blue.png",
@@ -767,6 +875,10 @@
       "bytes": 751
     },
     {
+      "path": "docs/warm-v6-validation/README.md",
+      "bytes": 7163
+    },
+    {
       "path": "docs/warm-v6-validation/render-readback.json",
       "bytes": 19760
     },
@@ -805,6 +917,10 @@
     {
       "path": "docs/warm-v6-validation/verification.json",
       "bytes": 1439
+    },
+    {
+      "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
+      "bytes": 2782
     },
     {
       "path": "docs/warm-v6-validation/visual-validation.json",
@@ -855,8 +971,28 @@
       "bytes": 1126258
     },
     {
+      "path": "FILE_INDEX.json",
+      "bytes": 51029
+    },
+    {
       "path": "game.manifest.json",
       "bytes": 1681
+    },
+    {
+      "path": "LOOK_DEV_REVIEW.md",
+      "bytes": 5390
+    },
+    {
+      "path": "MODULE_MAP.md",
+      "bytes": 5462
+    },
+    {
+      "path": "NORMALIZATION_NOTES.md",
+      "bytes": 2304
+    },
+    {
+      "path": "PACKAGE_AUDIT.json",
+      "bytes": 3015
     },
     {
       "path": "package-lock.json",
@@ -865,6 +1001,10 @@
     {
       "path": "package.json",
       "bytes": 749
+    },
+    {
+      "path": "PROJECT_BRIEF.md",
+      "bytes": 29622
     },
     {
       "path": "public/assets/asset-lab/robot-v1/models/v4/robot.glb",
@@ -1144,7 +1284,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 110137
+      "bytes": 110323
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -1248,7 +1388,7 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 52695
+      "bytes": 54200
     },
     {
       "path": "public/js/student-home-floor-menu.js",
@@ -1276,7 +1416,7 @@
     },
     {
       "path": "public/js/student-home-quick-actions.js",
-      "bytes": 8588
+      "bytes": 8777
     },
     {
       "path": "public/js/student-home-robot-controller.js",
@@ -1343,12 +1483,16 @@
       "bytes": 6657
     },
     {
+      "path": "public/js/student-home-warm-ui.js",
+      "bytes": 14932
+    },
+    {
       "path": "public/js/student-home-world.js",
       "bytes": 6111
     },
     {
       "path": "public/js/student-homes.js",
-      "bytes": 19555
+      "bytes": 20983
     },
     {
       "path": "public/roof-review.css",
@@ -1371,12 +1515,24 @@
       "bytes": 10477
     },
     {
+      "path": "public/student-home-warm.css",
+      "bytes": 34885
+    },
+    {
       "path": "public/student-homes.css",
       "bytes": 9780
     },
     {
       "path": "public/student-homes.html",
-      "bytes": 4452
+      "bytes": 4509
+    },
+    {
+      "path": "README.md",
+      "bytes": 7433
+    },
+    {
+      "path": "REVIEW_TEST_LIMITS.md",
+      "bytes": 2091
     },
     {
       "path": "scripts/qa/look-dev-backdrop.mjs",
@@ -1445,6 +1601,14 @@
     {
       "path": "scripts/qa/robot-motion-review.mjs",
       "bytes": 23239
+    },
+    {
+      "path": "scripts/qa/student-ui-review.mjs",
+      "bytes": 5508
+    },
+    {
+      "path": "scripts/qa/student-ui-vendor-loader.mjs",
+      "bytes": 1098
     },
     {
       "path": "scripts/run-core-tests.mjs",
@@ -1628,7 +1792,7 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 66216
+      "bytes": 69642
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
@@ -1735,6 +1899,14 @@
       "bytes": 5212
     },
     {
+      "path": "tests/student-home-warm-camera-controls.test.mjs",
+      "bytes": 4120
+    },
+    {
+      "path": "tests/student-home-warm-ui.test.mjs",
+      "bytes": 12133
+    },
+    {
       "path": "tests/student-home-world-view.test.mjs",
       "bytes": 4566
     },
@@ -1816,19 +1988,15 @@
     },
     {
       "path": "tests/student-homes-ui.test.mjs",
-      "bytes": 36697
+      "bytes": 38934
     },
     {
       "path": "tests/student-homes-wall-finishes.test.mjs",
       "bytes": 7523
     },
     {
-      "path": "vendor/three/LICENSE",
-      "bytes": 1081
-    },
-    {
-      "path": "vendor/three/MANIFEST.json",
-      "bytes": 2113
+      "path": "tests/student-ui-review.test.mjs",
+      "bytes": 9245
     },
     {
       "path": "vendor/three/build/three.core.js",
@@ -1861,6 +2029,22 @@
     {
       "path": "vendor/three/examples/jsm/utils/SkeletonUtils.js",
       "bytes": 11535
+    },
+    {
+      "path": "vendor/three/LICENSE",
+      "bytes": 1081
+    },
+    {
+      "path": "vendor/three/MANIFEST.json",
+      "bytes": 2113
+    },
+    {
+      "path": "VENDORED_THREE.md",
+      "bytes": 2018
+    },
+    {
+      "path": "WARM_FLOORS_REVIEW.md",
+      "bytes": 6545
     }
   ]
 }

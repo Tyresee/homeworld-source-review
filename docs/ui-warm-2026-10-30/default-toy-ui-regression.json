@@ -1,0 +1,38 @@
+[
+  {
+    "theme": "default",
+    "width": 1440,
+    "height": 900,
+    "baseline": "Pre-UI source snapshot reconstructed at matching DPR 0.5",
+    "identicalDecodedPixels": true,
+    "changedChannels": 0,
+    "meanAbsoluteChannelError": 0
+  },
+  {
+    "theme": "default",
+    "width": 1920,
+    "height": 1080,
+    "identicalDecodedPixels": true,
+    "changedChannels": 0,
+    "meanAbsoluteChannelError": 0,
+    "max": 0
+  },
+  {
+    "theme": "toy",
+    "width": 1440,
+    "height": 900,
+    "identicalDecodedPixels": true,
+    "changedChannels": 0,
+    "meanAbsoluteChannelError": 0,
+    "max": 0
+  },
+  {
+    "theme": "toy",
+    "width": 1920,
+    "height": 1080,
+    "identicalDecodedPixels": true,
+    "changedChannels": 0,
+    "meanAbsoluteChannelError": 0,
+    "max": 0
+  }
+]

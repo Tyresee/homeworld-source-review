@@ -1,6 +1,6 @@
 # Validation of the normalized copy
 
-All 723 included checks were attempted in this review copy: 668 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. The 55 failing test names are identical to the previous snapshot; there are no new failing test names. This is not a production test result.
+All 771 included checks were attempted in this review copy: 716 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. The 55 failing test names are identical to the previous snapshot; there are no new failing test names. This is not a production test result.
 
 The default core subset passes 379/379. The new look-development preset/safety/ZIP tests pass 4/4 without installing dependencies. The real no-node_modules browser matrix is recorded separately in LOOK_DEV_REVIEW.md.
 
@@ -25,3 +25,5 @@ Display-sensitive files:
 - `tests/student-homes-resale-commerce.test.mjs`
 - `tests/student-homes-robot-state.test.mjs`
 - `tests/student-homes-ui.test.mjs`
+
+Current Warm wall/floor/UI focused tests pass 58/58. The new UI lab safety tests are included. See docs/WARM_UI_HANDOFF.md and docs/ui-warm-2026-10-30/tests.json for the current source and public totals and no-new-failure comparison.

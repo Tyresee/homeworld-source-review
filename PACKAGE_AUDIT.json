@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 132,
-    "tests": 82,
-    "selectedSourceFiles": 235,
-    "packagedFiles": 465,
-    "browserModules": 113,
+    "modules": 123,
+    "tests": 85,
+    "selectedSourceFiles": 242,
+    "packagedFiles": 511,
+    "browserModules": 114,
     "serverModules": 9,
-    "qaScripts": 10
+    "qaScripts": 12
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -19,90 +19,92 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "coreTestsPassed": 379,
-    "focusedTestsPassed": 50,
-    "allIncludedTestsAttempted": 754,
-    "allIncludedTestsPassed": 699,
-    "allIncludedTestsWithDisplayExpectationDifferences": 55,
-    "sameDisplayFailureNamesAsPreviousSnapshot": true,
-    "sourceAccountTestsPassed": 698,
+    "status": "tested-local-awaiting-fresh-GitHub-clone",
+    "sourceHomeTests": {
+      "command": "npm run verify:student-homes",
+      "expandedTestCommand": "node --test tests/student-homes-*.test.mjs tests/student-home-*.test.mjs",
+      "tests": 713,
+      "pass": 713,
+      "fail": 0
+    },
     "sourceFullTests": {
-      "total": 839,
-      "passed": 838,
-      "preExistingCatalogueCountFailures": 1
+      "command": "node --test tests/*.test.mjs",
+      "tests": 856,
+      "pass": 855,
+      "fail": 1,
+      "knownFailure": {
+        "testFile": "tests/home-engine.test.mjs",
+        "testDeclarationLine": 294,
+        "assertionLine": 296,
+        "name": "furniture bounds use the actual rotated model footprint and reject overlapping instances",
+        "actualCatalogueCount": 376,
+        "expectedCatalogueCount": 311,
+        "preExisting": true
+      }
     },
-    "wallVariantCaptures": 30,
-    "wallVariantDiagnosticsPassed": 30,
-    "finalSharedFaceFixRecaptured": true,
-    "defaultToyPngsByteIdentical": 10,
-    "fictionalApplicationFreeWallSelections": 8,
-    "refreshAndStudentIsolationVerified": true,
-    "sharedFaceIsolationVerified": true,
-    "offlineVendorVerification": "passed",
-    "sourcePrivacy": "passed",
-    "upstreamWallPackMembersByteIdentical": 35,
-    "referenceLanguageExceptionExplicitlyApproved": true,
-    "freshCloneBrowserVerification": {
-      "status": "passed",
-      "testedCodeCommit": "61d0b700820d498ec70b8c807d785388d4dfb014",
-      "freshGitHubClone": true,
-      "nodeModulesPresent": false,
-      "npmInstallPerformed": false,
-      "entry": "node scripts/qa/look-dev-review.mjs",
-      "viewsRendered": 5,
-      "allFiveByteIdenticalToSource": true,
-      "dotLavenderControlPngByteIdenticalToSource": true,
-      "dimensions": [
-        1440,
-        900
+    "sourceBuild": {
+      "command": "npm run build:student-homes",
+      "passed": true,
+      "releaseFiles": 474,
+      "assetBytes": {
+        "original": 5014091,
+        "brotli": 1216504,
+        "gzip": 1482814
+      },
+      "note": "Final code rebuilt after dynamic accessible-label synchronization; asset sizes are not a runtime performance measurement."
+    },
+    "publicCore": {
+      "tests": 379,
+      "pass": 379,
+      "fail": 0
+    },
+    "publicFocused": {
+      "tests": 58,
+      "pass": 58,
+      "fail": 0
+    },
+    "publicFull": {
+      "tests": 771,
+      "pass": 716,
+      "fail": 55,
+      "same55FailureNamesAsPriorSnapshot": true,
+      "newFailureNames": []
+    },
+    "visual": {
+      "appMatrix": 8,
+      "cssViewportSizes": [
+        "1440x900",
+        "1920x1080"
       ],
-      "consoleErrors": 0,
-      "files": [
-        {
-          "file": "warm-walls--living.png",
-          "byteIdenticalToSource": true,
-          "sha256": "c027951abc4e1b03ece4996d045471dc42c8ee80d79b77857492c453c9726691"
-        },
-        {
-          "file": "warm-walls--bedroom.png",
-          "byteIdenticalToSource": true,
-          "sha256": "36870cac4344437da59ae3e81147c2b5cee4cdad2d32f9136bcf71187b0565a8"
-        },
-        {
-          "file": "warm-walls--kitchen.png",
-          "byteIdenticalToSource": true,
-          "sha256": "61fb70a36052aebf3908d0722815c2919a2bef2d1b4cb739bbdb11c94bd1328d"
-        },
-        {
-          "file": "warm-walls--bathroom.png",
-          "byteIdenticalToSource": true,
-          "sha256": "c8e65f9631e26e4e73696afa985dce3c59902ad91ef3ab0877599945426784a0"
-        },
-        {
-          "file": "warm-walls--exterior.png",
-          "byteIdenticalToSource": true,
-          "sha256": "c709bd4eda1ff298ff87537541d1dd12103afe7fe31d16765916afc0f97e8481"
-        }
-      ]
+      "appEmulatedDpr": 0.5,
+      "defaultToyPixelIdenticalChecks": 4,
+      "lookDevByteIdenticalPNGs": 15,
+      "realHardwareValidated": false
     },
-    "deploymentPerformed": false
-  },
-  "previousSnapshotValidation": {
-    "syntaxCheckedFiles": 184,
-    "relativeImportsChecked": 525,
-    "coreTestFiles": 49,
-    "coreTestsPassed": 379,
-    "coreTestsFailed": 0,
-    "allIncludedTestsAttempted": 666,
-    "allIncludedTestsPassed": 611,
-    "allIncludedTestsWithDisplayExpectationDifferences": 55
+    "vendor": {
+      "version": "0.186.1",
+      "licensedFiles": 9,
+      "importClosureAndHashesVerified": true
+    },
+    "privacy": {
+      "formalNormalizedFiles": 242,
+      "combinedRawReferenceMembersUnchanged": 47,
+      "privatePlatformFixtureIncluded": false,
+      "credentialsIncluded": false,
+      "realStudentDataIncluded": false
+    },
+    "freshClone": {
+      "status": "pending push and independent clone-back"
+    },
+    "productionDeployed": false,
+    "wallHeightAndCutawayChanged": false
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 235,
-    "changedSourceFiles": 3,
+    "normalizedSourceFiles": 242,
+    "changedSourceFiles": 2,
     "stableSeedLabels": 4676,
-    "newDisplayLabels": 61,
+    "newDisplayLabels": 89,
     "identityDataIncluded": false
   }
 }

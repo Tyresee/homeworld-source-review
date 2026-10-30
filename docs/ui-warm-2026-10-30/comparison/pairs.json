@@ -1,0 +1,166 @@
+{
+  "scope": "Normalized public-review captures only, paired with the approved original reviewer reference screenshots.",
+  "method": "Native source pixels are placed side by side, without resampling, registration or color correction. Labels and a neutral gutter are added outside both screenshots.",
+  "records": [
+    {
+      "mode": "normal",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/normal-1440.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/05-proposed-skin.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-normal-1440.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "e4f426f64619204fc594d3189db3479e67ec972414ac69197ee65e2e5fa7f6c7",
+      "referenceSHA256": "4df6dcfd7387dee2d5616646b437751ed720ad6e6ea3c1b1548b2f1062fddcd8",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "present",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/present-1440.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/07-proposed-icon-dock.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-present-1440.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "f421fef7d30ae449e1055861d7d67ea9e6b80f977782acc4a723869e81954c6f",
+      "referenceSHA256": "39f9f45f5f1ce652a98ee4ea82ee2b6c314e205c9a665d4e05bcc9ef27f055c0",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "remote",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/remote-1440.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/06-proposed-presentation-mode.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-remote-1440.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "7fc88a03dd79ee04e1b6fa36266a3389f2ab8ea0c2d10dcf24d202d0abc6e265",
+      "referenceSHA256": "17efdbee6843b7d3e549e9e3176e219f016484b54a70da372e816eb9e466d38c",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "building",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/building-1440.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/08-proposed-dock-building-view.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-building-1440.png",
+      "actualDimensions": [
+        1440,
+        900
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "d8547ffde2da6de46d6ad801015f105eaf7e4627658de728e0e3212f62ced54b",
+      "referenceSHA256": "a0a9a2f057b1ebc7d9105122258b2c28dfc4ecae66492a90c08859edad28c97e",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "normal",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/normal-1920.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/05-proposed-skin.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-normal-1920.png",
+      "actualDimensions": [
+        1920,
+        1080
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "5fdadc2838f513c47a9f17f8d9060aece4e5eb68d04f3e7a09e1651b5f7e49f8",
+      "referenceSHA256": "4df6dcfd7387dee2d5616646b437751ed720ad6e6ea3c1b1548b2f1062fddcd8",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "present",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/present-1920.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/07-proposed-icon-dock.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-present-1920.png",
+      "actualDimensions": [
+        1920,
+        1080
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "d8d6725f3ae8a0e2d23545c68a2d248124e2b1aba96ab60ddde73003ac411e57",
+      "referenceSHA256": "39f9f45f5f1ce652a98ee4ea82ee2b6c314e205c9a665d4e05bcc9ef27f055c0",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "remote",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/remote-1920.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/06-proposed-presentation-mode.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-remote-1920.png",
+      "actualDimensions": [
+        1920,
+        1080
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "edddf7ac3241d20aebd5b7540cfec6ea465c5e15d5e7ee585c60522d1431e104",
+      "referenceSHA256": "17efdbee6843b7d3e549e9e3176e219f016484b54a70da372e816eb9e466d38c",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    },
+    {
+      "mode": "building",
+      "actual": "docs/ui-warm-2026-10-30/screenshots/building-1920.png",
+      "reference": "docs/ui-review-2026-10-30/screenshots/08-proposed-dock-building-view.png",
+      "comparison": "docs/ui-warm-2026-10-30/comparison/pair-building-1920.png",
+      "actualDimensions": [
+        1920,
+        1080
+      ],
+      "referenceDimensions": [
+        1600,
+        900
+      ],
+      "actualSHA256": "2abf928a491438a404d235e51e06fb6c082cd5cfc810182fc14f88f9c0704656",
+      "referenceSHA256": "a0a9a2f057b1ebc7d9105122258b2c28dfc4ecae66492a90c08859edad28c97e",
+      "scaled": false,
+      "visuallyReviewed": true,
+      "interfaceOverflowObserved": false,
+      "interfaceControlOverlapObserved": false
+    }
+  ]
+}

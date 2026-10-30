@@ -16,6 +16,16 @@ The workstation uses the real home/room/furniture builders and the v4 robot mode
 
 Three.js 0.186.1 and its actual transitive module dependencies are bundled in vendor/three with the original license. The server automatically uses this bundle when node_modules/three is absent. See [the 10 actual reference renders](docs/look-dev-captures/README.md) and LOOK_DEV_REVIEW.md for the review procedure and VENDORED_THREE.md for dependency provenance.
 
+## Warm classroom interface candidate
+
+The completed wall system and optional paper UI are documented in [the combined handoff](docs/WARM_UI_HANDOFF.md). See [eight final application captures](docs/ui-warm-2026-10-30/README.md) and original reviewer references. Presentation mode, student selection, the icon dock, real zoom/reset and the dressing submenu are Warm-only. For a fictional standalone application view without npm, run:
+
+```sh
+node scripts/qa/student-ui-review.mjs
+```
+
+This explicit local mock adapter is a visual lab, not real platform authentication or wallet verification. It disables purchases and construction and uses disposable saves. No production deployment is included.
+
 ## Warm floor candidate
 
 The optional warm floor system adds fourteen free, per-room finishes with world-space texture repetition. The approved warm-v6 appearance source and reviewer render pack are now included. See [the save contract](WARM_FLOORS_REVIEW.md), [current comparison gallery](docs/warm-v6-validation/README.md), and [the original supplied reference pack](docs/look-dev-captures/review-2026-10-29/README.md). The shipped default and Toy v1 reference PNGs remain unchanged.

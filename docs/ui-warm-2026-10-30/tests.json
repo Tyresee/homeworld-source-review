@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Factual final source/public test verification; no code, export, deployment, or audit-metadata changes made by this summary task.",
+  "source": {
+    "account": {
+      "command": "npm run verify:student-homes",
+      "expandedTestCommand": "node --test tests/student-homes-*.test.mjs tests/student-home-*.test.mjs",
+      "tests": 713,
+      "pass": 713,
+      "fail": 0
+    },
+    "build": {
+      "command": "npm run build:student-homes",
+      "passed": true,
+      "releaseFiles": 474,
+      "assetBytes": {
+        "original": 5014091,
+        "brotli": 1216504,
+        "gzip": 1482814
+      },
+      "note": "Final code rebuilt after dynamic accessible-label synchronization; asset sizes are not a runtime performance measurement."
+    },
+    "full": {
+      "command": "node --test tests/*.test.mjs",
+      "tests": 856,
+      "pass": 855,
+      "fail": 1,
+      "knownFailure": {
+        "testFile": "tests/home-engine.test.mjs",
+        "testDeclarationLine": 294,
+        "assertionLine": 296,
+        "name": "furniture bounds use the actual rotated model footprint and reject overlapping instances",
+        "actualCatalogueCount": 376,
+        "expectedCatalogueCount": 311,
+        "preExisting": true
+      }
+    }
+  },
+  "public": {
+    "core": {
+      "command": "npm test",
+      "runner": "node scripts/run-core-tests.mjs",
+      "testList": "CORE_TESTS.json",
+      "tests": 379,
+      "pass": 379,
+      "fail": 0
+    },
+    "focused": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/home-wall-finishes.test.mjs",
+        "tests/home-wall-textures.test.mjs",
+        "tests/student-home-wall-menu.test.mjs",
+        "tests/student-homes-wall-finishes.test.mjs",
+        "tests/home-warm-theme.test.mjs",
+        "tests/home-floor-textures.test.mjs",
+        "tests/student-home-floor-menu.test.mjs",
+        "tests/look-dev-warm-floors.test.mjs",
+        "tests/look-dev-warm-v6.test.mjs",
+        "tests/look-dev-warm-walls.test.mjs",
+        "tests/student-home-warm-camera-controls.test.mjs",
+        "tests/student-home-warm-ui.test.mjs",
+        "tests/student-ui-review.test.mjs"
+      ],
+      "tests": 58,
+      "pass": 58,
+      "fail": 0
+    },
+    "full": {
+      "command": "node --test --test-reporter=spec tests/*.test.mjs",
+      "globExpansion": "All included test files sorted lexicographically",
+      "tests": 771,
+      "pass": 716,
+      "fail": 55,
+      "priorSnapshot": {
+        "tests": 754,
+        "pass": 699,
+        "fail": 55
+      },
+      "exactSame55FailureNames": true,
+      "newFailureNames": [],
+      "resolvedFailureNames": [],
+      "failureNames": [
+        "DisplayText4610 may exit and resume through the top control without stopping the robot or saving an activity",
+        "HTTP 200 with authenticated false does not fetch students or allow a claim",
+        "HTTP old storefront checkout is rejected without payment; current catalog checkout uses the displayed price",
+        "TV power acknowledgement and scene refresh keep the watch status on either linked TV or sofa",
+        "a definite rejected resale retains owned furniture and wallet and a new retry can succeed",
+        "a desk carrying a placed ornament shows the actual disabled reason before any sale request",
+        "a failed initial home read cannot display the free-claim affordance or create a replacement save",
+        "a rejected elevator purchase preserves the staircase and wallet and allows a normal retry",
+        "a remembered selection is not restored for an HTTP 200 unauthenticated session",
+        "a selection entirely on built floor costs zero and clearing only removes the draft",
+        "a supporting desk cannot be sold while its mounted goods remain placed",
+        "a unconfirmed sale keeps its real card, ownership and wallet balance",
+        "ambiguous 503 after a successful color write confirms the saved revision without another PATCH",
+        "ambiguous network after a successful color write confirms the saved revision without another PATCH",
+        "an unhandled floor switch restores the safe stair entry and replaces the moving status with an error",
+        "an unknown sleep write retries its original command before a newer wake, without overwriting live motion",
+        "camera button shows exit during automatic shots and follow after returning, independently of stopping the dance",
+        "catalog change preserves the selected house and offers a page refresh without retrying payment",
+        "commerce revision conflict reloads authoritative home without replaying purchase",
+        "doorway clearance covers both landings and refuses a furnishing outside the old reserved footprint",
+        "floor expansion refuses to move its new entrance steps through a placed object",
+        "floor right-click starts dancing at the exact frozen coordinates without a second selection or purchase",
+        "football target and period survive service restart and invalid ownership never grants play",
+        "full-height upper cabin rejects an existing chandelier without charging or moving any goods",
+        "gifts and structural or clothing ownership cannot be exchanged for points",
+        "late equip response cannot reopen a closed wardrobe and slot controls exclude unowned SKUs",
+        "left-clicking the robot exposes its dance action and starts the stage without a purchase or furniture mutation",
+        "lost starter reply shows an unconfirmed outcome and retries the same fixed program",
+        "missing, ordinary, misaligned and blocked elevator peers reject before any motion",
+        "new placements and moves keep the strict entrance rule and failed attempts preserve ownership and money",
+        "new sofa/tabledesk work stays account-owned, persists through restart and does not spend points",
+        "old overlapping saves remain readable without mutation and can move their object out",
+        "optional frame callback does not prevent a complete ride, and an unhandled floor callback returns safely to the source door",
+        "owned clothes wait for server acknowledgement, block repeat clicks and preserve equipment on rejection",
+        "placed furniture is removed atomically and sold tombstones survive unrelated edits",
+        "queued checkpoints only rebase across unrelated revisions when the saved activity base still matches",
+        "resale transaction IDs are reserved across purchases, area and construction actions",
+        "right-clicking either landing offers one priced elevator installation and waits for the authoritative paired receipt",
+        "robot shortcut distinguishes arriving and turning toward the camera from already dancing",
+        "robot shortcut shows exit/follow camera state, disables the return transition and clears on a different student",
+        "room enlargement charges only real area difference; client cannot obtain a refund or free resize",
+        "same transaction replays once, another sale cannot credit a sold item",
+        "starter identity mismatch clears the previous teacher and never replays that student write",
+        "stored and placed outdoor purchases sell without creating indoor furniture",
+        "the authored door and cabin clearances reject oversized future clothes before walking",
+        "the reproduced lamp overlap is rejected while the side and outer edge stay usable",
+        "the watch choice explains absent, backwards or blocked seating and never places a robot through the television",
+        "tidy completion to null does not retain its in-progress quick-menu status",
+        "tidy completion to stand does not retain its in-progress quick-menu status",
+        "top stage toggle is interior-only and a second click cancels a requested stage before the dance has begun",
+        "unavailable local storage is explicit and does not prevent a successful server save",
+        "warehouse resale callback uses owned stock and the second-hand menu opens the resale shop",
+        "watch launched from a sofa always uses that sofa, and unavailable TV gives a reason",
+        "wipe completion to null does not retain its in-progress quick-menu status",
+        "wipe completion to stand does not retain its in-progress quick-menu status"
+      ]
+    },
+    "temporaryThreeLinkPresent": false,
+    "originalPhosphorIconsPreserved": true
+  },
+  "export": {
+    "formalNormalizedFiles": 242,
+    "lastIncrementalChangedFiles": [
+      "public/js/student-home-warm-ui.js",
+      "tests/student-home-warm-ui.test.mjs"
+    ],
+    "lastIncrementalChangedFileCount": 2,
+    "stableSeedLabels": 4676,
+    "planAndWriteCompleted": true
+  },
+  "references": {
+    "archive": "homeworld-codex-2026-10-30.zip",
+    "archiveSha256": "8c83d753b412f8c60f9103803991e68b61b5be35412aedd6d3f7b22098340098",
+    "memberCount": 47,
+    "byteIdenticalMembersVerifiedNow": 47,
+    "provenance": "docs/ui-review-2026-10-30/IMPORT_PROVENANCE.json",
+    "approvedOriginalReferenceLanguageRetained": true
+  },
+  "vendor": {
+    "command": "node scripts/vendor-three.mjs --check",
+    "version": "0.186.1",
+    "licensedFiles": 9,
+    "importClosureAndSha256Passed": true,
+    "exitCode": 0,
+    "output": "Verified Three.js 0.186.1: 9 licensed files, complete imports, matching SHA-256."
+  },
+  "privacy": {
+    "formalTextFilesChecked": 242,
+    "identityAndRegionalMarkerMatches": [],
+    "combinedArchiveMembersByteIdentical": 47,
+    "privatePlatformFixtureIncluded": false,
+    "finalAriaTitleSyncIncluded": true
+  },
+  "scope": {
+    "productionDeploymentPerformed": false,
+    "realStudentDataModified": false,
+    "wallHeightAndCutawayChangesIncluded": false,
+    "screenshotsAndCommitPublicationOwnedByRoot": true
+  }
+}

@@ -1,3 +1,4 @@
+import {getHomeRoamCopy,formatHomeRoamTitle} from '../public/js/home-roam-copy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isWarmTypingTarget,resolveWarmShortcut,createWarmBalanceAnimator,createWarmToast,createStudentHomeWarmUI,WARM_BALANCE_MS} from '../public/js/student-home-warm-ui.js';
@@ -100,4 +101,23 @@ test('fourth dock and physical view shortcut open a temporary full-window view w
   f.state.roam={active:true,phase:'opening',transition:true};f.ui.refresh();assert.equal(dock.hidden,true);const before=f.actions.length;await f.doc.dispatch('keydown',{key:'1',preventDefault(){}});assert.equal(f.actions.length,before);
   f.state.roam={active:true,phase:'free',transition:false};f.ui.refresh();assert.equal(dock.hidden,false);await f.doc.dispatch('keydown',{key:'2',preventDefault(){}});assert.deepEqual(f.actions.at(-1),['view','estate']);
   f.state.roam={active:false,phase:'inactive'};f.state.view='estate';f.ui.refresh();assert.equal(f.body.classList.contains('home-roam-active'),false);assert.equal(f.body.classList.contains('warm-present'),true);assert.equal(f.ui.getPresentation(),true);assert.equal(f.body.querySelector('.warm-camera-dock').hidden,false);f.ui.dispose();
+});
+
+
+test('the visit title uses the selected identity and restores only the heading owned by that visit',()=>{
+  const f=shell(),title=f.doc.getElementById('home-title');title.textContent='Original A home';
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit',transition:false};f.ui.refresh();
+  assert.equal(title.textContent,formatHomeRoamTitle('A'));f.ui.refresh();
+  f.state.view='interior';f.state.roam={active:false};f.ui.refresh();assert.equal(title.textContent,'Original A home');
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit'};f.ui.refresh();
+  title.textContent='New B home';f.state.selectedId='B';f.state.view='interior';f.state.roam={active:false};f.ui.refresh();
+  assert.equal(title.textContent,'New B home','a new account heading must not be replaced with the previous identity');
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit'};f.ui.refresh();assert.equal(title.textContent,formatHomeRoamTitle('B'));
+  f.ui.dispose();assert.equal(title.textContent,'New B home');
+});
+
+test('the optional English review locale changes only visit copy and preserves the same dock behavior',async()=>{
+  const f=shell({search:'?theme=warm&locale=en'}),title=f.doc.getElementById('home-title'),copy=getHomeRoamCopy('en');title.textContent='A home';
+  const visit=f.body.querySelector('.warm-view-dock').children.find(node=>node.dataset.warmView==='roam');assert.equal(visit.getAttribute('aria-label'),copy.dock);await visit.dispatch('click');assert.deepEqual(f.actions,[['view','roam']]);
+  f.state.view='roam';f.state.roam={active:true,phase:'orbit'};f.ui.refresh();assert.equal(title.textContent,formatHomeRoamTitle('A','en'));f.ui.dispose();assert.equal(title.textContent,'A home');
 });

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {createHomeRoamAudio} from './home-roam-audio.js';
+import {getHomeRoamCopy} from './home-roam-copy.js';
 
 const V=()=>new THREE.Vector3(),Y=new THREE.Vector3(0,1,0),HOVER='#3b2a14';
 const smooth=value=>value*value*(3-2*value);
@@ -10,8 +11,9 @@ const materials=mesh=>[].concat(mesh.material??[]);
 
 /** Temporary interaction layer for a cloned real interior. Model builders,
  * collision, navigation, wardrobe and student saves are deliberately absent. */
-export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInvalidate=()=>{},onCeilingLightChange,muted=false,audio=null}={}) {
+export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInvalidate=()=>{},onCeilingLightChange,muted=false,audio=null,locale}={}) {
   if(!root?.isObject3D)throw new TypeError('A cloned interior root is required');
+  const copy=getHomeRoamCopy(locale);
   const sound=audio??createHomeRoamAudio({muted}),ownsAudio=!audio;
   const targets=[],byMesh=new WeakMap(),byId=new Map(),animations=new Set(),generated=new Set(),materialOwners=new Map(),transformOwners=new Map(),reparents=[],parentOrders=new Map();
   let hovered=null,clock=0,disposed=false;
@@ -36,6 +38,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
     });
   }
   function setEmission(mesh,hex,intensity) {const row=ownMaterial(mesh);row.emission={color:new THREE.Color(hex),intensity};refreshEmission(mesh);}
+  function setDiffuseOverride(mesh,hex) {const row=ownMaterial(mesh);row.clones.forEach((material,i)=>{if(material.color)material.color.copy(hex?new THREE.Color(hex):[].concat(row.original)[i].color);});}
   function rememberTransform(mesh) {
     if(!transformOwners.has(mesh))transformOwners.set(mesh,{position:mesh.position.clone(),quaternion:mesh.quaternion.clone(),scale:mesh.scale.clone()});
     return transformOwners.get(mesh);
@@ -80,7 +83,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
       const water=new THREE.Mesh(new THREE.CircleGeometry(Math.min(size.x,size.z)*.3,40),new THREE.MeshStandardMaterial({color:'#d7eef4',map:texture,roughness:.05,transparent:true,opacity:.9,side:THREE.DoubleSide}));
       water.rotation.x=-Math.PI/2;addWorldEffect(water,new THREE.Vector3(centre.x,bb.max.y-.085,centre.z));
       const initial={position:water.position.clone(),rotation:water.rotation.clone()},button=meshes.filter(mesh=>color(mesh)==='c7d7d5').sort((a,b)=>boxes.get(b).max.y-boxes.get(a).max.y)[0],buttonPose=button?rememberTransform(button):null;
-      const target=register('toilet',group,[...meshes,water],{label:()=> "Flush",water,button,
+      const target=register('toilet',group,[...meshes,water],{label:()=>copy.flush,water,button,
         activate(){if(this.busy)return false;this.busy=true;this.elapsed=0;sound.play('click');sound.play('flush');animations.add(this);return true;},
         update(dt){this.elapsed=Math.min(2.8,this.elapsed+dt);const u=this.elapsed/2.8,pulse=Math.sin(Math.PI*Math.min(1,u*1.6));
           water.rotation.z=initial.rotation.z-u*Math.PI*5;water.position.y=initial.position.y-.045*pulse;water.scale.setScalar(1-.35*pulse);
@@ -91,8 +94,15 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
     }
     if(kind==='hhTripodLamp') {
       const shade=meshes.find(mesh=>mesh.userData.objectPart==='lamp-shade')??meshes.reduce((a,b)=>boxes.get(a).getCenter(V()).y>boxes.get(b).getCenter(V()).y?a:b),position=boxes.get(shade).getCenter(V());position.y-=.06;
-      const light=addWorldEffect(new THREE.PointLight('#ffd49a',0,6,2),position);
-      register('floor-lamp',group,meshes,{light,shade,label(){return this.on?"Turn off floor lamp":"Turn on floor lamp";},activate(){this.on=!this.on;light.intensity=this.on?7:0;setEmission(shade,this.on?'#ffc477':'#000000',this.on?.8:0);sound.play('click');return true;}});continue;
+      const light=addWorldEffect(new THREE.PointLight('#ffd49a',0,5,2),position);
+      // The broad shade glow lights its nearby wall. A separate downward cone
+      // makes the light readable on the floor without another shadow map.
+      // Both lights exist in the off state too: toggles only change intensity.
+      const shadeBounds=boxes.get(shade),floorPosition=position.clone().setY(gb.min.y+.012),floorLightPosition=position.clone().setY(shadeBounds.min.y-.01),floorRadius=.7;
+      const floorTarget=addWorldEffect(new THREE.Object3D(),floorPosition),floorLight=addWorldEffect(new THREE.SpotLight('#ffc477',0,3.2,Math.atan(floorRadius/Math.max(.1,floorLightPosition.y-floorPosition.y)),.8,2),floorLightPosition);
+      light.name='roam-floor-lamp-shade-light';floorLight.name='roam-floor-lamp-floor-light';floorTarget.name='roam-floor-lamp-floor-target';
+      floorLight.target=floorTarget;floorLight.castShadow=false;
+      register('floor-lamp',group,meshes,{light,floorLight,floorTarget,floorRadius,shade,label(){return this.on?copy.floorLampOff:copy.floorLampOn;},activate(){this.on=!this.on;light.intensity=this.on?16:0;floorLight.intensity=this.on?8:0;setDiffuseOverride(shade,this.on?'#fff4df':null);setEmission(shade,this.on?'#ffc477':'#000000',this.on?1.6:0);sound.play('click');return true;}});continue;
     }
 
     const taps=meshes.filter(mesh=>part(mesh)==='sink-faucet'||(kind==='mkSingleSink'&&part(mesh)==='body'&&boxes.get(mesh).min.y>1.05)||(kind==='bathroomVanity'&&color(mesh)==='c7d7d5'&&boxes.get(mesh).max.y>1));
@@ -106,7 +116,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
       stream.visible=false;addWorldEffect(stream,new THREE.Vector3(tip.x,bottom+height/2,tip.z));
       const ripple=new THREE.Mesh(new THREE.RingGeometry(.02,.05,24),new THREE.MeshStandardMaterial({color:'#e6f6fb',transparent:true,opacity:.6,roughness:.1,side:THREE.DoubleSide}));
       ripple.rotation.x=-Math.PI/2;ripple.visible=false;addWorldEffect(ripple,new THREE.Vector3(tip.x,bottom+.004,tip.z));
-      register('faucet',group,[...taps,stream,ripple],{stream,ripple,label(){return this.on?"Turn off tap":"Turn on tap";},activate(){this.on=!this.on;stream.visible=ripple.visible=this.on;loopSound('water',this,this.on);sound.play('click');if(this.on)animations.add(this);else animations.delete(this);return true;},update(){stream.scale.x=stream.scale.z=1+.12*Math.sin(clock*47);const t=clock*1.6%1;ripple.scale.setScalar(.6+t*1.4);ripple.material.opacity=.6*(1-t);return this.on;}});
+      register('faucet',group,[...taps,stream,ripple],{stream,ripple,label(){return this.on?copy.faucetOff:copy.faucetOn;},activate(){this.on=!this.on;stream.visible=ripple.visible=this.on;loopSound('water',this,this.on);sound.play('click');if(this.on)animations.add(this);else animations.delete(this);return true;},update(){stream.scale.x=stream.scale.z=1+.12*Math.sin(clock*47);const t=clock*1.6%1;ripple.scale.setScalar(.6+t*1.4);ripple.material.opacity=.6*(1-t);return this.on;}});
       for(const tap of taps)used.add(tap);
     }
 
@@ -117,7 +127,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
       for(let i=0;i<14;i++){const angle=i/14*Math.PI*2,mesh=new THREE.Mesh(new THREE.ConeGeometry(.009,.045,6),flameMaterial);mesh.position.set(Math.cos(angle)*.085,.02,Math.sin(angle)*.085);flame.add(mesh);}
       flame.visible=false;addWorldEffect(flame,new THREE.Vector3(rc.x,rb.max.y,rc.z));
       const light=addWorldEffect(new THREE.PointLight('#6f9dff',0,1.2,2),new THREE.Vector3(rc.x,rb.max.y+.08,rc.z)),pose=rememberTransform(knob),rotationAxis=forward.clone().applyQuaternion(knob.parent.getWorldQuaternion(new THREE.Quaternion()).invert());
-      const target=register('hob',group,[knob,ring,...flame.children],{flame,light,knob,ring,label(){return this.on?"Turn off hob":"Light hob";},activate(){this.on=!this.on;flame.visible=this.on;light.intensity=this.on?.2:0;knob.quaternion.copy(pose.quaternion).premultiply(new THREE.Quaternion().setFromAxisAngle(rotationAxis,this.on?.9:0));loopSound('gas',this,this.on);sound.play('click');if(this.on)animations.add(this);else animations.delete(this);return true;},update(){for(const[i,mesh]of flame.children.entries())mesh.scale.y=.8+.35*Math.abs(Math.sin(clock*13+i*1.7));return this.on;}});
+      const target=register('hob',group,[knob,ring,...flame.children],{flame,light,knob,ring,label(){return this.on?copy.hobOff:copy.hobOn;},activate(){this.on=!this.on;flame.visible=this.on;light.intensity=this.on?.2:0;knob.quaternion.copy(pose.quaternion).premultiply(new THREE.Quaternion().setFromAxisAngle(rotationAxis,this.on?.9:0));loopSound('gas',this,this.on);sound.play('click');if(this.on)animations.add(this);else animations.delete(this);return true;},update(){for(const[i,mesh]of flame.children.entries())mesh.scale.y=.8+.35*Math.abs(Math.sin(clock*13+i*1.7));return this.on;}});
       byMesh.set(flame,target);used.add(knob);
     }
 
@@ -137,7 +147,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
         const outer=(pb.min[lateral]+pb.max[lateral])/2<(gb.min[lateral]+gb.max[lateral])/2?pb.min[lateral]:pb.max[lateral],inner=outer===pb.min[lateral]?pb.max[lateral]:pb.min[lateral],hinge=V();hinge[lateral]=outer;hinge[axis]=sign>0?pb.max[axis]:pb.min[axis];
         const mover=moveParts(moving,hinge),base=mover.quaternion.clone(),along=V();along[lateral]=inner-outer;
         const direction=along.clone().applyAxisAngle(Y,1).dot(forward)>0?1:-1;
-        register('cabinet-door',group,moving,{mover,hinge:hinge.clone(),panel,label(){return this.on?"Close cabinet door":"Open cabinet door";},activate(){tween(this,this.on?0:1,.65,u=>mover.quaternion.copy(base).multiply(new THREE.Quaternion().setFromAxisAngle(Y,direction*1.75*u)));sound.play('slide');return true;}});
+        register('cabinet-door',group,moving,{mover,hinge:hinge.clone(),panel,label(){return this.on?copy.cabinetClose:copy.cabinetOpen;},activate(){tween(this,this.on?0:1,.65,u=>mover.quaternion.copy(base).multiply(new THREE.Quaternion().setFromAxisAngle(Y,direction*1.75*u)));sound.play('slide');return true;}});
       } else {
         const mover=moveParts(moving),origin=mover.position.clone(),distance=Math.min(.32,gb.getSize(V())[axis]*.6),delta=forward.clone().applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()).invert()).multiplyScalar(distance),drawerBox=[];
         if(size[axis]<.1) {
@@ -145,7 +155,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
           const slab=(width,height,depth,side,y,inset)=>{const dimensions=V();dimensions[lateral]=width;dimensions.y=height;dimensions[axis]=depth;const mesh=new THREE.Mesh(new THREE.BoxGeometry(dimensions.x,dimensions.y,dimensions.z),wood),position=V();position[lateral]=(pb.min[lateral]+pb.max[lateral])/2+side;position.y=y;position[axis]=back-sign*inset;addWorldEffect(mesh,position);mover.attach(mesh);mesh.castShadow=mesh.receiveShadow=true;drawerBox.push(mesh);};
           slab(width,.012,depth,0,bottom+.006,depth/2);slab(.012,height,depth,-(width-.012)/2,bottom+height/2,depth/2);slab(.012,height,depth,(width-.012)/2,bottom+height/2,depth/2);slab(width,height,.012,0,bottom+height/2,depth-.006);
         }
-        register('drawer',group,[...moving,...drawerBox],{mover,panel,drawerBox,distance,label(){return this.on?"Close drawer":"Open drawer";},activate(){tween(this,this.on?0:1,.45,u=>mover.position.copy(origin).addScaledVector(delta,u));sound.play('slide');return true;}});
+        register('drawer',group,[...moving,...drawerBox],{mover,panel,drawerBox,distance,label(){return this.on?copy.drawerClose:copy.drawerOpen;},activate(){tween(this,this.on?0:1,.45,u=>mover.position.copy(origin).addScaledVector(delta,u));sound.play('slide');return true;}});
       }
     }
   }
@@ -153,7 +163,7 @@ export function createHomeRoamInteractions({root,rooms=[],ceilingLights=[],onInv
   for(const descriptor of ceilingLights) {
     if(!descriptor.disc?.isMesh)continue;const initialOn=descriptor.on!==false,disc=descriptor.disc,initialIntensity=descriptor.light?.intensity??24;
     descriptor.on=descriptor.enabled=initialOn;
-    register('ceiling-light',null,[disc],{id:descriptor.id??`ceiling:${descriptor.roomId??targets.length}`,roomId:descriptor.roomId,on:initialOn,descriptor,label(){return this.on?"Turn off light":"Turn on light";},activate(){this.on=!this.on;descriptor.on=descriptor.enabled=this.on;ownMaterial(disc);
+    register('ceiling-light',null,[disc],{id:descriptor.id??`ceiling:${descriptor.roomId??targets.length}`,roomId:descriptor.roomId,on:initialOn,descriptor,label(){return this.on?copy.ceilingOff:copy.ceilingOn;},activate(){this.on=!this.on;descriptor.on=descriptor.enabled=this.on;ownMaterial(disc);
       if(descriptor.setEnabled)descriptor.setEnabled(this.on);else if(descriptor.light)descriptor.light.intensity=this.on?initialIntensity:0;
       const owned=materialOwners.get(disc),base=[].concat(owned?.original??disc.material)[0];setEmission(disc,this.on?(base.emissive??new THREE.Color('#ffe1b8')):'#000000',this.on?(base.emissiveIntensity??1):0);
       sound.play('click');onCeilingLightChange?.(descriptor,this.on);return true;}});

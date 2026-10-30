@@ -6,10 +6,10 @@ import {createHomeScene} from '../../public/js/home-scene.js';
 import {createStudentHomeRobotController} from '../../public/js/student-home-robot-controller.js';
 import {HOME_THEMES} from '../../public/js/home-theme.js';
 import {getRoomKind} from '../../public/js/home-layout.js';
-import {validateHomeState,MATERIALS} from '../../public/js/home-engine.js';
+import {MATERIALS} from '../../public/js/home-engine.js';
 import {isFloorFinishId} from '../../public/js/home-floor-finishes.js';
 import {isWallStyleId,isWallColorId} from '../../public/js/home-wall-finishes.js';
-import {createLookDevFixture,LOOK_DEV_SIZE,LOOK_DEV_VIEWS} from './look-dev-fixtures.mjs';
+import {createLookDevFixture,validateLookDevFixtureHome,LOOK_DEV_SIZE,LOOK_DEV_VIEWS} from './look-dev-fixtures.mjs';
 import {paintLookDevBackdrop} from './look-dev-backdrop.mjs';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -79,7 +79,7 @@ export function resolveLookDevBuild(fixture,preset) {
         if(validMaterial(example?.material))item.material=example.material;
       }
     }
-    if(!validateHomeState(floor))throw new TypeError('Preset produced an invalid isolated fixture');
+    if(!validateLookDevFixtureHome(floor,fixture.id))throw new TypeError('Preset produced an invalid isolated fixture');
   }
   return theme;
 }

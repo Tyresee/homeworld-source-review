@@ -26,7 +26,7 @@ test('the real first-floor builder preserves inputs and produces the exact eight
   const controller=createHomeRoamInteractions({root:model.interior,rooms:home.rooms,ceilingLights:model.ceilingLights,audio:quietAudio()});
   try {
     assert.equal(model.ceilingLights.length,4);assert.equal(model.ceilings.length,4);assert.equal(controller.targets.length,18);assert.deepEqual(controller.getState().counts,{'floor-lamp':1,hob:2,drawer:6,faucet:2,'cabinet-door':2,toilet:1,'ceiling-light':4});
-    const lights=lightCount(model.scene);assert.equal(lights,7,'four ceiling lights plus the floor lamp and two hob glows');
+    const lights=lightCount(model.scene);assert.equal(lights,8,'four ceiling lights, two fixed floor-lamp lights and two hob glows');
     for(const row of model.furniture){const item=home.furniture.find(item=>item.id===row.itemId),pose=getFurniturePose(home,item);assert.deepEqual(row.group.position.toArray(),[pose.x,pose.y,pose.z]);near(row.group.rotation.y,pose.rotation*Math.PI/180);}
     for(const descriptor of model.ceilingLights){assert.ok(descriptor.disc.isMesh);assert.ok(descriptor.light.isPointLight);assert.equal(descriptor.light.castShadow,false);assert.equal(descriptor.light.distance,11);assert.equal(descriptor.light.decay,2);near(descriptor.disc.geometry.parameters.radiusTop,.26);}
     for(const target of controller.targets)controller.activate(target);for(let i=0;i<30;i++)controller.tick(.1);assert.equal(lightCount(model.scene),lights,'interaction toggles do not reallocate lights');assert.equal(JSON.stringify(home),before);assert.equal(map.version,version);
@@ -66,7 +66,7 @@ test('window attachments follow their own full wall cut and the closed door is t
 });
 
 test('a valid wall-mounted clock near a corner hides according to its supporting wall, not the later adjacent row',()=>{
-  const initial=createLookDevFixture('house').home,target=getWallMountTargets(initial).find(row=>row.axis==='x'),result=applyChange(initial,{type:'furniture',id:'corner-clock',kind:'wallClock',x:0,z:0,rotation:0,mount:{type:'wall',wallId:target.wallId,u:.04,v:.5}});assert.equal(result.ok,true,result.error);
+  const initial=createLookDevFixture('exterior').home,target=getWallMountTargets(initial).find(row=>row.axis==='x'),result=applyChange(initial,{type:'furniture',id:'corner-clock',kind:'wallClock',x:0,z:0,rotation:0,mount:{type:'wall',wallId:target.wallId,u:.04,v:.5}});assert.equal(result.ok,true,result.error);
   const home=result.state,before=JSON.stringify(home),model=buildHomeRoamScene({home,theme:HOME_THEMES.warm}),clock=model.furniture.find(row=>row.itemId==='corner-clock').group,camera=new THREE.PerspectiveCamera();camera.position.set(model.bounds.x,1.45,-5);
   try {
     model.setOrbitCut(camera,new THREE.Vector3(model.bounds.x,1.45,0),true);const infos=model.architecture.getRoamWalls().map(mesh=>mesh.userData.roamWall),back=infos.find(info=>info.exterior&&info.side==='back'),left=infos.find(info=>info.exterior&&info.side==='left');assert.equal(model.getWallState().find(row=>row.id===back.id).cut,true);assert.equal(model.getWallState().find(row=>row.id===left.id).cut,false);

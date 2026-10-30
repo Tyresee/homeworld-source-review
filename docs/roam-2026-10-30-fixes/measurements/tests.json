@@ -1,0 +1,169 @@
+{
+  "state": "Verified locally before the delivery commits; no deployment",
+  "sourceCore": {
+    "counts": {
+      "tests": 732,
+      "pass": 732,
+      "fail": 0
+    },
+    "failureNames": [],
+    "command": "npm run test:student-homes"
+  },
+  "sourceFull": {
+    "counts": {
+      "tests": 955,
+      "pass": 954,
+      "fail": 1
+    },
+    "failureNames": [
+      "furniture bounds use the actual rotated model footprint and reject overlapping instances"
+    ],
+    "command": "node --test tests/*.test.mjs"
+  },
+  "sourceBuild": "PASS: independent preview",
+  "sourceAccountBuild": "PASS: 505 release files; 5,168,100 browser bytes, 1,259,372 Brotli, 1,527,796 gzip",
+  "publicCore": {
+    "counts": {
+      "tests": 456,
+      "pass": 456,
+      "fail": 0
+    },
+    "failureNames": [],
+    "command": "npm test"
+  },
+  "publicFocused": {
+    "counts": {
+      "tests": 88,
+      "pass": 88,
+      "fail": 0
+    },
+    "failureNames": []
+  },
+  "publicFull": {
+    "counts": {
+      "tests": 868,
+      "pass": 813,
+      "fail": 55
+    },
+    "failureNames": [
+      "DisplayText4610 may exit and resume through the top control without stopping the robot or saving an activity",
+      "HTTP 200 with authenticated false does not fetch students or allow a claim",
+      "HTTP old storefront checkout is rejected without payment; current catalog checkout uses the displayed price",
+      "TV power acknowledgement and scene refresh keep the watch status on either linked TV or sofa",
+      "a definite rejected resale retains owned furniture and wallet and a new retry can succeed",
+      "a desk carrying a placed ornament shows the actual disabled reason before any sale request",
+      "a failed initial home read cannot display the free-claim affordance or create a replacement save",
+      "a rejected elevator purchase preserves the staircase and wallet and allows a normal retry",
+      "a remembered selection is not restored for an HTTP 200 unauthenticated session",
+      "a selection entirely on built floor costs zero and clearing only removes the draft",
+      "a supporting desk cannot be sold while its mounted goods remain placed",
+      "a unconfirmed sale keeps its real card, ownership and wallet balance",
+      "ambiguous 503 after a successful color write confirms the saved revision without another PATCH",
+      "ambiguous network after a successful color write confirms the saved revision without another PATCH",
+      "an unhandled floor switch restores the safe stair entry and replaces the moving status with an error",
+      "an unknown sleep write retries its original command before a newer wake, without overwriting live motion",
+      "camera button shows exit during automatic shots and follow after returning, independently of stopping the dance",
+      "catalog change preserves the selected house and offers a page refresh without retrying payment",
+      "commerce revision conflict reloads authoritative home without replaying purchase",
+      "doorway clearance covers both landings and refuses a furnishing outside the old reserved footprint",
+      "floor expansion refuses to move its new entrance steps through a placed object",
+      "floor right-click starts dancing at the exact frozen coordinates without a second selection or purchase",
+      "football target and period survive service restart and invalid ownership never grants play",
+      "full-height upper cabin rejects an existing chandelier without charging or moving any goods",
+      "gifts and structural or clothing ownership cannot be exchanged for points",
+      "late equip response cannot reopen a closed wardrobe and slot controls exclude unowned SKUs",
+      "left-clicking the robot exposes its dance action and starts the stage without a purchase or furniture mutation",
+      "lost starter reply shows an unconfirmed outcome and retries the same fixed program",
+      "missing, ordinary, misaligned and blocked elevator peers reject before any motion",
+      "new placements and moves keep the strict entrance rule and failed attempts preserve ownership and money",
+      "new sofa/tabledesk work stays account-owned, persists through restart and does not spend points",
+      "old overlapping saves remain readable without mutation and can move their object out",
+      "optional frame callback does not prevent a complete ride, and an unhandled floor callback returns safely to the source door",
+      "owned clothes wait for server acknowledgement, block repeat clicks and preserve equipment on rejection",
+      "placed furniture is removed atomically and sold tombstones survive unrelated edits",
+      "queued checkpoints only rebase across unrelated revisions when the saved activity base still matches",
+      "resale transaction IDs are reserved across purchases, area and construction actions",
+      "right-clicking either landing offers one priced elevator installation and waits for the authoritative paired receipt",
+      "robot shortcut distinguishes arriving and turning toward the camera from already dancing",
+      "robot shortcut shows exit/follow camera state, disables the return transition and clears on a different student",
+      "room enlargement charges only real area difference; client cannot obtain a refund or free resize",
+      "same transaction replays once, another sale cannot credit a sold item",
+      "starter identity mismatch clears the previous teacher and never replays that student write",
+      "stored and placed outdoor purchases sell without creating indoor furniture",
+      "the authored door and cabin clearances reject oversized future clothes before walking",
+      "the reproduced lamp overlap is rejected while the side and outer edge stay usable",
+      "the watch choice explains absent, backwards or blocked seating and never places a robot through the television",
+      "tidy completion to null does not retain its in-progress quick-menu status",
+      "tidy completion to stand does not retain its in-progress quick-menu status",
+      "top stage toggle is interior-only and a second click cancels a requested stage before the dance has begun",
+      "unavailable local storage is explicit and does not prevent a successful server save",
+      "warehouse resale callback uses owned stock and the second-hand menu opens the resale shop",
+      "watch launched from a sofa always uses that sofa, and unavailable TV gives a reason",
+      "wipe completion to null does not retain its in-progress quick-menu status",
+      "wipe completion to stand does not retain its in-progress quick-menu status"
+    ],
+    "command": "node --test tests/*.test.mjs"
+  },
+  "baselineComparison": {
+    "baseline": "public main before the corrections; 3e9c616",
+    "sameFailureNames": true,
+    "expectedFailures": 55,
+    "actualFailures": 55,
+    "newFailureNames": [],
+    "resolvedFailureNames": []
+  },
+  "normalizedSourceFiles": 276,
+  "preservedPreviouslyPublishedSourceFiles": 267,
+  "stablePreviouslyPublishedLabels": 4773,
+  "priorSourceReconstructionMismatches": [],
+  "publicCopy": {
+    "defaultLocale": "en",
+    "classroomTableDataRemoved": true,
+    "sourceProduct": "default classroom locale; explicit locale=en available",
+    "naturalEnglishControlsAndActionLabels": true,
+    "englishRegistryVerified": true
+  },
+  "publicBuild": "No production build/deploy pipeline by review-repo design; genuine vendored Three import/SHA check PASS",
+  "vendorThree": "0.186.1, 9 licensed files, complete imports and matching SHA-256",
+  "referenceArchives": {
+    "uniqueOriginalPaths": 112,
+    "changedPaths": []
+  },
+  "privacy": {
+    "status": "PASS before final metadata update",
+    "findings": [],
+    "changedApprovedReferences": []
+  },
+  "temporaryThreeTestLinkRemoved": true,
+  "existingPhosphorPreserved": true,
+  "initialSourceChanges": 31,
+  "postSuiteQAUpdate": {
+    "files": [
+      "scripts/qa/roam-review.html",
+      "scripts/qa/roam-review-ui.mjs"
+    ],
+    "change": "Hover selected is an explicit read-only QA pointer helper for deterministic interaction tooltip captures",
+    "publicTests": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0
+    }
+  },
+  "acceptanceAdjustment": {
+    "userConfirmed": true,
+    "preserveCeilingLights": true,
+    "originalSRGBWallLift25Percent": "Replaced by visible on/off comparison and local floor light pool; Root records the actual values and adjusted acceptance in evidence"
+  },
+  "metadataOwnership": "Root owns final docs, photometry, browser evidence, audit and index; no further export after this report",
+  "postSuiteBoundaryFix": {
+    "change": "Split Warm slab facade bays at actual room boundaries before checking door width",
+    "sourceScopedTests": {
+      "tests": 26,
+      "pass": 26,
+      "fail": 0
+    },
+    "sourceCoreAndFullRerun": true,
+    "publicCoreAndFullRerun": true,
+    "houseGeometryUnchanged": true
+  }
+}

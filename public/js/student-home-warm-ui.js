@@ -1,3 +1,5 @@
+import {getHomeRoamCopy,formatHomeRoamTitle} from './home-roam-copy.js';
+
 // Optional classroom chrome. Rendering, accounts and commands remain owned by
 // the existing page and scene controllers. No account or home values are saved here.
 export const WARM_TOAST_MS=5000;
@@ -46,9 +48,9 @@ export function createWarmToast({show,hide,setTimer=setTimeout,clearTimer=clearT
   return {notify({persistent=false}={}){cancel();show(persistent);if(!persistent)timer=setTimer(()=>{timer=null;hide();},duration);},dispose:cancel};
 }
 
-export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({}),onView=()=>{},onStage=()=>{},onStageCamera=()=>{},onZoom=()=>{},onReset=()=>{},onRefit=()=>{},onSelectStudent=()=>{},onError=()=>{},setTimer=setTimeout,clearTimer=clearTimeout}={}){
+export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({}),onView=()=>{},onStage=()=>{},onStageCamera=()=>{},onZoom=()=>{},onReset=()=>{},onRefit=()=>{},onSelectStudent=()=>{},onError=()=>{},locale,setTimer=setTimeout,clearTimer=clearTimeout}={}){
   if(themeId!=='warm'||!document?.querySelector)return null;
-  const $=id=>document.getElementById(id),home=document.querySelector('.home'),body=document.body;
+  const $=id=>document.getElementById(id),home=document.querySelector('.home'),body=document.body,copyOptions={search:window?.location?.search??''},copy=getHomeRoamCopy(locale,copyOptions);
   if(!home||!body)return null;
   const listeners=[],buttons=new Map(),add=(target,event,fn)=>{target.addEventListener(event,fn);listeners.push(()=>target.removeEventListener(event,fn));};
   const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
@@ -66,7 +68,7 @@ export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({
   const helpClose=button("DisplayText4755",'warm-help-close',()=>toggleHelp(false));helpClose.textContent="DisplayText4756";help.append(helpClose);headingActions.append(help);
   function toggleHelp(open=help.hidden){help.hidden=!open;helpButton.setAttribute('aria-expanded',String(open));if(!open&&document.activeElement===helpClose)helpButton.focus({preventScroll:true});}
   const viewDock=make('div','warm-view-dock');viewDock.setAttribute('role','group');viewDock.setAttribute('aria-label',"DisplayText4353");
-  for(const[view,label]of [['interior',"Interior"],['estate',"Outdoors"],['building',"House"],['roam',"Visit"]]){const b=button(label,'warm-view-option',()=>{if(ready&&!busy&&!getState().roam?.transition)onView(view);});b.dataset.warmView=view;b.setAttribute('aria-keyshortcuts',String(views.indexOf(view)+1));b.append(icon(view,'warm-view-icon'),make('span','warm-view-label',label));buttons.set(view,b);viewDock.append(b);}
+  for(const[view,label]of [['interior',"Interior"],['estate',"Outdoors"],['building',"House"],['roam',copy.dock]]){const b=button(label,'warm-view-option',()=>{if(ready&&!busy&&!getState().roam?.transition)onView(view);});b.dataset.warmView=view;b.setAttribute('aria-keyshortcuts',String(views.indexOf(view)+1));b.append(icon(view,'warm-view-icon'),make('span','warm-view-label',label));buttons.set(view,b);viewDock.append(b);}
   const show=button("Showtime",'warm-show',()=>{if(ready&&!busy&&getState().view==='interior')onStage();});show.append(icon('stage','warm-show-icon'),make('span','warm-show-label',"Showtime"));
   const stageCamera=button("DisplayText3762",'warm-stage-camera',()=>{if(ready&&!busy)onStageCamera();});stageCamera.hidden=true;
   const cameraDock=make('div','warm-camera-dock');cameraDock.setAttribute('role','group');cameraDock.setAttribute('aria-label',"DisplayText4757");
@@ -87,9 +89,22 @@ export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({
     if(picker.dataset.options!==signature){picker.replaceChildren();const option=make('option','',"DisplayText0002");option.value='';option.disabled=true;picker.append(option);for(const row of rows){const option=make('option','',row.displayName);option.value=row.id;picker.append(option);}picker.dataset.options=signature;}
     picker.value=selectedId??'';picker.disabled=busy||!rows.length;
   }
+  let previousHomeTitle=null,roamTitleOwner=null,appliedRoamTitle=null;
+  function syncRoamTitle(roaming,state={}){
+    const title=$('home-title');
+    if(roaming){
+      if(previousHomeTitle===null||roamTitleOwner!==state.selectedId){previousHomeTitle=title.textContent;roamTitleOwner=state.selectedId;}
+      const student=state.students?.find(row=>row.id===state.selectedId);
+      appliedRoamTitle=formatHomeRoamTitle(student?.displayName,locale,copyOptions);title.textContent=appliedRoamTitle;
+    }else if(previousHomeTitle!==null){
+      // An external student change owns any title it has already replaced.
+      if(title.textContent===appliedRoamTitle)title.textContent=previousHomeTitle;
+      previousHomeTitle=appliedRoamTitle=roamTitleOwner=null;
+    }
+  }
   function refresh(){const state=getState(),roam=state.roam??{},roaming=state.view==='roam'||roam.active===true,moving=roaming&&roam.transition===true;ready=!!state.ready;busy=!!state.busy;for(const[view,b]of buttons){b.disabled=!ready||busy||moving||view==='roam'&&roam.entering===true;if(views.includes(view))b.setAttribute('aria-pressed',String(state.view===view));}
     body.classList.toggle('home-roam-active',roaming);home.dataset.roamPhase=roaming?(roam.phase??'orbit'):'inactive';
-    if(roaming)toggleHelp(false);
+    syncRoamTitle(roaming,state);if(roaming)toggleHelp(false);
     viewDock.hidden=!ready||moving;show.hidden=cameraDock.hidden=!ready||roaming;
     show.disabled=!ready||busy||state.view!=='interior';show.setAttribute('aria-pressed',String(!!state.stageActive));show.querySelector('.warm-show-label').textContent=state.stageActive?"DisplayText3771":"Showtime";show.setAttribute('aria-label',state.stageActive?"DisplayText3771":"Showtime");show.title=show.getAttribute('aria-label');
     const camera=state.stageCamera??{};stageCamera.hidden=!ready||roaming||state.view!=='interior'||!(camera.available||camera.active||camera.returning);stageCamera.disabled=busy||camera.returning||stageCamera.hidden;stageCamera.textContent=camera.returning?"DisplayText4762…":camera.active?"DisplayText3761":"DisplayText3762";stageCamera.setAttribute('aria-label',stageCamera.textContent);stageCamera.title=stageCamera.textContent;stageCamera.setAttribute('aria-pressed',String(!!camera.active));
@@ -107,5 +122,5 @@ export function createStudentHomeWarmUI({document,window,themeId,getState=()=>({
   add(window,'resize',scheduleRefit);
   add(document,'pointerdown',event=>{if(!help.hidden&&!help.contains(event.target)&&!helpButton.contains(event.target))toggleHelp(false);});
   setPresentation(new URLSearchParams(window.location.search).get('view')==='present',{updateUrl:false});refresh();
-  return {refresh,setPresentation,getPresentation:()=>present,notify:value=>toast.notify(value),setBalance:(value,scope)=>balanceAnimator.set(value,scope),clearBalance:()=>balanceAnimator.clear(),focusHome:()=>$('stage').querySelector('canvas')?.focus({preventScroll:true}),dispose(){if(disposed)return;disposed=true;body.classList.remove('home-roam-active');home.dataset.roamPhase='inactive';toast.dispose();balanceAnimator.dispose();if(refitFrame!==null)window.cancelAnimationFrame(refitFrame);for(const remove of listeners)remove();}};
+  return {refresh,setPresentation,getPresentation:()=>present,notify:value=>toast.notify(value),setBalance:(value,scope)=>balanceAnimator.set(value,scope),clearBalance:()=>balanceAnimator.clear(),focusHome:()=>$('stage').querySelector('canvas')?.focus({preventScroll:true}),dispose(){if(disposed)return;disposed=true;syncRoamTitle(false);body.classList.remove('home-roam-active');home.dataset.roamPhase='inactive';toast.dispose();balanceAnimator.dispose();if(refitFrame!==null)window.cancelAnimationFrame(refitFrame);for(const remove of listeners)remove();}};
 }

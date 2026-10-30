@@ -1,0 +1,15 @@
+{
+  "environment": "Source application with isolated loopback fake platform and real home service",
+  "students": [
+    "Sam",
+    "Robin"
+  ],
+  "selected": "Sam",
+  "classroomLocale": "zh-CN",
+  "fourthDockAction": "Visit in the classroom language",
+  "roamTitle": "Student name plus home and free-visit suffix, in the classroom language",
+  "exitRestoredOriginalStudentTitle": true,
+  "realStudentRecordsAccessed": false,
+  "purchases": false,
+  "productionAccess": false
+}

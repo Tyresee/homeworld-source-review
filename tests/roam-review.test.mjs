@@ -32,8 +32,8 @@ test('canonical file containment blocks encoded traversal and a symlink escaping
   await assert.rejects(()=>createRoamReviewServer({port:-1}),/Invalid review port/);
 });
 
-test('the 12 cases use actual controller/interaction paths, and camera controls stay confined to QA',async()=>{
-  assert.equal(ROAM_REVIEW_CASES.length,12);assert.equal(new Set(ROAM_REVIEW_CASES.map(row=>row.id)).size,12);assert.ok(ROAM_REVIEW_CASES.every((row,index)=>row.id.startsWith(String(index+1).padStart(2,'0'))));
+test('the twelve reference cases and paired lamp cases use actual controller/interaction paths, and camera controls stay confined to QA',async()=>{
+  assert.equal(ROAM_REVIEW_CASES.length,14);assert.equal(new Set(ROAM_REVIEW_CASES.map(row=>row.id)).size,14);assert.ok(ROAM_REVIEW_CASES.slice(0,12).every((row,index)=>row.id.startsWith(String(index+1).padStart(2,'0'))));assert.deepEqual(ROAM_REVIEW_CASES.slice(12).map(row=>row.id),['11a-floor-lamp-off','11b-floor-lamp-on']);
   const code=await readFile(new URL('../scripts/qa/roam-review-ui.mjs',import.meta.url),'utf8'),html=await readFile(new URL('../scripts/qa/roam-review.html',import.meta.url),'utf8');
   assert.match(code,/createHomeScene/);assert.match(code,/createLookDevFixture\('house'\)/);assert.match(code,/models\/v4\/robot\.glb/);assert.match(code,/manualClock:true/);assert.match(code,/controller\.enterDoor\(\)/);assert.match(code,/interactions\.activate/);assert.match(code,/key:'Process',code/);
   assert.doesNotMatch(code,/window\.__|globalThis\.__|house\.b64|ObjectLoader|localStorage|\/api\//);assert.match(html,/roam-review-ui\.mjs/);assert.match(html,/1440/);assert.match(html,/900/);

@@ -260,7 +260,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
         onRoof({y:roofBase+roofH,x:px,z:pz,room:null,storey:currentStorey});
       }
     }
-    const layout = getManorFacadeLayout(home);
+    const layout = getManorFacadeLayout(home,{theme,structure});
     const entrance = currentStorey === 0 ? layout.entrance?.face : null;
     if(roaming)buildRoamShellWalls(home,{baseY,ox,oz,wallColor});
     for(const { face } of layout.faces) {
@@ -311,8 +311,8 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
     const w = layout.width, d = layout.depth, ox = -layout.bounds.x, oz = -layout.bounds.z;
     const wallH = WALL_HEIGHT;
     const wallColor = materialPlan === 1 ? colors.woodWall : materialPlan === 2 ? colors.stoneWall : colors.marbleWall;
-    const entrance = getManorFacadeLayout(layout.home).entrance;
-    roamEntrance=roaming?getHomeRoamEntrance(layout.home,{structure}):null;
+    const entrance = getManorFacadeLayout(layout.home,{theme,structure}).entrance;
+    roamEntrance=roaming?getHomeRoamEntrance(layout.home,{structure,theme}):null;
     let highest = { y: 0, x: 0, z: 0, room: layout.rooms[0], storey: 0 };
     const provenance = [];
     for (let storey = 0; storey < floorLayouts.length; storey++) {

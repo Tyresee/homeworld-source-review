@@ -1,0 +1,224 @@
+{
+  "status": "PASS",
+  "baselineRepository": "Tyresee/homeworld-source-review",
+  "baselineCommit": "3e9c6166668a096bfe5335914a73f75792f173c9",
+  "method": "Decode both PNGs with sharp to RGBA; no resizing, alignment, threshold, region exclusion or color correction",
+  "viewsPerTheme": 5,
+  "themes": 2,
+  "totalComparisons": 10,
+  "allPNGsByteIdentical": true,
+  "allDecodedRGBAIdentical": true,
+  "houseView": "Intentionally changed as the explicit reviewed fixture; not one of the original five baseline views",
+  "checks": [
+    {
+      "file": "default--living.png",
+      "baselineGitPath": "docs/look-dev-captures/default--living.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "6534a2f8758ae5b0d8464d8aab1b10568ec5844bea8deca7e4f959962f6cba7d",
+      "baselineSHA256": "6534a2f8758ae5b0d8464d8aab1b10568ec5844bea8deca7e4f959962f6cba7d",
+      "actualRGBA_SHA256": "79bb5ace48cbdfec1211d66f39228de83c18627d1d521361a9f72265b1e30369",
+      "baselineRGBA_SHA256": "79bb5ace48cbdfec1211d66f39228de83c18627d1d521361a9f72265b1e30369"
+    },
+    {
+      "file": "default--bedroom.png",
+      "baselineGitPath": "docs/look-dev-captures/default--bedroom.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "37bb1cca6af9fba7c9ea46c6780c895f61ea0b143f7ef1d1932100dfd0704e75",
+      "baselineSHA256": "37bb1cca6af9fba7c9ea46c6780c895f61ea0b143f7ef1d1932100dfd0704e75",
+      "actualRGBA_SHA256": "eb7cb828d34a24ced2173e6acb5a1555a264aa815410f1b05d45976f5280321c",
+      "baselineRGBA_SHA256": "eb7cb828d34a24ced2173e6acb5a1555a264aa815410f1b05d45976f5280321c"
+    },
+    {
+      "file": "default--kitchen.png",
+      "baselineGitPath": "docs/look-dev-captures/default--kitchen.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "f97022f9cae60f1cb91203fd0149771cf3699af0e54ad7c2a23b9e0e3357ff90",
+      "baselineSHA256": "f97022f9cae60f1cb91203fd0149771cf3699af0e54ad7c2a23b9e0e3357ff90",
+      "actualRGBA_SHA256": "458a75a35afae2815be05c4666cfbbd925eefbd6ca7c0d1a2b0187dfab83fa04",
+      "baselineRGBA_SHA256": "458a75a35afae2815be05c4666cfbbd925eefbd6ca7c0d1a2b0187dfab83fa04"
+    },
+    {
+      "file": "default--bathroom.png",
+      "baselineGitPath": "docs/look-dev-captures/default--bathroom.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "28066b88b5444aa03efb41a2c5f6be532740680aa959038d0e973c28ac31c933",
+      "baselineSHA256": "28066b88b5444aa03efb41a2c5f6be532740680aa959038d0e973c28ac31c933",
+      "actualRGBA_SHA256": "89f3fe15e3c0b15e20e95e110532ca76ae8bd46b662f5406137d9f7040a12186",
+      "baselineRGBA_SHA256": "89f3fe15e3c0b15e20e95e110532ca76ae8bd46b662f5406137d9f7040a12186"
+    },
+    {
+      "file": "default--exterior.png",
+      "baselineGitPath": "docs/look-dev-captures/default--exterior.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "dbb2392bb08233a23cedbcd30676f115fca75f15f7152887b62b3886d5728e8f",
+      "baselineSHA256": "dbb2392bb08233a23cedbcd30676f115fca75f15f7152887b62b3886d5728e8f",
+      "actualRGBA_SHA256": "f20d2d780218b30a783448708c33b65dffd1b8dffb3aa930e24f882aecbff09e",
+      "baselineRGBA_SHA256": "f20d2d780218b30a783448708c33b65dffd1b8dffb3aa930e24f882aecbff09e"
+    },
+    {
+      "file": "toy-v1--living.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--living.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "610f56b8c662c8c3fcb65f1f466da0f743b1c44c440f75e7b6bf3c22014ca0bf",
+      "baselineSHA256": "610f56b8c662c8c3fcb65f1f466da0f743b1c44c440f75e7b6bf3c22014ca0bf",
+      "actualRGBA_SHA256": "e07d9a81dbdf86493fbd84a90246ee1254c538b55cee2042d778331b9699158f",
+      "baselineRGBA_SHA256": "e07d9a81dbdf86493fbd84a90246ee1254c538b55cee2042d778331b9699158f"
+    },
+    {
+      "file": "toy-v1--bedroom.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--bedroom.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "8f42615f80e69b15f285ccce749a52117aa6e8978bbe40558c378cc8f421572c",
+      "baselineSHA256": "8f42615f80e69b15f285ccce749a52117aa6e8978bbe40558c378cc8f421572c",
+      "actualRGBA_SHA256": "2b2c0ed51ec714e295024917a43800da152aa239be66b142373453aa3db837ce",
+      "baselineRGBA_SHA256": "2b2c0ed51ec714e295024917a43800da152aa239be66b142373453aa3db837ce"
+    },
+    {
+      "file": "toy-v1--kitchen.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--kitchen.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "049d9f6f6855e2a4bd503015d9cdb5b8abf090d8518add45f9e146c4a5443053",
+      "baselineSHA256": "049d9f6f6855e2a4bd503015d9cdb5b8abf090d8518add45f9e146c4a5443053",
+      "actualRGBA_SHA256": "0334a4c490347b3c8aa8eedcb8259ff11bc89e3af889f5d51ee2ed0b1c036fc4",
+      "baselineRGBA_SHA256": "0334a4c490347b3c8aa8eedcb8259ff11bc89e3af889f5d51ee2ed0b1c036fc4"
+    },
+    {
+      "file": "toy-v1--bathroom.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--bathroom.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "72155f48a709a04a25cbd3b81fb978a1f34c579724aa1da2a3e208ceba907506",
+      "baselineSHA256": "72155f48a709a04a25cbd3b81fb978a1f34c579724aa1da2a3e208ceba907506",
+      "actualRGBA_SHA256": "5e65d8f864a964120655caf4e66f6d67a77f7f12919d2e13af8601dad9e55584",
+      "baselineRGBA_SHA256": "5e65d8f864a964120655caf4e66f6d67a77f7f12919d2e13af8601dad9e55584"
+    },
+    {
+      "file": "toy-v1--exterior.png",
+      "baselineGitPath": "docs/look-dev-captures/toy-v1--exterior.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "baselineDimensions": [
+        1440,
+        900
+      ],
+      "byteIdentical": true,
+      "decodedRGBAIdentical": true,
+      "changedPixels": 0,
+      "changedChannels": 0,
+      "maxAbsoluteDifference": 0,
+      "actualSHA256": "c15444b59cdd8996e2676e9042026c35420683b0abaf622d4df83230cf0b41e1",
+      "baselineSHA256": "c15444b59cdd8996e2676e9042026c35420683b0abaf622d4df83230cf0b41e1",
+      "actualRGBA_SHA256": "73f88a08feeb0691f027507ea0a516b987cebfb3669a0b154c1a8611ba62a028",
+      "baselineRGBA_SHA256": "73f88a08feeb0691f027507ea0a516b987cebfb3669a0b154c1a8611ba62a028"
+    }
+  ]
+}

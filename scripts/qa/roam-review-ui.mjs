@@ -6,11 +6,16 @@ import {createHomeScene} from '../../public/js/home-scene.js';
 import {createStudentHomeRobotController} from '../../public/js/student-home-robot-controller.js';
 import {getHomeRoamEntrance} from '../../public/js/home-roam-geometry.js';
 import {getFloorBounds} from '../../public/js/home-layout.js';
+import {getHomeRoamCopy,resolveHomeRoamLocale} from '../../public/js/home-roam-copy.js';
 import {createLookDevFixture,LOOK_DEV_SIZE} from './look-dev-fixtures.mjs';
 import {resolveLookDevBuild} from './look-dev-runtime.mjs';
+import {captureRoamPhotometry} from './roam-review-photometry.mjs';
+import {zipFiles} from './look-dev-zip.mjs';
 import {ROAM_REVIEW_CASES,parseRoamReviewPose,summarizeRoamFrames,sameRoamReviewCameraSnapshot} from './roam-review-cases.mjs';
 
 const $=id=>document.getElementById(id),stage=$('stage'),size=LOOK_DEV_SIZE;
+const locale=resolveHomeRoamLocale(),copy=getHomeRoamCopy(locale),outdoorPresentation=new URLSearchParams(location.search).get('outdoor')!=='legacy';
+$('stage-title').querySelector('strong').textContent=copy.exampleTitle;
 let world,experience,fixture,fixtureBefore,time=0,live=false,frame=0,lastWallTime=null,currentCase='01-exterior-orbit',muted=true,measurement=null,measurementResult=null,busy=false;
 let cameraBeforeEnter=null,cameraAfterExit=null;
 const clock=()=>time;
@@ -54,7 +59,7 @@ function playLive() {
 }
 function exitExperience() {stopLive();if(!experience)return;if(typeof world.exitRoam==='function')world.exitRoam();else experience.dispose();cameraAfterExit=world.getCameraSnapshot?.()??null;experience=null;refresh();}
 async function enterExperience() {
-  exitExperience();cameraBeforeEnter=world.getCameraSnapshot?.()??null;cameraAfterExit=null;time=0;experience=await world.enterRoam({clock,manualClock:true,autoRender:false});
+  exitExperience();cameraBeforeEnter=world.getCameraSnapshot?.()??null;cameraAfterExit=null;time=0;experience=await world.enterRoam({clock,manualClock:true,autoRender:false,locale,outdoorPresentation});
   if(!experience||!experience.controller)throw new Error('The real game did not return its viewing experience');
   experience.renderer.setPixelRatio(1);experience.renderer.setSize(size.width,size.height,false);experience.controller.resize(size.width,size.height);experience.interactions.setMuted(muted);
   if(!experience.controller.active)experience.start();populateInteractions();refresh();return experience;
@@ -80,10 +85,26 @@ function moveReviewCamera(position,target) {
   refresh();
 }
 async function ensureFree(){if(experience.controller.getState().phase==='free')return;experience.controller.setDisplayMode('exterior');experience.controller.enterDoor();advance(4800);if(experience.controller.getState().phase!=='free')throw new Error('The real door sequence did not reach free view');}
+function itemPoint(kind){const row=experience.model.furniture.find(value=>fixture.home.furniture.find(item=>item.id===value.itemId)?.kind===kind);return row?.group.position.clone();}
 function activateWhere(predicate){for(const target of experience.interactions.getTargets().filter(predicate))experience.interactions.activate(target);}
 function hoverDoor() {
   const entry=getHomeRoamEntrance(fixture.home),camera=experience.controller.camera,p=new THREE.Vector3(entry.center.x,1.2,entry.center.z).project(camera),box=experience.renderer.domElement.getBoundingClientRect();
   experience.renderer.domElement.dispatchEvent(new PointerEvent('pointermove',{pointerId:1,clientX:box.left+(p.x+1)*box.width/2,clientY:box.top+(1-p.y)*box.height/2,bubbles:true}));refresh();
+}
+// QA-only pointer positioning: use the real visible mesh and production hover ray.
+function hoverSelected() {
+  const target=experience.interactions.getTargets().find(row=>row.id===$('interaction').value);
+  if(!target)return;
+  experience.scene.updateMatrixWorld(true);
+  const canvas=experience.renderer.domElement,box=canvas.getBoundingClientRect(),camera=experience.controller.camera;
+  for(const mesh of target.meshes){
+    if(!mesh.visible)continue;
+    const p=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3()).project(camera);
+    if(p.z< -1||p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1)continue;
+    canvas.dispatchEvent(new PointerEvent('pointermove',{pointerId:1,clientX:box.left+(p.x+1)*box.width/2,clientY:box.top+(1-p.y)*box.height/2,bubbles:true}));
+    if(experience.interactions.getState().hovered===target.id)break;
+  }
+  refresh();
 }
 async function reviewCase(id) {
   stopLive();await enterExperience();currentCase=id;const index=ROAM_REVIEW_CASES.findIndex(row=>row.id===id)+1,controller=experience.controller,bounds=getFloorBounds(fixture.home),entry=getHomeRoamEntrance(fixture.home),e=entry.center,n=entry.outward;
@@ -94,12 +115,12 @@ async function reviewCase(id) {
   else {
     await ensureFree();
     if(index===6)moveReviewCamera([1.2,1.45,.4],[4.3,1.1,-.3]);
-    if(index===7)moveReviewCamera([e.x-n.x*2,1.45,e.z-n.z*2],[e.x+n.x,1.2,e.z+n.z]);
+    if(index===7){const sideways=new THREE.Vector3(n.z,0,-n.x);moveReviewCamera([e.x-n.x*1.6+sideways.x*1.15,1.45,e.z-n.z*1.6+sideways.z*1.15],[e.x+n.x,1.2,e.z+n.z]);}
     if(index===8){moveReviewCamera([3.88,1.45,-.35],[3.88,.8,-1.65]);activateWhere(target=>['mkSingleSink','mkDoubleGas'].includes(target.kind));advance(850);}
     if(index===9){moveReviewCamera([4.2,1.45,5.0],[4.2,.75,3.4]);activateWhere(target=>['bathroomVanity','compactToilet'].includes(target.kind));advance(850);}
-    if(index===10){moveReviewCamera([.3,1.1,4.65],[.3,.55,3.4]);activateWhere(target=>target.kind==='bedsideCabinet'&&target.type==='drawer');advance(550);}
-    if(index===11){moveReviewCamera([.6,1.55,.7],[-1.8,1.3,-1.15]);activateWhere(target=>target.kind==='hhTripodLamp'&&target.type==='floor-lamp');advance(100);}
-    if(index===12){moveReviewCamera([1.8,1.5,1.7],[-.4,1.25,-1.1]);activateWhere(target=>target.type==='ceiling-light'&&target.roomId===fixture.home.rooms.find(room=>room.kind==='living')?.id);advance(100);}
+    if(index===10){const p=itemPoint('bedsideCabinet');moveReviewCamera([p.x,1.1,p.z+1.25],[p.x,.55,p.z]);activateWhere(target=>target.kind==='bedsideCabinet'&&target.type==='drawer');advance(550);}
+    if(index===11||index===13||index===14){const p=itemPoint('hhTripodLamp');moveReviewCamera([p.x+2.4,1.55,p.z+1.85],[p.x,1.3,p.z]);if(index!==13)activateWhere(target=>target.kind==='hhTripodLamp'&&target.type==='floor-lamp');advance(100);}
+    if(index===12){const p=itemPoint('sofa');moveReviewCamera([p.x+1.8,1.5,p.z+2.8],[p.x-.4,1.25,p.z]);activateWhere(target=>target.type==='ceiling-light'&&target.roomId===fixture.home.rooms.find(room=>room.kind==='living')?.id);advance(100);}
   }
   refresh();setStatus(`${id} · real controller phase: ${controller.getState().phase}. Actual entrance: ${entry.roomKind??'public space'}.`);
 }
@@ -116,12 +137,14 @@ function bind() {
   $('door').addEventListener('click',()=>{experience.controller.enterDoor();playLive();});$('half-door').addEventListener('click',()=>run(()=>reviewCase('04-door-opening')));
   for(const button of document.querySelectorAll('[data-display]'))button.addEventListener('click',()=>{experience.controller.setDisplayMode(button.dataset.display);refresh();});
   $('overview').addEventListener('click',()=>{experience.controller.overview(false);refresh();});$('activate').addEventListener('click',()=>{experience.interactions.activate($('interaction').value);advance(700);});
+  $('hover-selected').addEventListener('click',hoverSelected);
   $('mute').addEventListener('click',()=>{muted=!muted;experience.interactions.setMuted(muted);$('mute').textContent=muted?'Unmute':'Mute';refresh();});
   $('apply-pose').addEventListener('click',()=>run(()=>moveReviewCamera(...Object.values(parseRoamReviewPose($('pose').value)))));
+  $('photometry').addEventListener('click',()=>run(async()=>{const result=captureRoamPhotometry(experience),files=[{name:'regions.json',bytes:new TextEncoder().encode(JSON.stringify(result.metadata,null,2))}];for(const[name,url]of Object.entries(result.masks)){const response=await fetch(url);files.push({name:name+'.png',bytes:new Uint8Array(await response.arrayBuffer())});}download(zipFiles(files),currentCase+'--photometry.zip');refresh();}));
   $('png').addEventListener('click',()=>run(capturePNG));$('json').addEventListener('click',()=>download(new Blob([JSON.stringify(diagnostics(),null,2)],{type:'application/json'}),currentCase+'--diagnostics.json'));
   $('measure').addEventListener('click',()=>run(async()=>{await reviewCase('05-just-entered-living-room');beginMeasurement();}));
   $('measure-current').addEventListener('click',()=>run(beginMeasurement));
-  $('cases').replaceChildren(...ROAM_REVIEW_CASES.map(row=>{const button=document.createElement('button');button.type='button';button.textContent=row.id.slice(0,2)+' · '+row.label;button.dataset.case=row.id;button.addEventListener('click',()=>run(()=>reviewCase(row.id)));return button;}));
+  $('cases').replaceChildren(...ROAM_REVIEW_CASES.map(row=>{const button=document.createElement('button');button.type='button';button.textContent=row.id.split('-')[0]+' · '+row.label;button.dataset.case=row.id;button.addEventListener('click',()=>run(()=>reviewCase(row.id)));return button;}));
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopLive();refresh();}});
   window.addEventListener('pagehide',()=>{stopLive();exitExperience();world?.dispose();},{once:true});
 }

@@ -6,7 +6,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const MIME={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.glb':'model/gltf-binary','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg'};
-const QA=new Set(['roam-review-ui.mjs','roam-review-cases.mjs','look-dev-runtime.mjs','look-dev-fixtures.mjs','look-dev-backdrop.mjs','look-dev-zip.mjs','look-dev-preset-safety.mjs']);
+const QA=new Set(['roam-review-ui.mjs','roam-review-cases.mjs','roam-review-photometry.mjs','look-dev-runtime.mjs','look-dev-fixtures.mjs','look-dev-backdrop.mjs','look-dev-zip.mjs','look-dev-preset-safety.mjs']);
 const CSS=new Set(['home-roam.css','student-home-warm.css']);
 const exists=async file=>{try{await access(file);return true;}catch{return false;}};
 const inside=(base,file)=>{const rel=relative(base,file);return rel!== '..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel);};

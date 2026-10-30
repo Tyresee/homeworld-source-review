@@ -16,8 +16,8 @@ const applySource=worldSource.slice(start,end);
 function harness() {
   const sun=new THREE.DirectionalLight('#fff0d8',3.4),fill=new THREE.DirectionalLight('#dde7f2',.9),hemisphere=new THREE.HemisphereLight('#fff6ea','#e2dbcf',1.7),master=new THREE.PointLight('#ffe1b8',0,11,2);master.castShadow=true;master.shadow.autoUpdate=false;
   const descriptor={id:'ceiling:living',roomId:'living',enabled:true,disc:{visible:false,material:{emissiveIntensity:.8}},light:new THREE.PointLight('#ffe1b8',0,11,2)};descriptor.light.position.set(0,2.6,0);
-  const renderer={toneMappingExposure:1.03,shadowMap:{autoUpdate:false,needsUpdate:false}},model={manor:{visible:true},doorway:new THREE.Group(),interior:{visible:false},ceilings:[{visible:false}],ceilingLights:[descriptor],entrance:{roomId:'living'},setOrbitCut:()=>false};
-  const context=createContext({THREE,model,renderer,sun,fill,hemisphere,master,home:{rooms:[createRoom('living')]},roomRect,baseline:{sun:3.4,fill:.9,hemi:1.7,exposure:1.03},controller:{camera:{position:new THREE.Vector3(0,1.45,0)},controls:{target:new THREE.Vector3()}}});
+  const renderer={toneMappingExposure:1.03,shadowMap:{autoUpdate:false,needsUpdate:false}},model={daylight:{setVisible(value){this.visible=value;}},manor:{visible:true},doorway:new THREE.Group(),interior:{visible:false},ceilings:[{visible:false}],ceilingLights:[descriptor],entrance:{roomId:'living'},setOrbitCut:()=>false};
+  const context=createContext({outdoorPresentation:true,THREE,model,renderer,sun,fill,hemisphere,master,home:{rooms:[createRoom('living')]},roomRect,baseline:{sun:3.4,fill:.9,hemi:1.7,exposure:1.03},controller:{camera:{position:new THREE.Vector3(0,1.45,0)},controls:{target:new THREE.Vector3()}}});
   new Script(`let lastMode='',lastLight='';${applySource}\nglobalThis.apply=applyLighting;globalThis.refreshLighting=()=>{lastLight='';};`,{filename:'home-roam-world.js:applyLighting'}).runInContext(context);
   return {sun,fill,hemisphere,master,descriptor,renderer,model,apply:mode=>context.apply({sceneMode:mode}),refresh:()=>context.refreshLighting()};
 }

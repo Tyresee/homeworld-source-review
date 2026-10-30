@@ -5,6 +5,7 @@ export const ROAM_REVIEW_CASES=Object.freeze([
   ['06-lamp-lit-interior-through-doorway','Warm room through doorway'],['07-look-back-at-open-front-door','Look back at open entry'],
   ['08-kitchen-tap-hob-drawers-doors','Kitchen interactions'],['09-bathroom-tap-flush-drawers','Bathroom interactions'],
   ['10-bedside-drawer','Bedside drawer'],['11-floor-lamp-on','Floor lamp on'],['12-living-ceiling-lamp-switched-off','Living ceiling lamp off'],
+  ['11a-floor-lamp-off','Floor lamp off · same camera'],['11b-floor-lamp-on','Floor lamp on · same camera'],
 ].map(([id,label])=>Object.freeze({id,label})));
 
 export function parseRoamReviewPose(text) {

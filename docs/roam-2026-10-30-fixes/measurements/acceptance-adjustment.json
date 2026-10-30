@@ -1,0 +1,15 @@
+{
+  "userConfirmed": true,
+  "preserveCeilingLights": true,
+  "originalCriterion": {
+    "channel": "encoded sRGB",
+    "wallLiftAtLeast25Percent": false
+  },
+  "adjustedCriterion": "Compare actual same-camera off/on appearance, translucent shade brightness and a visible local floor pool; retain the measured original values without changing their pass flags.",
+  "reason": "Measured wall-off luma is 0.84973125553331. Even a fully white on-state could increase encoded sRGB luma by only 17.6842671 percent. The user selected preserving ceiling lighting and evaluating visible on/off contrast plus the local pool.",
+  "doorPass": true,
+  "shadeBrighterThanSameImageVisibleWalls": true,
+  "floorPoolDiameterMetres": 1.4,
+  "floorPoolVisible": true,
+  "adjustedAcceptancePassed": true
+}

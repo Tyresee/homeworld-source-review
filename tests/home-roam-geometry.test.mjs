@@ -45,9 +45,9 @@ test('roam exterior has genuinely hollow walls, a hollow arch and a thick hinged
 });
 
 test('entrance metadata follows the real selected facade and room without rotating or moving the saved floor',()=>{
-  const homes=[createLookDevFixture('house').home,{profile:'upper',slab:{rects:[{minX:8,minZ:-5,width:1.2,depth:5.2}]},rooms:[createRoom('bedroom',undefined,undefined,'narrow',{minX:8,minZ:-5,width:1.2,depth:5.2})]}];
+  const homes=[createLookDevFixture('house').home,{profile:'upper',slab:{rects:[{minX:8,minZ:-5,width:1.2,depth:7.8}]},rooms:[createRoom('bedroom',undefined,undefined,'narrow',{minX:8,minZ:-5,width:1.2,depth:5.2}),createRoom('bathroom',undefined,undefined,'front-bath',{minX:8,minZ:.2,width:1.2,depth:2.6})]}];
   for(const home of homes) {
-    const selected=getManorFacadeLayout(home).entrance,spec=getHomeRoamEntrance(home),manor=createEstateManor({floors:[home],theme:HOME_THEMES.warm,roam:true});
+    const selected=getManorFacadeLayout(home,{theme:HOME_THEMES.warm}).entrance,spec=getHomeRoamEntrance(home),manor=createEstateManor({floors:[home],theme:HOME_THEMES.warm,roam:true});
     try {
       assert.equal(spec.side,selected.face.side);close(spec.from,selected.face.from);close(spec.to,selected.face.to);
       const entry=alignManor(manor,home);close(entry.center.x,spec.center.x);close(entry.center.z,spec.center.z);close(entry.wallCenter.x,spec.wallCenter.x);close(entry.wallCenter.z,spec.wallCenter.z);assert.equal(entry.roomId,spec.roomId);
@@ -58,7 +58,7 @@ test('entrance metadata follows the real selected facade and room without rotati
 });
 
 test('the full inward door swing stays clear of the solid wall and recessed frame for front and right entrances',()=>{
-  const homes=[createLookDevFixture('house').home,{profile:'upper',slab:{rects:[{minX:8,minZ:-5,width:1.2,depth:5.2}]},rooms:[createRoom('bedroom',undefined,undefined,'narrow',{minX:8,minZ:-5,width:1.2,depth:5.2})]}];
+  const homes=[createLookDevFixture('house').home,{profile:'upper',slab:{rects:[{minX:8,minZ:-5,width:1.2,depth:7.8}]},rooms:[createRoom('bedroom',undefined,undefined,'narrow',{minX:8,minZ:-5,width:1.2,depth:5.2}),createRoom('bathroom',undefined,undefined,'front-bath',{minX:8,minZ:.2,width:1.2,depth:2.6})]}];
   for(const home of homes)for(const structure of[1,2,3]) {
     const manor=createEstateManor({floors:[home],theme:HOME_THEMES.warm,roam:true,plans:{structure}});
     try {
@@ -138,12 +138,12 @@ const BASELINES={
   toy:{rooms:'df9994048d28850592d0e35ba06e6464fde93d86a2e4723ca207e5378cb7a7ed',manor:'6068cd3f25f70c7a4e61df6b9ce493de055388e4f54bb001a650ea4373a8ad62'},
   warm:{rooms:'656eff6e2be31b00bf822082aff4227bb4bf36515b7fa4274047470f960882f2',manor:'4d385377fdaba86c55146b2654ed137cce985ce7306ba6ecd99c8605bfb2365f'},
 };
-test('all existing non-roam Default, Toy and Warm meshes remain byte-identical to the preceding source snapshot',()=>{
+test('Default and Toy meshes plus the Warm interior remain byte-identical while Warm exterior follows its selected entry',()=>{
   const t=textures();
   try {
     for(const id of['default','toy','warm'])for(const request of[{},...id==='warm'?[]:[{roam:true}]]) {
       const options={rooms:resolveRooms('atrium'),theme:HOME_THEMES[id],...t,...request},room=createRoomExpansion(options),manor=createEstateManor(options);
-      try {assert.equal(fingerprint(room),BASELINES[id].rooms);assert.equal(fingerprint(manor),BASELINES[id].manor);assert.equal(manor.getRoamEntry(),null);assert.equal(room.getRoamWalls().length,0);}finally{room.dispose();manor.dispose();}
+      try {assert.equal(fingerprint(room),BASELINES[id].rooms);if(id!=='warm')assert.equal(fingerprint(manor),BASELINES[id].manor);else {const entry=getManorFacadeLayout({rooms:options.rooms},{theme:HOME_THEMES.warm}).entrance;assert.equal(entry.room.kind,'gallery','the enclosed canonical living room has no eligible front/right wall in this preset');const steps=meshes(manor).filter(mesh=>mesh.userData.buildingPart==='entrance-step');assert.equal(steps.length,3);assert.ok(steps.every(mesh=>mesh.userData.roomId===entry.room.id));assert.ok(fingerprint(manor)!==BASELINES[id].manor,'Warm may move its entrance under the new room-kind rule');}assert.equal(manor.getRoamEntry(),null);assert.equal(room.getRoamWalls().length,0);}finally{room.dispose();manor.dispose();}
     }
   }finally{t.dispose();}
 });

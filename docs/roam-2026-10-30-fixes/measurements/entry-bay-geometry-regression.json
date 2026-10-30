@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "method": "SHA-256 over actual modeled mesh world transforms, vertex/index attributes and material color/roughness/metalness/side/opacity; no IDs or renderer globals",
+  "before": {
+    "ordinary": "1b03eeb55662fd44310458722259a403ebcb3314e6fed62ae9467a07fa43c87a",
+    "roam": "b0c1eddcb80d4735644b5613350ee30f88cf29e6dbff8e4ac0d2ac38dcb3fd50"
+  },
+  "after": {
+    "ordinary": "1b03eeb55662fd44310458722259a403ebcb3314e6fed62ae9467a07fa43c87a",
+    "roam": "b0c1eddcb80d4735644b5613350ee30f88cf29e6dbff8e4ac0d2ac38dcb3fd50"
+  },
+  "HouseOrdinaryGeometryIdentical": true,
+  "HouseRoamGeometryIdentical": true,
+  "scope": "Warm-only bay subdivision leaves the aligned House fixture identical; the valid narrow-room regression now uses its actual room wall span"
+}

@@ -53,11 +53,35 @@ test('both faucets, both fourteen-flame hobs, room lights and floor lamp toggle 
       const original=target.on;assert.ok(world.controller.activate(target));assert.notEqual(target.on,original);world.controller.tick(.05);
       if(target.type==='faucet'){assert.equal(target.stream.visible,true);near(target.stream.material.opacity,.72);near(target.stream.geometry.parameters.radiusTop,.009);near(target.stream.geometry.parameters.radiusBottom,.013);assert.notEqual(target.ripple.material.opacity,.6);}
       if(target.type==='hob'){assert.equal(target.flame.children.length,14);assert.equal(target.flame.visible,true);near(target.light.intensity,.2);assert.ok(target.flame.children.some(mesh=>mesh.scale.y!==1));}
-      if(target.type==='floor-lamp'){near(target.light.intensity,7);assert.equal(target.shade.material.emissive.getHexString(),'ffc477');}
+      if(target.type==='floor-lamp'){near(target.light.intensity,16);near(target.floorLight.intensity,8);near(target.shade.material.emissiveIntensity,1.6);assert.equal(target.shade.material.emissive.getHexString(),'ffc477');}
       if(target.type==='ceiling-light'){assert.equal(target.descriptor.light.intensity,0);assert.equal(target.descriptor.enabled,false);}
       assert.ok(world.controller.activate(target));assert.equal(target.on,original);assert.equal(world.controller.tick(.1),false);
     }
     assert.deepEqual(count(),before,'toggling never creates a new light or mesh');assert.ok(world.audio.calls.some(call=>call[0]==='water'&&call[1]===false));assert.ok(world.audio.calls.some(call=>call[0]==='gas'&&call[1]===false));
+  }finally{world.dispose();}
+});
+
+test('a placed floor lamp keeps two fixed nonshadow lights and a 1.4 m downward floor footprint while ceiling lights remain unchanged',()=>{
+  const root=new THREE.Group();root.position.set(3,0,-2);root.rotation.y=.63;
+  const lamp=createLuxuryItem({kind:'hhTripodLamp'});lamp.position.set(-1.8,.06,4.05);root.add(lamp);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(.26,24),new THREE.MeshStandardMaterial({emissive:'#ffe1b8',emissiveIntensity:1})),ceilingLight=new THREE.PointLight('#ffe1b8',24,11,2);root.add(disc,ceilingLight);
+  const ceilingLights=[{id:'ceiling:test',disc,light:ceilingLight,on:true}],controller=createHomeRoamInteractions({root,ceilingLights,audio:quietAudio()});
+  const world={root,controller,ceilingLights,dispose(){controller.dispose();release(root);}},target=controller.targets.find(target=>target.type==='floor-lamp'),light=target.light,pool=target.floorLight;
+  try {
+    const borrowedShadeMaterial=target.shade.material,originalShadeColor=borrowedShadeMaterial.color.getHexString(),originalRoughness=borrowedShadeMaterial.roughness;
+    const originalCeilings=world.ceilingLights.map(({disc,light})=>({disc:disc.material.emissiveIntensity,intensity:light.intensity,distance:light.distance,castShadow:light.castShadow}));
+    world.root.updateMatrixWorld(true);const origin=pool.getWorldPosition(new THREE.Vector3()),floor=pool.target.getWorldPosition(new THREE.Vector3()),shadeBounds=new THREE.Box3().setFromObject(target.shade),height=origin.y-floor.y;
+    assert.ok(light.isPointLight);assert.equal(light.distance,5);assert.equal(light.decay,2);assert.equal(light.castShadow,false);
+    assert.ok(pool.isSpotLight);assert.equal(pool.castShadow,false);assert.equal(pool.decay,2);near(origin.x,floor.x);near(origin.z,floor.z);assert.ok(height>1);near(2*Math.tan(pool.angle)*height,1.4);assert.ok(origin.y<shadeBounds.min.y,'cone starts below the shade rim');
+    assert.equal(pool.target,target.floorTarget);assert.equal(pool.target.parent,world.root);assert.ok(pool.penumbra>=.75,'the floor spot has a soft edge');
+    const positions=[light.position.toArray(),pool.position.toArray(),pool.target.position.toArray()];assert.equal(light.intensity,0);assert.equal(pool.intensity,0);assert.equal(light.visible,true);assert.equal(pool.visible,true);
+    for(let i=0;i<3;i++) {
+      world.controller.activate(target);assert.equal(light.intensity,16);assert.equal(pool.intensity,8);assert.equal(target.shade.material.emissiveIntensity,1.6);assert.notEqual(target.shade.material,borrowedShadeMaterial);assert.equal(target.shade.material.color.getHexString(),'fff4df');assert.equal(target.shade.material.roughness,originalRoughness);assert.equal(borrowedShadeMaterial.color.getHexString(),originalShadeColor);
+      world.controller.activate(target);assert.equal(light.intensity,0);assert.equal(pool.intensity,0);assert.equal(target.shade.material.emissiveIntensity,0);assert.equal(target.shade.material.color.getHexString(),originalShadeColor);assert.equal(borrowedShadeMaterial.color.getHexString(),originalShadeColor);
+    }
+    assert.deepEqual([light.position.toArray(),pool.position.toArray(),pool.target.position.toArray()],positions);assert.equal(light.visible,true);assert.equal(pool.visible,true);
+    assert.deepEqual(world.ceilingLights.map(({disc,light})=>({disc:disc.material.emissiveIntensity,intensity:light.intensity,distance:light.distance,castShadow:light.castShadow})),originalCeilings,'floor lamp cannot edit room lighting');
+    world.controller.activate(target);world.controller.dispose();assert.equal(light.parent,null);assert.equal(pool.parent,null);assert.equal(pool.target.parent,null);assert.equal(target.shade.material,borrowedShadeMaterial);assert.equal(target.shade.material.color.getHexString(),originalShadeColor);
   }finally{world.dispose();}
 });
 

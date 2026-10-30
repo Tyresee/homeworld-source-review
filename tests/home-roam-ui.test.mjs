@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHomeRoamUI} from '../public/js/home-roam-ui.js';
+import {getHomeRoamCopy} from '../public/js/home-roam-copy.js';
 
-function fixture(){
+function fixture({locale,search}={}){
   let document;
   class Node{
     constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.parentNode=null;this.className='';this.dataset={};this.style={};this.attributes={};this.events=new Map();this.hidden=false;this.textContent='';this.ownerDocument=document;this.classList={add:name=>{this.className+=' '+name;}};}
@@ -20,8 +21,8 @@ function fixture(){
     focus(){document.activeElement=this;}
     getBoundingClientRect(){return {width:100,height:30};}
   }
-  document=new Node('document');document.createElement=tag=>new Node(tag);document.defaultView={innerWidth:1440,innerHeight:900};
-  const container=new Node(),calls=[],ui=createHomeRoamUI({container,document,onDisplayMode:mode=>calls.push(['mode',mode]),onAutoRotate:value=>calls.push(['spin',value]),onOverview:()=>calls.push(['overview']),onLeave:()=>calls.push(['leave'])});
+  document=new Node('document');document.createElement=tag=>new Node(tag);document.defaultView={innerWidth:1440,innerHeight:900,location:{search:search??''}};
+  const container=new Node(),calls=[],ui=createHomeRoamUI({container,document,locale,onDisplayMode:mode=>calls.push(['mode',mode]),onAutoRotate:value=>calls.push(['spin',value]),onOverview:()=>calls.push(['overview']),onLeave:()=>calls.push(['leave'])});
   return {ui,container,document,calls,root:ui.element,find:name=>ui.element.find(name),button:text=>ui.element.all().find(node=>node.tagName==='BUTTON'&&node.textContent===text)};
 }
 
@@ -43,4 +44,19 @@ test('help uses accessible reversible controls, traps only its Escape, clamps ho
   f.ui.setHover({text:"Click the door to enter",x:1439,y:899});const hover=f.find('home-roam-hover');assert.equal(hover.hidden,false);assert.equal(hover.style.left,'1332px');assert.equal(hover.style.top,'862px');f.ui.update({phase:'opening',transition:true});assert.equal(hover.hidden,true);f.ui.setHover({text:"Click the door to enter",x:20,y:30});assert.equal(hover.hidden,true);
   f.ui.update({phase:'free',transition:false});toggle.dispatch('click');assert.equal(f.find('home-roam-help-title').textContent,"Move freely indoors");f.document.dispatch('pointerdown',{target:f.container});assert.equal(help.hidden,true);
   f.ui.dispose();assert.equal(f.container.children.length,0);for(const callbacks of f.document.events.values())assert.equal(callbacks.size,0);for(const node of f.root.all())for(const callbacks of node.events.values())assert.equal(callbacks.size,0);
+});
+
+
+test('the shared locale configures all controls and both help modes without changing their actions',()=>{
+  for(const options of [{locale:'en'},{locale:'en'},{search:'?theme=warm&locale=en'}]){
+    const f=fixture(options),copy=getHomeRoamCopy(options.locale,{search:options.search??''});f.ui.setVisible(true);f.ui.update({active:true,phase:'orbit'});
+    assert.equal(f.root.getAttribute('aria-label'),copy.viewLabel);assert.equal(f.find('home-roam-status').textContent,copy.statusExterior);
+    assert.ok(f.button(copy.auto));assert.ok(f.button(copy.exterior));assert.ok(f.button(copy.interior));assert.ok(f.button(copy.spin));
+    f.button('?').dispatch('click');assert.equal(f.find('home-roam-help-note').textContent,copy.helpNoteExterior);
+    assert.deepEqual(f.find('home-roam-help-keys').children.map(n=>n.textContent),copy.outsideHelp.flat());
+    f.ui.update({phase:'free',view:'interior'});f.button('?').dispatch('click');
+    assert.equal(f.find('home-roam-instructions').textContent,copy.instructions);assert.equal(f.find('home-roam-help-note').textContent,copy.helpNoteInterior);
+    assert.deepEqual(f.find('home-roam-help-keys').children.map(n=>n.textContent),copy.insideHelp.flat());
+    f.button(copy.leave).dispatch('click');assert.deepEqual(f.calls,[['leave']]);f.ui.dispose();
+  }
 });

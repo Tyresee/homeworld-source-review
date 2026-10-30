@@ -1,5 +1,6 @@
 // Deterministic, account-free source fixtures for the local Look Dev console.
-// Every object uses its actual catalogue default color and a legal placement.
+// Objects use their real catalogue defaults and collision-valid placements.
+// House alone has an explicit presentation-only row swap, never a save payload.
 import {createHomeState,createFurnitureItem,applyChange,validateHomeState,FURNITURE_ITEMS} from '../../public/js/home-engine.js';
 import {createRoom} from '../../public/js/home-layout.js';
 import {SHOP_CATALOG} from '../../public/js/home-commerce.js';
@@ -80,9 +81,14 @@ function exterior() {
   upper=place(higher.state,'upper-bed','bedTimber',1.5,-.2);
   return {home,upperFloors:[upper],robotPoint:{x:0,z:5.5}};
 }
+const HOUSE_LIVING_ITEMS=new Set(['h-sofa','h-table','h-rug','h-lamp'].map(id=>'lookdev:'+id));
+const HOUSE_BEDROOM_ITEMS=new Set(['h-bed','h-bedside','h-bedrug'].map(id=>'lookdev:'+id));
+const shiftZ=(value,offset)=>Number((value+offset).toFixed(8));
 function house() {
   const slab={rects:[{minX:-2.8,minZ:-2.6,width:8.4,depth:10.4}]};
   const region=(kind,minX,minZ,width,depth,id)=>room(kind,{minX,minZ,width,depth},id);
+  // Build and furnish the canonical save-shaped base first. The account's
+  // fixed starter living room cannot move in a legal persistent save.
   let home=createHomeState({sandbox:false,profile:'account',slab,rooms:[
     region('living',-2.8,-2.6,5.6,5.2,'lookdev-living'),
     region('kitchen-compact',2.8,-2.6,2.8,5.2,'lookdev-kitchen'),
@@ -97,16 +103,38 @@ function house() {
     ['h-bedrug','rug',-.6,6.4],['h-toilet','compactToilet',3.5,3.5],
     ['h-vanity','bathroomVanity',4.7,3.4],
   ])home=place(home,id,kind,x,z);
+  // This explicit, account-free presentation fixture is not a save payload.
+  // Only its two reviewed rows move; the source builders and furniture remain
+  // real. No production schema/validator or student data is changed.
+  home=clone(home);
+  const living=home.rooms.find(row=>row.id==='living'),bed=home.rooms.find(row=>row.kind==='bedroom');
+  living.bounds={minX:-2.8,minZ:2.6,width:5.6,depth:5.2};living.cz=1;
+  bed.bounds.minZ=-2.6;bed.cz=-1;
+  for(const item of home.furniture)if(HOUSE_LIVING_ITEMS.has(item.id))item.z=shiftZ(item.z,5.2);else if(HOUSE_BEDROOM_ITEMS.has(item.id))item.z=shiftZ(item.z,-5.2);
   return {home,robotPoint:{x:-1.4,z:6.4}};
+}
+/** Validate the explicit read-only House row swap by undoing that exact
+ * presentation transform and reusing the unmodified production validator.
+ * Every other fixture uses the production validator directly. */
+export function validateLookDevFixtureHome(home,id) {
+  if(id!=='house')return validateHomeState(home);
+  if(!home||!Array.isArray(home.rooms)||!Array.isArray(home.furniture))return false;
+  const living=home.rooms.find(row=>row.id==='living'),bed=home.rooms.find(row=>row.id==='lookdev-bedroom');
+  if(!living||living.kind!=='living'||living.cx!==-1||living.cz!==1||JSON.stringify(living.bounds)!==JSON.stringify({minX:-2.8,minZ:2.6,width:5.6,depth:5.2})
+    ||!bed||bed.kind!=='bedroom'||bed.cx!==-1||bed.cz!==-1||JSON.stringify(bed.bounds)!==JSON.stringify({minX:-2.8,minZ:-2.6,width:5.6,depth:5.2}))return false;
+  const canonical=clone(home),core=canonical.rooms.find(row=>row.id==='living'),bedroom=canonical.rooms.find(row=>row.id==='lookdev-bedroom');
+  delete core.bounds;core.cz=-1;bedroom.bounds.minZ=2.6;bedroom.cz=1;
+  for(const item of canonical.furniture)if(HOUSE_LIVING_ITEMS.has(item.id))item.z=shiftZ(item.z,-5.2);else if(HOUSE_BEDROOM_ITEMS.has(item.id))item.z=shiftZ(item.z,5.2);
+  return validateHomeState(canonical);
 }
 const builders={living,bedroom,kitchen,bathroom,house,exterior};
 /** Returns fresh, independently validated data. Never account/save-shaped. */
 export function createLookDevFixture(id='living') {
   if(!Object.hasOwn(builders,id))throw new RangeError('Unknown Look Dev view: '+id);
   const result=builders[id](),floors=[result.home,...result.upperFloors??[]];
-  for(const home of floors)if(!validateHomeState(home))throw new Error('Invalid Look Dev house: '+id);
+  for(const home of floors)if(!validateLookDevFixtureHome(home,id))throw new Error('Invalid Look Dev house: '+id);
   const items=floors.flatMap((home,storey)=>home.furniture.map(item=>({id:item.id,kind:item.kind,storey,color:item.color,material:item.material,defaultColor:definitions.get(item.kind).defaultColor,defaultMaterial:products.get(item.kind).material??'oak'})));
-  return {id,label:LOOK_DEV_VIEWS.find(view=>view.id===id).label,view:id==='exterior'?'estate':'interior',floors,home:result.home,upperFloors:floors.slice(1),owned:[],robotPoint:result.robotPoint,items,
+  return {id,...(id==='house'?{reviewLayout:'living-bedroom-row-swap-v1',accountSaveCompatible:false}:{}),label:LOOK_DEV_VIEWS.find(view=>view.id===id).label,view:id==='exterior'?'estate':'interior',floors,home:result.home,upperFloors:floors.slice(1),owned:[],robotPoint:result.robotPoint,items,
     avatar:{kind:'robot',modelId:'robot-companion',modelVersion:'v4',colors:{shell:'#e9dfc9',accent:'#869779'},equipped:{}}};
 }
 export function cloneLookDevFixture(fixture){return clone(fixture);}

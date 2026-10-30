@@ -386,7 +386,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     currentRoom=null;
   }
   function buildRoam(home) {
-    const boundary=getFloorBoundarySegments(home),entry=roamEntrance??getHomeRoamEntrance(home),drawn=[];
+    const boundary=getFloorBoundarySegments(home),entry=roamEntrance??getHomeRoamEntrance(home,{theme}),drawn=[];
     const ownerAt=(edge,mid)=>home.rooms.find(room=>{const r=roomRect(room),alongX=edge.side==='back'||edge.side==='front',at=edge.side==='back'?r.minZ:edge.side==='front'?r.maxZ:edge.side==='left'?r.minX:r.maxX;return Math.abs(at-edge.at)<1e-6&&mid>(alongX?r.minX:r.minZ)-1e-6&&mid<(alongX?r.maxX:r.maxZ)+1e-6;});
     currentRoom=null;
     // This shell is standalone even for a canonical legacy starter. The live

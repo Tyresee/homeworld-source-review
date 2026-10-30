@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {LOOK_DEV_SIZE,LOOK_DEV_VIEWS,createLookDevFixture} from '../scripts/qa/look-dev-fixtures.mjs';
+import {LOOK_DEV_SIZE,LOOK_DEV_VIEWS,createLookDevFixture,validateLookDevFixtureHome} from '../scripts/qa/look-dev-fixtures.mjs';
 import {resolveLookDevBuild,describeLookDevWallGeometry} from '../scripts/qa/look-dev-runtime.mjs';
 import {validateHomeState,findHomeCollision,getFurnitureFootprint} from '../public/js/home-engine.js';
 import {roomRect,getFloorBoundarySegments} from '../public/js/home-layout.js';
@@ -11,20 +11,20 @@ import {HOME_THEMES} from '../public/js/home-theme.js';
 import {isAvatarPositionWalkable} from '../public/js/home-avatar-navigation.js';
 
 const required=[
-  ['h-sofa','sofa',0,-1.1],['h-table','lcCoffeeTable',0,.2],['h-rug','rug',0,.2],
-  ['h-lamp','hhTripodLamp',-1.8,-1.15],['h-cooker','mkDoubleGas',3.4,-1.65],
+  ['h-sofa','sofa',0,4.1],['h-table','lcCoffeeTable',0,5.4],['h-rug','rug',0,5.4],
+  ['h-lamp','hhTripodLamp',-1.8,4.05],['h-cooker','mkDoubleGas',3.4,-1.65],
   ['h-sink','mkSingleSink',4.35,-1.65],['h-dining','hhDropLeafTable',4.2,.9],
-  ['h-bed','bedTimber',-.9,4.3],['h-bedside','bedsideCabinet',.3,3.4],
-  ['h-bedrug','rug',-.6,6.4],['h-toilet','compactToilet',3.5,3.5],['h-vanity','bathroomVanity',4.7,3.4],
+  ['h-bed','bedTimber',-.9,-.9],['h-bedside','bedsideCabinet',.3,-1.8],
+  ['h-bedrug','rug',-.6,1.2],['h-toilet','compactToilet',3.5,3.5],['h-vanity','bathroomVanity',4.7,3.4],
 ];
 
 test('house is a sixth fresh account-free view with the exact reviewed four-room floor and furniture positions',()=>{
   assert.deepEqual(LOOK_DEV_SIZE,{width:1440,height:900});assert.equal(LOOK_DEV_VIEWS.length,6);assert.equal(new Set(LOOK_DEV_VIEWS.map(view=>view.id)).size,6);assert.ok(LOOK_DEV_VIEWS.some(view=>view.id==='house'));
   const fixture=createLookDevFixture('house'),home=fixture.home;
-  assert.equal(fixture.view,'interior');assert.equal(fixture.floors.length,1);assert.equal(home.profile,'account');assert.equal(home.sandbox,false);assert.equal(validateHomeState(home),true);assert.deepEqual(fixture.upperFloors,[]);assert.deepEqual(fixture.owned,[]);
+  assert.equal(fixture.view,'interior');assert.equal(fixture.floors.length,1);assert.equal(home.profile,'account');assert.equal(home.sandbox,false);assert.equal(validateHomeState(home),false,'the relocated core is an explicitly read-only presentation fixture, never a persistent account payload');assert.equal(validateLookDevFixtureHome(home,'house'),true);assert.equal(fixture.accountSaveCompatible,false);assert.deepEqual(fixture.upperFloors,[]);assert.deepEqual(fixture.owned,[]);
   assert.deepEqual(home.slab,{rects:[{minX:-2.8,minZ:-2.6,width:8.4,depth:10.4}]});
   assert.deepEqual(home.rooms.map(room=>[room.kind,roomRect(room).minX,roomRect(room).minZ,roomRect(room).width,roomRect(room).depth]),[
-    ['living',-2.8,-2.6,5.6,5.2],['kitchen-compact',2.8,-2.6,2.8,5.2],['bedroom',-2.8,2.6,5.6,5.2],['bathroom',2.8,2.6,2.8,5.2],
+    ['living',-2.8,2.6,5.6,5.2],['kitchen-compact',2.8,-2.6,2.8,5.2],['bedroom',-2.8,-2.6,5.6,5.2],['bathroom',2.8,2.6,2.8,5.2],
   ]);
   assert.deepEqual(home.furniture.map(item=>[item.id,item.kind,item.x,item.z]),required.map(([id,...rest])=>['lookdev:'+id,...rest]));
   assert.ok(fixture.items.every(item=>item.color===item.defaultColor&&item.material===item.defaultMaterial));assert.deepEqual(fixture.robotPoint,{x:-1.4,z:6.4});assert.equal(isAvatarPositionWalkable(home,fixture.robotPoint),true);
@@ -38,7 +38,7 @@ test('house is a sixth fresh account-free view with the exact reviewed four-room
 test('both warm review presets apply to the four existing room kinds without altering geometry, legality or furniture',async()=>{
   for(const id of ['warm-floors','warm-walls']){
     const preset=JSON.parse(await readFile(new URL('../scripts/qa/look-dev-presets/'+id+'.json',import.meta.url),'utf8')),fixture=createLookDevFixture('house'),original=structuredClone(fixture.home);
-    const theme=resolveLookDevBuild(fixture,preset);assert.equal(theme.id,'warm');assert.equal(validateHomeState(fixture.home),true);assert.deepEqual(fixture.home.slab,original.slab);assert.deepEqual(fixture.home.furniture,original.furniture);assert.equal(fixture.home.revision,original.revision);
+    const theme=resolveLookDevBuild(fixture,preset);assert.equal(theme.id,'warm');assert.equal(validateLookDevFixtureHome(fixture.home,'house'),true);assert.equal(validateHomeState(fixture.home),false);assert.deepEqual(fixture.home.slab,original.slab);assert.deepEqual(fixture.home.furniture,original.furniture);assert.equal(fixture.home.revision,original.revision);
     for(const room of fixture.home.rooms){const raw=original.rooms.find(row=>row.id===room.id);assert.deepEqual(roomRect(room),roomRect(raw));}
     assert.equal(fixture.home.rooms.find(room=>room.kind==='kitchen-compact').floor.finishId,'tile-terracotta');assert.equal(fixture.home.rooms.find(room=>room.kind==='bathroom').floor.finishId,'tile-blue');
     if(id==='warm-walls')for(const room of fixture.home.rooms.filter(room=>room.wall)){assert.equal(room.wall.styleId,'wall-plain');assert.equal(room.wall.colorId,'wall-warm-white');}
@@ -48,4 +48,15 @@ test('both warm review presets apply to the four existing room kinds without alt
 test('the original five fixture payloads remain byte-stable when the house review is added',()=>{
   const baseline={living:'9b6b4c628a98e0619292a1638e9231ba85109f0fbb8c6d3db27b446d5f1427ec',bedroom:'0027517c4a846770bdd774fe737db72c694ef6a2a712d23a3742da475c641e94',kitchen:'87d3193aed0bd7edecee0289a926e4b65b711e9383ee6011c3ff8c375f2946c4',bathroom:'e4e6ff9b880e70bebf26d3c7bd68a5b6a3d6ba4af2972cedd96bde96423ee4a4',exterior:'d53b09c5d9287e6437e9f2d2949c31ba31ec1199664963665666e191d7ed7463'};
   for(const[id,hash]of Object.entries(baseline))assert.equal(createHash('sha256').update(JSON.stringify(createLookDevFixture(id))).digest('hex'),hash,id);
+});
+
+test('only the declared House presentation transform can use the inverse fixture check',()=>{
+  const fixture=createLookDevFixture('house'),before=structuredClone(fixture.home);
+  assert.equal(validateLookDevFixtureHome(fixture.home,'house'),true);assert.deepEqual(fixture.home,before);
+  assert.equal(validateLookDevFixtureHome(fixture.home,'living'),false,'other fixtures do not get a persistence-validator bypass');
+  const malformed=structuredClone(fixture.home);malformed.rooms[0].bounds.width+=.2;
+  assert.equal(validateLookDevFixtureHome(malformed,'house'),false,'a different transformed layout must fail closed');
+  const illegal=structuredClone(fixture.home);illegal.furniture[0].x=100;
+  assert.equal(validateLookDevFixtureHome(illegal,'house'),false,'inverse transformation retains real furniture-placement validation');
+  assert.equal(validateHomeState(fixture.home),false,'the original server contract still refuses a moved canonical living room');
 });

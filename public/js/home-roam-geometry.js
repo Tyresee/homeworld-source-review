@@ -15,8 +15,8 @@ export const ROAM_FLOOR_Y=.06;
 
 /** Saved-home coordinates, derived from the existing authoritative facade
  * layout. A purchased slab can have an unassigned/public entrance region. */
-export function getHomeRoamEntrance(home,{structure=1}={}) {
-  const entrance=getManorFacadeLayout(home).entrance,bounds=getFloorBounds(home);
+export function getHomeRoamEntrance(home,{structure=1,theme='warm'}={}) {
+  const entrance=getManorFacadeLayout(home,{structure,theme}).entrance,bounds=getFloorBounds(home);
   if(!entrance||!bounds)return null;
   const {face}=entrance,rect=entrance.room?roomRect(entrance.room):null,[nx,nz]=NORMALS[face.side];
   const at=face.at??(face.side==='back'?rect.minZ:face.side==='front'?rect.maxZ:face.side==='left'?rect.minX:rect.maxX);

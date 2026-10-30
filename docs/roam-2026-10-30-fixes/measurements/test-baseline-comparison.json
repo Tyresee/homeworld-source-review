@@ -1,0 +1,8 @@
+{
+  "baseline": "public main before the corrections; 3e9c616",
+  "sameFailureNames": true,
+  "expectedFailures": 55,
+  "actualFailures": 55,
+  "newFailureNames": [],
+  "resolvedFailureNames": []
+}

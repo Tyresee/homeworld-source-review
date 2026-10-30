@@ -87,6 +87,7 @@ export function createSceneContextMenu({ onClose } = {}) {
     thumbnailObserver = null;
     flyout.hidden = true;
     delete flyout.dataset.finishMenu;
+    delete flyout.dataset.wallFinishMenu;
     flyout.replaceChildren();
     if (restoreFocus && parent?.isConnected) parent.focus({ preventScroll: true });
   }
@@ -135,16 +136,19 @@ export function createSceneContextMenu({ onClose } = {}) {
     const currentChildRevision = childRevision;
     const pendingImages = new Map();
     flyout.dataset.finishMenu=String(item.id==='floor-finish');
+    flyout.dataset.wallFinishMenu=String(item.id==='wall-finish');
     let previousGroup=null;
     for (const child of items) {
-      if(child.finishId&&child.group!==previousGroup){const group=node('div','floor-finish-group-heading',child.groupLabel);group.setAttribute('role','presentation');list.append(group);previousGroup=child.group;}
+      if((child.finishId||child.wallStyleId||child.wallColorId)&&child.group!==previousGroup){const group=node('div',child.finishId?'floor-finish-group-heading':'wall-finish-group-heading',child.groupLabel);group.setAttribute('role','presentation');list.append(group);previousGroup=child.group;}
       const action = makeButton('', 'scene-context-item scene-context-submenu-item', () => runAction(child, action));
       action.dataset.contextAction = child.id;
-      action.setAttribute('role', child.finishId?'menuitemradio':'menuitem');
+      action.setAttribute('role', child.finishId||child.wallStyleId||child.wallColorId?'menuitemradio':'menuitem');
       if(child.finishId){action.dataset.floorFinish=child.finishId;action.setAttribute('aria-checked',String(child.current===true));action.classList.toggle('is-current',child.current===true);}
+      if(child.wallStyleId||child.wallColorId){action.dataset.wallChoice=child.wallStyleId?'style':'color';action.dataset.wallFinish=child.wallStyleId??child.wallColorId;action.setAttribute('aria-checked',String(child.current===true));action.classList.toggle('is-current',child.current===true);}
       action.disabled = Boolean(child.disabled);
       const art = node('span', 'scene-context-item-thumbnail', child.icon ?? '◇');
       art.setAttribute('aria-hidden', 'true');
+      if(child.wallColorId&&/^#[a-f\d]{6}$/i.test(child.swatchColor??''))art.style.backgroundColor=child.swatchColor;
       if(child.finishId&&/^#[a-f\d]{6}$/i.test(child.swatchColor??'')){const chip=node('i','floor-finish-chip');chip.style.setProperty('--finish-color',child.swatchColor);art.append(chip);}
       if (child.image) pendingImages.set(action, { art, image: child.image });
       const copy = node('span', 'scene-context-item-copy');

@@ -1,5 +1,6 @@
 import {ROOM_KINDS} from './home-layout.js';
 import {APPROVED_WARM_THEME} from './home-warm-theme.js';
+import {resolveHomeWallFinish} from './home-wall-finishes.js';
 
 // Presentation only. Never import this module into save/wallet validation to
 // choose defaults, and never write these resolved colors back to a home.
@@ -50,10 +51,10 @@ export const HOME_THEMES=freeze({
     manor:{wall:'#f4efe4',trim:'#ffffff',base:'#6b4129',wood:'#a85f2a',glass:'#74c4ee',leaf:'#2d9c46',flower:'#e5483d',gold:'#ffc93a'},
     lighting:{editor:light(3.8),student:light(2.9)},
     swatches:[
-      {id:'cream',label:"DisplayText4693",color:'#f6f1e6'}, {id:'oak',label:"DisplayText1901",color:'#d58b48'},
-      {id:'red',label:"DisplayText4694",color:'#e5483d'}, {id:'green',label:"DisplayText4695",color:'#15864a'},
-      {id:'blue',label:"DisplayText4696",color:'#2d63b8'}, {id:'yellow',label:"DisplayText4697",color:'#ffc93a'},
-      {id:'orange',label:"DisplayText4698",color:'#ff8a3d'}, {id:'cocoa',label:"DisplayText4699",color:'#6b4129'},
+      {id:'cream',label:"DisplayText4695",color:'#f6f1e6'}, {id:'oak',label:"DisplayText1901",color:'#d58b48'},
+      {id:'red',label:"DisplayText4696",color:'#e5483d'}, {id:'green',label:"DisplayText4697",color:'#15864a'},
+      {id:'blue',label:"DisplayText4698",color:'#2d63b8'}, {id:'yellow',label:"DisplayText4699",color:'#ffc93a'},
+      {id:'orange',label:"DisplayText4700",color:'#ff8a3d'}, {id:'cocoa',label:"DisplayText4701",color:'#6b4129'},
     ],
   },
 });
@@ -89,8 +90,9 @@ export function getRoomTheme(kind,roomState,theme=getHomeTheme()) {
     return ['toy','warm'].includes(theme.id)&&saved?.toLowerCase()===definition[part]?.toLowerCase()
       ?skin[part]??saved:saved??skin[part]??definition[part];
   };
+  const wallFinish=theme.id==='warm'?resolveHomeWallFinish(definition,roomState?.wall??{color:definition.wall,material:'ceramic'},{themeId:theme.id}):null;
   return {...definition,
-    floor:color('floor'),wall:color('wall'),
+    floor:color('floor'),wall:wallFinish?.color??color('wall'),
     trim:skin.trim??theme.shell.trim,
     ...(theme.id==='warm'?{wallMaterial:(!roomState?.wall?.material||roomState.wall.material==='ceramic')?(skin.wallMaterial??roomState?.wall?.material):roomState.wall.material}:{}),
   };
@@ -98,6 +100,10 @@ export function getRoomTheme(kind,roomState,theme=getHomeTheme()) {
 /** Only legacy default surface values are remapped, never owned furniture. */
 export function getHomeSurfaceAppearance(id,appearance,theme=getHomeTheme(),roomState=null) {
   const mapping=theme.surfaceRemap[id];
+  if(theme.id==='warm'&&appearance&&['wall.inner','wall.outer','wall.side'].includes(id)) {
+    const finish=resolveHomeWallFinish(roomState?.kind??'living',appearance,{themeId:theme.id,...mapping?{legacyDefault:{color:mapping.from}}:{}});
+    if(finish)return {...appearance,color:finish.color};
+  }
   const mapped=appearance&&mapping&&appearance.color?.toLowerCase()===mapping.from;
   let result=appearance;
   if(mapped) {

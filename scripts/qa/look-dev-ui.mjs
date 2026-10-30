@@ -1,6 +1,7 @@
 import {createLookDevRuntime} from '/qa/look-dev-runtime.mjs';
 import {ROOM_KINDS} from '/js/home-layout.js';
 import {FLOOR_FINISHES,getFloorFinish} from '/js/home-floor-finishes.js';
+import {WALL_STYLES,WALL_COLORS,getWallStyle,getWallColor} from '/js/home-wall-finishes.js';
 import {paintLookDevBackdrop} from '/qa/look-dev-backdrop.mjs';
 import {zipFiles} from '/qa/look-dev-zip.mjs';
 import {assertSafePresetKeys,MAX_LOOK_DEV_PRESET_BYTES} from '/qa/look-dev-preset-safety.mjs';
@@ -77,6 +78,24 @@ function floorFinishControl(parent,path){
   });
   row.append(title,select);parent.append(row);
 }
+const wallStyleLabels={'wall-plain':'Plain paint','wall-stripe-fine':'Fine vertical stripes','wall-dots':'Dot pattern'};
+const wallColorLabels={'wall-warm-white':'Warm white','wall-apricot':'Apricot','wall-mist-blue':'Mist blue','wall-lavender':'Lavender','wall-slate-blue':'Slate blue'};
+function wallFinishControls(parent,path){
+  const role=get(preset,path),styleRow=node('label','control-row'),colorRow=node('label','control-row'),style=document.createElement('select'),color=document.createElement('select');
+  style.append(new Option('Default wall style / inherit',''));
+  for(const item of WALL_STYLES)style.append(new Option(wallStyleLabels[item.id]??item.id,item.id));
+  color.append(new Option('Custom / inherited wall color',''));
+  for(const item of WALL_COLORS)color.append(new Option((wallColorLabels[item.id]??item.id)+' · '+item.color,item.id));
+  style.value=getWallStyle(role?.wallStyleId)?.id??'';color.value=getWallColor(role?.wallColorId)?.id??'';
+  const update=(key,value)=>{
+    get(preset,path)[key]=value||null;
+    if(value&&preset.build.theme.id!=='warm'){preset.build.theme.id='warm';applyNotice='Warm wall candidate enabled. Your floor, room and lighting edits are preserved.';}
+    queueApply();renderRoomControlsView();
+  };
+  style.setAttribute('aria-label','Wall style');color.setAttribute('aria-label','Wall color');
+  style.addEventListener('change',()=>update('wallStyleId',style.value));color.addEventListener('change',()=>update('wallColorId',color.value));
+  styleRow.append(node('span','control-label','Wall style'),style);colorRow.append(node('span','control-label','Wall color'),color);parent.append(styleRow,colorRow);
+}
 function section(title,note,open=false){const details=node('details','control-section');details.open=open;details.append(node('summary','',title));const body=node('div','section-body');if(note)body.append(node('p','section-note',note));details.append(body);$('controls').append(details);return body;}
 const subtitle=(parent,text)=>parent.append(node('h3','control-subtitle',text));
 function renderControls(){
@@ -97,12 +116,20 @@ function renderControls(){
   colorControl(rendering,'Fill color',['render','fill','color'],{fallback:'#dceceb',inherit:false});
   numberControl(rendering,'Fill intensity',['render','fill','intensity'],{min:0,max:5,step:.05,fallback:1});
   numberControl(rendering,'Shadow radius',['render','shadowRadius'],{min:0,max:10,step:.1,fallback:4});
-  const roomSection=section('Room finishes','Inherit preserves original materials. Warm floor presets use the selected catalogue finishes; the supplied v6 reference retains its original role colors.',true),tabs=node('div','room-tabs'),roomControls=node('div','room-controls');roomSection.append(tabs,roomControls);
+  const roomSection=section('Room finishes','Warm finishes use independent wall style and color choices plus catalogue floors. Default and Toy retain their original material controls.',true),tabs=node('div','room-tabs'),roomControls=node('div','room-controls');roomSection.append(tabs,roomControls);
   for(const[id,label]of rooms){const button=node('button','',label);button.type='button';button.setAttribute('aria-pressed',String(id===roomId));button.addEventListener('click',()=>{roomId=id;renderRoomControls();});tabs.append(button);}
   function renderRoomControls(){
     [...tabs.children].forEach((button,index)=>button.setAttribute('aria-pressed',String(rooms[index][0]===roomId)));roomControls.replaceChildren();
     const kind=ROOM_KINDS.find(kind=>kind.id===roomId),path=['build','theme','rooms',roomId];
-    colorControl(roomControls,'Wall color',[...path,'wall'],{fallback:kind.wall});selectControl(roomControls,'Wall material',[...path,'wallMaterial'],materials);
+    wallFinishControls(roomControls,path);
+    const wallColor=colorControl(roomControls,'Custom wall color',[...path,'wall'],{fallback:kind.wall}),wallFinishColor=getWallColor(get(preset,[...path,'wallColorId']));
+    if(wallFinishColor){
+      wallColor.classList.add('is-finish-controlled');wallColor.title='Choose Custom / inherited wall color to edit a custom hex color.';
+      for(const input of wallColor.querySelectorAll('input')){input.disabled=true;if(input.type==='color'||input.type==='text')input.value=wallFinishColor.color;}
+    }
+    const legacyMaterial=selectControl(roomControls,'Wall material (legacy baseline only)',[...path,'wallMaterial'],materials),warmWall=preset.build.theme.id==='warm';
+    legacyMaterial.disabled=warmWall;legacyMaterial.title=warmWall?'Warm uses its real wall-style texture. Legacy materials are available in Default or Toy presets.':'';
+    roomControls.append(node('p','section-note',warmWall?'Wall style and color are independent. Choose Custom / inherited wall color to edit a hex tint. Warm uses wall-style textures; legacy materials remain available with Default or Toy presets.':'Wall finish choices enable Warm. Custom color and legacy material continue to preview the original baseline.'));
     const floorColor=colorControl(roomControls,'Floor color',[...path,'floor'],{fallback:kind.floor}),finish=getFloorFinish(get(preset,[...path,'floorFinishId']));
     if(finish){
       floorColor.classList.add('is-finish-controlled');floorColor.title='Color is included in the selected finish.';

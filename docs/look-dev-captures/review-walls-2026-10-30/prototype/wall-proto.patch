@@ -1,0 +1,67 @@
+diff --git a/public/js/home-room-expansion.js b/public/js/home-room-expansion.js
+index 6ad5f73..b7410fe 100644
+--- a/public/js/home-room-expansion.js
++++ b/public/js/home-room-expansion.js
+@@ -1,3 +1,4 @@
++import { createWallCanvas } from './home-wall-proto.js';
+ import * as THREE from 'three';
+ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+ import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
+@@ -74,10 +75,12 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
+     }
+     const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;map.wrapS=map.wrapT=THREE.RepeatWrapping;map.name='warm-wall:'+key;warmWallMaps.set(key,map);return map;
+   }
++  let wallProtoTex=null;
++  function wallProto(){if(!wallProtoTex){wallProtoTex=new THREE.CanvasTexture(createWallCanvas(globalThis.__WALL_PATTERN));wallProtoTex.colorSpace=THREE.SRGBColorSpace;wallProtoTex.wrapS=wallProtoTex.wrapT=THREE.RepeatWrapping;wallProtoTex.anisotropy=8;wallProtoTex.repeat.set(1/1.2,1/2.85);}return wallProtoTex;}
+   function material(color, options = {}) {
+     const { mapKey, wallMap = false, ...rest } = options;
+     const m = new THREE.MeshStandardMaterial({ color, roughness: .76, ...rest });
+-    if (mapKey) m.map = maps[mapKey]??(wallMap?warmWallMap(mapKey):null);
++    if (mapKey==='__wallProto') m.map = wallProto(); else if (mapKey) m.map = maps[mapKey]??(wallMap?warmWallMap(mapKey):null);
+     materials.add(m); return m;
+   }
+   function add(geometry, color, position, bucket = 'accents', options = {}) {
+@@ -85,7 +88,9 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
+       const owner=currentRoom??boundarySkinRoom,skin=getRoomTheme(owner?.kind??'living',owner,theme),key=skin.wallMaterial??owner?.wall?.material;
+       if(key)options={...options,mapKey:key,wallMap:true,roughness:key==='ceramic'?.45:key==='gold'?.35:['stone','marble'].includes(key)?.4:.72,metalness:key==='gold'?.6:0};
+     }
++    if(bucket==='walls'&&globalThis.__WALL_PATTERN)options={...options,mapKey:'__wallProto'};
+     geometries.add(geometry); const m = new THREE.Mesh(geometry, material(color, options));
++    if(bucket==='walls'&&globalThis.__WALL_PATTERN&&geometry.type!=='ExtrudeGeometry'&&m.material.map){const p=geometry.parameters??{};const t=m.material.map.clone();t.repeat.set(Math.max(p.width??1,p.depth??0)/1.2,1);t.needsUpdate=true;m.material.map=t;}
+     m.position.set(...position); m.castShadow = true; m.receiveShadow = true;
+     m.userData = { roomPart: bucket, roomId: currentRoom?.id ?? null, roomKind: currentRoom?.kind ?? null };
+     if (currentRoom) m.userData.surfaceId = `room:${currentRoom.id}.${bucket === 'floor' || bucket === 'zones' ? 'floor' : 'wall'}`;
+diff --git a/public/js/home-scene.js b/public/js/home-scene.js
+index 888f415..2bc768f 100644
+--- a/public/js/home-scene.js
++++ b/public/js/home-scene.js
+@@ -1,3 +1,4 @@
++import { createWallCanvas } from './home-wall-proto.js';
+ import * as THREE from 'three';
+ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+ import { getDecalBounds, getFurnitureBounds, getFurnitureFootprint, getPlacementFootprint, getPlacementBounds, getTableFootprint, findHomeCollision, getHomeCandidateVolume, getPropBounds, findFurnitureRoom, findRoomAt, parseRoomSurfaceId, describeLayout, LAYOUT_PRESETS, getFurniturePose, getFurnitureMountBounds, getWallMountTargets, getFurniturePlacement } from './home-engine.js';
+@@ -595,6 +596,14 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
+     avatarActor.setEnvironment?.(view);
+     avatarActor.setVisible((view === 'interior' || view === 'estate' && avatarActor.supportsOutdoor && !!outdoorState) && !capturingHouse);
+   }
++  let wallProtoBase=null;
++  function wallProtoFor(o){
++    if(o.userData.wallProto)return o.userData.wallProto;
++    if(!wallProtoBase){wallProtoBase=new THREE.CanvasTexture(createWallCanvas(globalThis.__WALL_PATTERN));wallProtoBase.colorSpace=THREE.SRGBColorSpace;wallProtoBase.wrapS=wallProtoBase.wrapT=THREE.RepeatWrapping;wallProtoBase.anisotropy=8;}
++    const t=wallProtoBase.clone(),g=o.geometry,p=g?.parameters??{};
++    if(g?.type==='ExtrudeGeometry')t.repeat.set(1/1.2,1/2.85);else t.repeat.set(Math.max(p.width??1,p.depth??0)/1.2,1);
++    t.needsUpdate=true;o.userData.wallProto=t;return t;
++  }
+   /** Appearance of a surface: fixed living-room surfaces live in `surfaces`, added rooms carry their own skins. */
+   function surfaceAppearance(next, id) {
+     const room = parseRoomSurfaceId(id);
+@@ -687,7 +696,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
+         const appearance=room?getHomeSurfaceAppearance(id,next.surfaces[id]??a,theme,room):a;
+         o.material.color.set(appearance.color);
+         const materialId=theme.id==='warm'?appearance.material:a.material;
+-        const map = maps[materialId] || null;
++        let map = maps[materialId] || null;
++        if (globalThis.__WALL_PATTERN && (id.startsWith('wall.') || id.endsWith('.wall'))) map = wallProtoFor(o);
+         if (o.material.map !== map) { o.material.map = map; o.material.needsUpdate = true; }
+         o.material.roughness = materialId === 'gold' ? .35 : materialId === 'ceramic' ? .45 : ['stone','marble'].includes(materialId) ? .4 : .72; o.material.metalness = materialId === 'gold' ? .6 : 0;
+       }

@@ -1,0 +1,222 @@
+{
+  "scope": "Disposable fictional loopback accounts A and B. No production data or deployment.",
+  "finalRendererIncludesIndependentSharedWallFaces": true,
+  "checks": {
+    "styleAndColorPersist": true,
+    "starterSkinsUnchanged": true,
+    "studentBNoWallIds": true,
+    "walletsUnchanged": true,
+    "ordersUnchanged": true,
+    "constructionUnchanged": true,
+    "freeReceipts": true
+  },
+  "receipts": [
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    },
+    {
+      "type": "setWallFinish",
+      "amount": 0,
+      "orderId": null,
+      "status": "delivered"
+    }
+  ],
+  "before": [
+    {
+      "student": "A",
+      "revision": 21,
+      "balance": 96081,
+      "wallSurfaces": {
+        "wall.inner": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.outer": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.side": {
+          "color": "#d0dcca",
+          "material": "ceramic"
+        }
+      },
+      "rooms": [
+        {
+          "id": "living",
+          "kind": "living"
+        },
+        {
+          "id": "bedroom",
+          "kind": "bedroom",
+          "wall": {
+            "color": "#f5e9ea",
+            "material": "ceramic",
+            "styleId": "wall-stripe-fine",
+            "colorId": "wall-mist-blue"
+          }
+        },
+        {
+          "id": "kitchen",
+          "kind": "kitchen",
+          "wall": {
+            "color": "#f2efe3",
+            "material": "ceramic",
+            "styleId": "wall-dots",
+            "colorId": "wall-apricot"
+          }
+        }
+      ],
+      "orderCount": 1,
+      "constructionCount": 1
+    },
+    {
+      "student": "B",
+      "revision": 0,
+      "balance": 150000,
+      "wallSurfaces": {
+        "wall.inner": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.outer": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.side": {
+          "color": "#d0dcca",
+          "material": "ceramic"
+        }
+      },
+      "rooms": [
+        {
+          "id": "living",
+          "kind": "living"
+        }
+      ],
+      "orderCount": 0,
+      "constructionCount": 0
+    }
+  ],
+  "after": [
+    {
+      "student": "A",
+      "revision": 25,
+      "balance": 96081,
+      "wallSurfaces": {
+        "wall.inner": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.outer": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.side": {
+          "color": "#d0dcca",
+          "material": "ceramic"
+        }
+      },
+      "rooms": [
+        {
+          "id": "living",
+          "kind": "living"
+        },
+        {
+          "id": "bedroom",
+          "kind": "bedroom",
+          "wall": {
+            "color": "#f5e9ea",
+            "material": "ceramic",
+            "styleId": "wall-stripe-fine",
+            "colorId": "wall-mist-blue"
+          }
+        },
+        {
+          "id": "kitchen",
+          "kind": "kitchen",
+          "wall": {
+            "color": "#f2efe3",
+            "material": "ceramic",
+            "styleId": "wall-dots",
+            "colorId": "wall-apricot"
+          }
+        }
+      ],
+      "orderCount": 1,
+      "constructionCount": 1
+    },
+    {
+      "student": "B",
+      "revision": 1,
+      "balance": 150000,
+      "wallSurfaces": {
+        "wall.inner": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.outer": {
+          "color": "#f7ead7",
+          "material": "ceramic"
+        },
+        "wall.side": {
+          "color": "#d0dcca",
+          "material": "ceramic"
+        }
+      },
+      "rooms": [
+        {
+          "id": "living",
+          "kind": "living"
+        }
+      ],
+      "orderCount": 0,
+      "constructionCount": 0
+    }
+  ],
+  "browserConsoleErrors": 0,
+  "notes": [
+    "Four initial wall changes and four final-version rechecks.",
+    "Page refreshed; selected student retained. Switched A to B to A and building overview to interior.",
+    "Public images are scene-only crops excluding navigation and account labels.",
+    "Opposite shared-wall ray targets and unchanged area/window holes/collision are covered by geometry tests."
+  ]
+}

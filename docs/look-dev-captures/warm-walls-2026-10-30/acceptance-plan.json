@@ -1,0 +1,38 @@
+{
+  "resolution": [
+    1440,
+    900
+  ],
+  "scenes": [
+    "living",
+    "kitchen"
+  ],
+  "styles": [
+    "plain",
+    "stripe-fine",
+    "dots"
+  ],
+  "colors": {
+    "c1": "wall-warm-white",
+    "c3": "wall-apricot",
+    "c7": "wall-mist-blue",
+    "c8": "wall-lavender",
+    "c9": "wall-slate-blue"
+  },
+  "approvedDeviation": {
+    "dots": "Use a true 2.8 cm world-space circle, as explicitly confirmed by the user; the archived prototype creates 2.8 x 6.65 cm ellipses."
+  },
+  "applicationChecks": [
+    "style-only retains color",
+    "color-only retains style",
+    "refresh persistence",
+    "student isolation",
+    "free command ledger",
+    "neighbor room isolation"
+  ],
+  "baselinePreservation": [
+    "default.json x 5",
+    "toy-v1.json x 5"
+  ],
+  "scope": "Local loopback fictional accounts; no production deployment or production student edits."
+}

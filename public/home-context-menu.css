@@ -138,3 +138,19 @@
 .scene-context-submenu[data-finish-menu=true] .is-current{border-color:#bd976a;background:#f4e7d2}
 .scene-context-submenu[data-finish-menu=true] .is-current .scene-context-label::after{content:" ✓";color:#947044}
 @media(max-width:420px){.scene-context-submenu[data-finish-menu=true]{width:calc(100vw - 24px)}}
+
+/* Optional wall finish flyout: three texture samples, then five independent colors. */
+.scene-context-submenu[data-wall-finish-menu=true]{width:390px}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-submenu-items{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:5px}
+.wall-finish-group-heading{grid-column:1/-1;padding:6px 3px 2px;font-size:11px;font-weight:800;color:#6d604e}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-submenu-item{flex-direction:column;align-items:stretch;gap:5px;padding:5px;border:1px solid transparent}
+.scene-context-submenu[data-wall-finish-menu=true] [data-wall-choice=style]{grid-column:span 5;min-height:100px}
+.scene-context-submenu[data-wall-finish-menu=true] [data-wall-choice=color]{grid-column:span 3;min-height:68px;text-align:center}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-item-thumbnail{width:100%;height:56px;border-radius:6px;background:#f4efe6}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-item-thumbnail img{object-fit:cover}
+.scene-context-submenu[data-wall-finish-menu=true] [data-wall-choice=color] .scene-context-item-thumbnail{height:31px;border:1px solid #7e6c5426}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-label{font-size:11px;line-height:1.4}
+.scene-context-submenu[data-wall-finish-menu=true] .scene-context-detail{font-size:9px;line-height:1.35;color:#8b7863}
+.scene-context-submenu[data-wall-finish-menu=true] .is-current{border-color:#bd976a;background:#f4e7d2}
+.scene-context-submenu[data-wall-finish-menu=true] .is-current .scene-context-label::after{content:" ✓";color:#947044}
+@media(max-width:420px){.scene-context-submenu[data-wall-finish-menu=true]{width:calc(100vw - 24px)}}

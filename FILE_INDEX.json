@@ -1,6 +1,6 @@
 {
-  "edition": "source-review-v4-approved-warm-v6",
-  "totalFiles": 356,
+  "edition": "source-review-v2-offline-look-dev-walls",
+  "totalFiles": 464,
   "files": [
     {
       "path": ".gitignore",
@@ -12,7 +12,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 32898
+      "bytes": 46238
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 2344
+      "bytes": 2047
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -49,6 +49,10 @@
     {
       "path": "WARM_FLOORS_REVIEW.md",
       "bytes": 6545
+    },
+    {
+      "path": "docs/WALL_SYSTEM_HANDOFF.md",
+      "bytes": 6253
     },
     {
       "path": "docs/look-dev-captures/README.md",
@@ -91,6 +95,10 @@
       "bytes": 2267373
     },
     {
+      "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
+      "bytes": 1256465
+    },
+    {
       "path": "docs/look-dev-captures/review-2026-10-29/tiles/tile-blue--kitchen.png",
       "bytes": 971283
     },
@@ -123,10 +131,6 @@
       "bytes": 965139
     },
     {
-      "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
-      "bytes": 1256465
-    },
-    {
       "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--bathroom.png",
       "bytes": 844543
     },
@@ -145,6 +149,10 @@
     {
       "path": "docs/look-dev-captures/review-2026-10-29/warm-v6/warm-v6--living.png",
       "bytes": 1132730
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/woods-bedroom-sheet.png",
+      "bytes": 1431932
     },
     {
       "path": "docs/look-dev-captures/review-2026-10-29/woods/wood-1--bedroom.png",
@@ -171,8 +179,148 @@
       "bytes": 1104904
     },
     {
-      "path": "docs/look-dev-captures/review-2026-10-29/woods-bedroom-sheet.png",
-      "bytes": 1431932
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/IMPORT_PROVENANCE.json",
+      "bytes": 11610
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
+      "bytes": 1286
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/matrix-kitchen.png",
+      "bytes": 839138
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/matrix-living.png",
+      "bytes": 916914
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/prototype/home-wall-proto.js",
+      "bytes": 4781
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/prototype/wall-proto.patch",
+      "bytes": 5607
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--kitchen.png",
+      "bytes": 919743
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--living.png",
+      "bytes": 1080511
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--kitchen.png",
+      "bytes": 923246
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c3--living.png",
+      "bytes": 1084131
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--kitchen.png",
+      "bytes": 927275
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c7--living.png",
+      "bytes": 1088555
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--kitchen.png",
+      "bytes": 920439
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c8--living.png",
+      "bytes": 1081707
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--kitchen.png",
+      "bytes": 922181
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c9--living.png",
+      "bytes": 1083391
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--kitchen.png",
+      "bytes": 861943
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c1--living.png",
+      "bytes": 1019864
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--kitchen.png",
+      "bytes": 864180
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c3--living.png",
+      "bytes": 1021909
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--kitchen.png",
+      "bytes": 871212
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c7--living.png",
+      "bytes": 1029881
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--kitchen.png",
+      "bytes": 865379
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c8--living.png",
+      "bytes": 1023803
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--kitchen.png",
+      "bytes": 868188
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/plain-c9--living.png",
+      "bytes": 1027543
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--kitchen.png",
+      "bytes": 825330
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c1--living.png",
+      "bytes": 982118
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--kitchen.png",
+      "bytes": 826433
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c3--living.png",
+      "bytes": 983142
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--kitchen.png",
+      "bytes": 828315
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c7--living.png",
+      "bytes": 985097
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--kitchen.png",
+      "bytes": 826934
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c8--living.png",
+      "bytes": 983620
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--kitchen.png",
+      "bytes": 827830
+    },
+    {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/stripe-fine-c9--living.png",
+      "bytes": 984725
     },
     {
       "path": "docs/look-dev-captures/toy-render-readback.json",
@@ -201,6 +349,246 @@
     {
       "path": "docs/look-dev-captures/verification.json",
       "bytes": 2677
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
+      "bytes": 8244
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/acceptance-plan.json",
+      "bytes": 869
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/after-refresh.png",
+      "bytes": 1216359
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/color-lavender.png",
+      "bytes": 475449
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/color-mist-blue.png",
+      "bytes": 477829
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/student-a-restored.png",
+      "bytes": 1216359
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/student-b-independent.png",
+      "bytes": 804749
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/style-plain.png",
+      "bytes": 477541
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/style-striped.png",
+      "bytes": 477829
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/application/verification.json",
+      "bytes": 5011
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/baseline-verification.json",
+      "bytes": 1530
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/REPORT.md",
+      "bytes": 6792
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/actual-matrix-kitchen.png",
+      "bytes": 574993
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/actual-matrix-living.png",
+      "bytes": 617713
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/detail-dots-kitchen.png",
+      "bytes": 35729
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/detail-dots-living.png",
+      "bytes": 35729
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/detail-stripe-fine-kitchen.png",
+      "bytes": 24511
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/detail-stripe-fine-living.png",
+      "bytes": 24511
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/metrics.json",
+      "bytes": 299879
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/pairs.csv",
+      "bytes": 2405
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/reference-matrix-kitchen.png",
+      "bytes": 619453
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/reference-matrix-living.png",
+      "bytes": 662598
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--bathroom.png",
+      "bytes": 832375
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--bedroom.png",
+      "bytes": 1033090
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--exterior.png",
+      "bytes": 511442
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--kitchen.png",
+      "bytes": 862513
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--living.png",
+      "bytes": 1026316
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/render-readbacks.json",
+      "bytes": 151604
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c1--kitchen.png",
+      "bytes": 882277
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c1--living.png",
+      "bytes": 1047770
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c3--kitchen.png",
+      "bytes": 885837
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c3--living.png",
+      "bytes": 1051106
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c7--kitchen.png",
+      "bytes": 888141
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c7--living.png",
+      "bytes": 1054381
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c8--kitchen.png",
+      "bytes": 882062
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c8--living.png",
+      "bytes": 1048220
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c9--kitchen.png",
+      "bytes": 885222
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/dots-c9--living.png",
+      "bytes": 1051153
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c1--kitchen.png",
+      "bytes": 862513
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c1--living.png",
+      "bytes": 1026316
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c3--kitchen.png",
+      "bytes": 865304
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c3--living.png",
+      "bytes": 1028676
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c7--kitchen.png",
+      "bytes": 872785
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c7--living.png",
+      "bytes": 1037487
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c8--kitchen.png",
+      "bytes": 867067
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c8--living.png",
+      "bytes": 1031922
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c9--kitchen.png",
+      "bytes": 869399
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/plain-c9--living.png",
+      "bytes": 1034273
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c1--kitchen.png",
+      "bytes": 811231
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c1--living.png",
+      "bytes": 973942
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c3--kitchen.png",
+      "bytes": 811862
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c3--living.png",
+      "bytes": 974622
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c7--kitchen.png",
+      "bytes": 812242
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c7--living.png",
+      "bytes": 974717
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c8--kitchen.png",
+      "bytes": 811825
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c8--living.png",
+      "bytes": 974530
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c9--kitchen.png",
+      "bytes": 812622
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/renders/stripe-fine-c9--living.png",
+      "bytes": 975897
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/single-room-recapture-verification.json",
+      "bytes": 2545
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/verification.json",
+      "bytes": 2207
     },
     {
       "path": "docs/warm-floor-captures/README.md",
@@ -492,7 +880,7 @@
     },
     {
       "path": "public/home-context-menu.css",
-      "bytes": 14801
+      "bytes": 16568
     },
     {
       "path": "public/home-floor-planner.css",
@@ -548,7 +936,7 @@
     },
     {
       "path": "public/js/home-commerce.js",
-      "bytes": 83156
+      "bytes": 83564
     },
     {
       "path": "public/js/home-construction-grid.js",
@@ -556,7 +944,7 @@
     },
     {
       "path": "public/js/home-context-menu.js",
-      "bytes": 22043
+      "bytes": 22687
     },
     {
       "path": "public/js/home-context-placement.js",
@@ -576,7 +964,7 @@
     },
     {
       "path": "public/js/home-engine.js",
-      "bytes": 67534
+      "bytes": 69059
     },
     {
       "path": "public/js/home-estate-landmarks.js",
@@ -616,7 +1004,7 @@
     },
     {
       "path": "public/js/home-house-overview.js",
-      "bytes": 13515
+      "bytes": 13824
     },
     {
       "path": "public/js/home-household-collection.js",
@@ -728,7 +1116,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 28813
+      "bytes": 31466
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -752,7 +1140,7 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 108027
+      "bytes": 110137
     },
     {
       "path": "public/js/home-shop-browse.js",
@@ -800,7 +1188,7 @@
     },
     {
       "path": "public/js/home-theme.js",
-      "bytes": 6459
+      "bytes": 6998
     },
     {
       "path": "public/js/home-utility-daily-collection.js",
@@ -809,6 +1197,22 @@
     {
       "path": "public/js/home-utility-daily-models.js",
       "bytes": 17672
+    },
+    {
+      "path": "public/js/home-wall-finishes.js",
+      "bytes": 3045
+    },
+    {
+      "path": "public/js/home-wall-geometry.js",
+      "bytes": 7388
+    },
+    {
+      "path": "public/js/home-wall-menu.js",
+      "bytes": 2249
+    },
+    {
+      "path": "public/js/home-wall-textures.js",
+      "bytes": 8469
     },
     {
       "path": "public/js/home-warm-theme.js",
@@ -840,7 +1244,7 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 51393
+      "bytes": 52695
     },
     {
       "path": "public/js/student-home-floor-menu.js",
@@ -999,12 +1403,16 @@
       "bytes": 5292
     },
     {
+      "path": "scripts/qa/look-dev-presets/warm-walls.json",
+      "bytes": 6764
+    },
+    {
       "path": "scripts/qa/look-dev-review.mjs",
       "bytes": 4114
     },
     {
       "path": "scripts/qa/look-dev-runtime.mjs",
-      "bytes": 16306
+      "bytes": 17467
     },
     {
       "path": "scripts/qa/look-dev-ui.css",
@@ -1012,11 +1420,15 @@
     },
     {
       "path": "scripts/qa/look-dev-ui.html",
-      "bytes": 2728
+      "bytes": 2800
     },
     {
       "path": "scripts/qa/look-dev-ui.mjs",
-      "bytes": 21479
+      "bytes": 24308
+    },
+    {
+      "path": "scripts/qa/look-dev-wall-compare.mjs",
+      "bytes": 18119
     },
     {
       "path": "scripts/qa/look-dev-zip.mjs",
@@ -1048,7 +1460,7 @@
     },
     {
       "path": "server/student-homes/commerce.mjs",
-      "bytes": 10334
+      "bytes": 10925
     },
     {
       "path": "server/student-homes/errors.mjs",
@@ -1084,7 +1496,7 @@
     },
     {
       "path": "tests/home-floor-textures.test.mjs",
-      "bytes": 10021
+      "bytes": 10422
     },
     {
       "path": "tests/home-theme-rooms.test.mjs",
@@ -1095,8 +1507,16 @@
       "bytes": 6159
     },
     {
+      "path": "tests/home-wall-finishes.test.mjs",
+      "bytes": 11319
+    },
+    {
+      "path": "tests/home-wall-textures.test.mjs",
+      "bytes": 17204
+    },
+    {
       "path": "tests/home-warm-theme.test.mjs",
-      "bytes": 4503
+      "bytes": 4578
     },
     {
       "path": "tests/look-dev-ui.test.mjs",
@@ -1109,6 +1529,10 @@
     {
       "path": "tests/look-dev-warm-v6.test.mjs",
       "bytes": 1721
+    },
+    {
+      "path": "tests/look-dev-warm-walls.test.mjs",
+      "bytes": 3099
     },
     {
       "path": "tests/student-home-account-world.test.mjs",
@@ -1200,7 +1624,7 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 63444
+      "bytes": 66216
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
@@ -1232,7 +1656,7 @@
     },
     {
       "path": "tests/student-home-robot-state-editor.test.mjs",
-      "bytes": 25175
+      "bytes": 25291
     },
     {
       "path": "tests/student-home-robot-swim-controller.test.mjs",
@@ -1297,6 +1721,10 @@
     {
       "path": "tests/student-home-toilets.test.mjs",
       "bytes": 5678
+    },
+    {
+      "path": "tests/student-home-wall-menu.test.mjs",
+      "bytes": 3172
     },
     {
       "path": "tests/student-home-wardrobe-ui.test.mjs",
@@ -1385,6 +1813,10 @@
     {
       "path": "tests/student-homes-ui.test.mjs",
       "bytes": 36697
+    },
+    {
+      "path": "tests/student-homes-wall-finishes.test.mjs",
+      "bytes": 7523
     },
     {
       "path": "vendor/three/LICENSE",

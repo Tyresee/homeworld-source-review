@@ -12,6 +12,7 @@ import * as commerce from '../public/js/home-commerce.js';
 import {applyChange,PALETTE} from '../public/js/home-engine.js';
 import {getHomeSwatches,HOME_THEMES} from '../public/js/home-theme.js';
 import {getWarmFloorMenu} from '../public/js/student-home-floor-menu.js';
+import {getWarmWallMenu,getWallMenuTarget} from '../public/js/home-wall-menu.js';
 import {FLOOR_FINISHES} from '../public/js/home-floor-finishes.js';
 import {roomRect} from '../public/js/home-layout.js';
 import {getStoredPlacementGroups} from '../public/js/home-inventory-menu.js';
@@ -72,7 +73,7 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default){
     setTimeout,clearTimeout,document,
     cloneRobotActivity:jsonCall(cloneRobotActivity),sameRobotActivity:jsonCall(sameRobotActivity),isRobotActivityShape:jsonCall(isRobotActivityShape),createStudentHomeRobotOutbox:()=>createStudentHomeRobotOutbox({storage:null}),
     getKitchenFit,areKitchenModulesCompatible:getKitchenPair, getKitchenDockPose:getDockPose,
-    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),getWarmFloorMenu:options=>getWarmFloorMenu({...options,theme}),
+    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),getWarmFloorMenu:options=>getWarmFloorMenu({...options,theme}),getWarmWallMenu:options=>getWarmWallMenu({...options,theme}),getWallMenuTarget,
     ELEVATOR_UPGRADE_PRODUCT:commerce.ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade:jsonCall(commerce.quoteStaircaseUpgrade),getHomeStairs,
     listOwnedResaleQuotes:jsonCall(commerce.listOwnedResaleQuotes),
     getFloorHomes:commerce.getFloorHomes,getFloorHome:commerce.getFloorHome,roomRect,
@@ -588,4 +589,28 @@ test('warm floor click saves once for free, restores the chosen sample and refus
 for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test('the '+theme.id+' context menu keeps its pre-warm floor actions',async()=>{
   const f=fixture(ownedHome(),theme);await f.show();f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'floor.main'}});
   assert.equal(f.menu.calls.raw.at(-1)[0].items.some(item=>item.id==='floor-finish'),false);assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('warm wall clicks save independent style and color for free, synchronize starter walls and reject stale actions',async()=>{
+  const f=fixture(ownedHome(),{id:'warm'});await f.show();const before=f.saved(),balance=f.state().wallet.balance;
+  const open=(surfaceId='wall.inner')=>{f.bindings.world.onContextMenu({view:'interior',data:{surfaceId},clientX:100,clientY:180});return f.menu.calls.raw.at(-1)[0].items.find(item=>item.id==='wall-finish');};
+  const style=open().children.find(item=>item.id==='wall-dots');const styling=style.action();
+  assert.deepEqual(f.requests[0].command,{type:'setWallFinish',surfaceId:'wall.inner',styleId:'wall-dots',storey:0});
+  f.requests[0].accept();assert.equal((await styling).ok,true);
+  for(const id of ['wall.inner','wall.outer','wall.side']){
+    const skin=f.saved().commerce.home.surfaces[id];assert.equal(skin.styleId,'wall-dots');
+    assert.equal(skin.color,before.commerce.home.surfaces[id].color);assert.equal(skin.material,before.commerce.home.surfaces[id].material);assert.equal(skin.colorId,undefined);
+  }
+  const color=open('wall.side').children.find(item=>item.id==='wall-apricot'),coloring=color.action();
+  assert.deepEqual(f.requests[1].command,{type:'setWallFinish',surfaceId:'wall.side',colorId:'wall-apricot',storey:0});
+  f.requests[1].accept();assert.equal((await coloring).ok,true);
+  for(const id of ['wall.inner','wall.outer','wall.side']){const skin=f.saved().commerce.home.surfaces[id];assert.equal(skin.styleId,'wall-dots');assert.equal(skin.colorId,'wall-apricot');}
+  assert.equal(f.saved().revision,before.revision+2);assert.equal(f.state().wallet.balance,balance);
+  const repeat=open().children.find(item=>item.id==='wall-apricot');assert.equal(repeat.current,true);assert.equal((await repeat.action()).unchanged,true);assert.equal(f.requests.length,2);
+  const wrongView=open().children[0].action;f.editor.setView('estate');assert.equal((await wrongView()).ok,false);assert.equal(f.requests.length,2);f.editor.setView('interior');
+  const stale=open().children[0].action;await f.show(ownedHome(B));assert.equal((await stale()).ok,false);assert.equal(f.requests.length,2);f.editor.dispose();
+});
+for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])test('the '+theme.id+' wall menu keeps its original actions without finish controls',async()=>{
+  const f=fixture(ownedHome(),theme);await f.show();f.bindings.world.onContextMenu({view:'interior',data:{surfaceId:'wall.inner'}});
+  assert.equal(f.menu.calls.raw.at(-1)[0].items.some(item=>item.id==='wall-finish'),false);assert.equal(f.requests.length,0);f.editor.dispose();
 });

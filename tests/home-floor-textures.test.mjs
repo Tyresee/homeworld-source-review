@@ -11,6 +11,7 @@ import {createRoomExpansion} from '../public/js/home-room-expansion.js';
 import {createHomeState} from '../public/js/home-engine.js';
 import {HOME_THEMES} from '../public/js/home-theme.js';
 import {createRoom} from '../public/js/home-layout.js';
+import {createHomeWallTextureManager} from '../public/js/home-wall-textures.js';
 import {createWarmStarterFloorSurface} from '../public/js/home-scene.js';
 
 // Fingerprint actual 2D drawing commands without requiring a browser or GPU.
@@ -83,9 +84,9 @@ test('multi-storey captures retain live floor texture leases until their own dis
 test('warm room rendering uses finish maps while default and toy never allocate a new pattern',()=>{
   const {createCanvas}=canvasFactory(),manager=createHomeFloorTextureManager({createCanvas}),home=createHomeState({profile:'account'}),maps={oak:new THREE.Texture()};
   for(const theme of[HOME_THEMES.default,HOME_THEMES.toy]){
-    const group=createRoomExpansion({...home,maps,theme,floorTextureManager:manager});assert.equal(getFloorTextureCacheStats({createCanvas}).canvases,0);group.dispose();
+    const group=createRoomExpansion({...home,maps,theme,floorTextureManager:manager,wallTextureManager:createHomeWallTextureManager({createCanvas})});assert.equal(getFloorTextureCacheStats({createCanvas}).canvases,0);group.dispose();
   }
-  const group=createRoomExpansion({...home,maps,theme:{...HOME_THEMES.default,id:'warm'},floorTextureManager:manager});
+  const group=createRoomExpansion({...home,maps,theme:{...HOME_THEMES.default,id:'warm'},floorTextureManager:manager,wallTextureManager:createHomeWallTextureManager({createCanvas})});
   assert.ok(group.userData.roomParts.floor.some(mesh=>mesh.material.map?.name==='floor:wide'));
   assert.equal(maps.oak.version,0);group.dispose();manager.dispose();assert.equal(getFloorTextureCacheStats({createCanvas}).clones,0);maps.oak.dispose();
 });
@@ -95,15 +96,15 @@ test('warm playrooms and bathrooms omit all old floor mosaics and geometric seam
   for(const kind of['playroom','bathroom']) {
     const rooms=[createRoom('living'),createRoom(kind,1,-1,'finish-room')];
     for(const theme of[HOME_THEMES.default,HOME_THEMES.toy]) {
-      const old=createRoomExpansion({rooms,includeGrid:true,theme,floorTextureManager:manager});
+      const old=createRoomExpansion({rooms,includeGrid:true,theme,floorTextureManager:manager,wallTextureManager:createHomeWallTextureManager({createCanvas})});
       assert.ok(old.userData.roomParts.zones.length>0,theme.id+' retains its original grid and room accents');old.dispose();
     }
     const warm={...HOME_THEMES.default,id:'warm'};
-    const legacy=createRoomExpansion({rooms,includeGrid:true,theme:warm,floorTextureManager:manager});
+    const legacy=createRoomExpansion({rooms,includeGrid:true,theme:warm,floorTextureManager:manager,wallTextureManager:createHomeWallTextureManager({createCanvas})});
     assert.equal(legacy.userData.roomParts.zones.length,0);legacy.dispose();
     const rect={minX:-2.8,minZ:-2.6,width:5.6,depth:5.2};
     const floor=createHomeState({profile:'upper',slab:{rects:[rect]},rooms:[createRoom(kind,undefined,undefined,'finish-room',rect)]});
-    const standalone=createRoomExpansion({...floor,includeGrid:true,theme:warm,floorTextureManager:manager});
+    const standalone=createRoomExpansion({...floor,includeGrid:true,theme:warm,floorTextureManager:manager,wallTextureManager:createHomeWallTextureManager({createCanvas})});
     assert.equal(standalone.userData.roomParts.zones.length,0,'slab path also has no old colored accent overlays');
     assert.ok(standalone.userData.roomParts.floor.some(mesh=>mesh.userData.floorPattern===(kind==='playroom'?'wide':'tile')));standalone.dispose();
   }

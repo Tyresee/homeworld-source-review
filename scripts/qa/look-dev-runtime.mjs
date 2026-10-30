@@ -8,6 +8,7 @@ import {HOME_THEMES} from '../../public/js/home-theme.js';
 import {getRoomKind} from '../../public/js/home-layout.js';
 import {validateHomeState,MATERIALS} from '../../public/js/home-engine.js';
 import {isFloorFinishId} from '../../public/js/home-floor-finishes.js';
+import {isWallStyleId,isWallColorId} from '../../public/js/home-wall-finishes.js';
 import {createLookDevFixture,LOOK_DEV_SIZE,LOOK_DEV_VIEWS} from './look-dev-fixtures.mjs';
 import {paintLookDevBackdrop} from './look-dev-backdrop.mjs';
 
@@ -35,6 +36,11 @@ const materialCopy=(skin,role,part)=>{
     else if(isFloorFinishId(role.floorFinishId))skin.finishId=role.floorFinishId;
     else throw new TypeError('Unknown floor finish in review preset');
   }
+  if(part==='wall')for(const [key,target,valid]of[['wallStyleId','styleId',isWallStyleId],['wallColorId','colorId',isWallColorId]])if(Object.hasOwn(role??{},key)){
+    if(role[key]===null)delete skin[target];
+    else if(valid(role[key]))skin[target]=role[key];
+    else throw new TypeError('Unknown wall finish in review preset');
+  }
 };
 /** Explicit role edits affect only fresh QA fixture data, never source defaults. */
 export function resolveLookDevBuild(fixture,preset) {
@@ -49,6 +55,7 @@ export function resolveLookDevBuild(fixture,preset) {
         materialCopy(floor.surfaces['floor.main'],role,'floor');
         if(hex(role?.floor)){floor.surfaces['floor.main'].color=role.floor;if(theme.surfaceRemap['floor.main'])theme.surfaceRemap['floor.main'].to=role.floor;}
         if(validMaterial(role?.floorMaterial))floor.surfaces['floor.main'].material=role.floorMaterial;
+        for(const id of ['wall.inner','wall.outer','wall.side'])materialCopy(floor.surfaces[id],role,'wall');
         if(hex(role?.wall))for(const id of ['wall.inner','wall.outer','wall.side']){floor.surfaces[id].color=role.wall;if(theme.surfaceRemap[id])theme.surfaceRemap[id].to=role.wall;}
         if(validMaterial(role?.wallMaterial))for(const id of ['wall.inner','wall.outer','wall.side'])floor.surfaces[id].material=role.wallMaterial;
       } else {
@@ -61,6 +68,7 @@ export function resolveLookDevBuild(fixture,preset) {
     materialCopy(floor.surfaces['floor.main'],role,'floor');
     if(hex(role?.floor)){floor.surfaces['floor.main'].color=role.floor;if(theme.surfaceRemap['floor.main'])theme.surfaceRemap['floor.main'].to=role.floor;}
     if(validMaterial(role?.floorMaterial))floor.surfaces['floor.main'].material=role.floorMaterial;
+    for(const id of ['wall.inner','wall.outer','wall.side'])materialCopy(floor.surfaces[id],role,'wall');
     if(hex(role?.wall))for(const id of ['wall.inner','wall.outer','wall.side']){floor.surfaces[id].color=role.wall;if(theme.surfaceRemap[id])theme.surfaceRemap[id].to=role.wall;}
     if(validMaterial(role?.wallMaterial))for(const id of ['wall.inner','wall.outer','wall.side'])floor.surfaces[id].material=role.wallMaterial;
     if(preset.build?.furniture?.mode==='examples') {
@@ -103,9 +111,10 @@ export async function createLookDevRuntime({container,preset,fixtureId='living',
         if(!material.color)continue;
         const surfaceId=mesh.userData.surfaceId??null;
         const roomId=mesh.userData.roomId??mesh.userData.themeRoomId??(/^room:(.+)\.(?:floor|wall)$/.exec(surfaceId??'')?.[1])??null;
-        const materialKey=material.map?(textures.find(([,texture])=>texture===material.map)?.[0]??(material.map.userData?.floorPattern?'floor:'+material.map.userData.floorPattern:'unregistered')):null;
+        const materialKey=material.map?(textures.find(([,texture])=>texture===material.map)?.[0]??(material.map.userData?.floorPattern?'floor:'+material.map.userData.floorPattern:material.map.userData?.wallPattern?'wall:'+material.map.userData.wallPattern:'unregistered')):null;
         const row={roomId,surfaceId,part,color:'#'+material.color.getHexString(),materialKey};
         if(material.map?.userData?.floorPattern)Object.assign(row,{finishId:material.map.userData.finishId??null,pattern:material.map.userData.floorPattern,worldTileMetres:material.map.userData.worldTileMetres,repeat:material.map.repeat.toArray(),offset:material.map.offset.toArray()});
+        if(material.map?.userData?.wallPattern)Object.assign(row,{styleId:material.map.userData.styleId??null,colorId:material.map.userData.colorId??null,pattern:material.map.userData.wallPattern,worldTileMetres:material.map.userData.worldTileMetres,worldHeightMetres:material.map.userData.worldHeightMetres,dotDiameterMetres:material.map.userData.dotDiameterMetres??null,repeat:material.map.repeat.toArray(),offset:material.map.offset.toArray()});
         rows.set(JSON.stringify(row),row);
       }
     }

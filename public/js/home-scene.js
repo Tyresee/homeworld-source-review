@@ -7,8 +7,11 @@ import { getWallAttachmentOffset, STARTER_WALL_BLOCKS } from './home-building-co
 import { createRoomExpansion } from './home-room-expansion.js';
 import {resolveHomeFloorFinish} from './home-floor-finishes.js';
 import {createHomeFloorTextureManager} from './home-floor-textures.js';
-import {getDefaultFloorAppearance} from './home-engine.js';
-import { getFloorBounds, floorContainsRect, hasStarterRoom } from './home-layout.js';
+import {getDefaultFloorAppearance,getDefaultWallAppearance} from './home-engine.js';
+import {resolveHomeWallFinish} from './home-wall-finishes.js';
+import {createHomeWallTextureManager} from './home-wall-textures.js';
+import { getFloorBounds, floorContainsRect, hasStarterRoom,roomRect } from './home-layout.js';
+import {createSharedWallFaceMeshes} from './home-wall-geometry.js';
 import { createEstateOutdoor, getEstateForRoomCount } from './home-estate-outdoor.js';
 import { createOutdoorWorld } from './home-outdoor-world.js';
 import { getOutdoorProduct } from './home-outdoor-catalog.js';
@@ -78,6 +81,7 @@ export function applyFloorElevatorFrame(group, frame) {
 export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
   const lighting=theme.lighting.editor??{};
   const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
+  const wallTextures=theme.id==='warm'?createHomeWallTextureManager():null;
   const scene = new THREE.Scene();
   const originalBackdrop=container.style.background;
   if(theme.id==='warm'&&theme.backdrop)container.style.background=`radial-gradient(ellipse at 45% 42%,${theme.backdrop.inner},${theme.backdrop.outer})`;
@@ -121,6 +125,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const standaloneFloor = () => !!state?.slab && !hasStarterRoom(state);
   const roomStage = () => {const stage=describeLayout(rooms),bounds=getFloorBounds(state??{rooms});return {...stage,bounds,width:bounds?.width??0,depth:bounds?.depth??0};};
   let starterSurfaceParts=null;
+  let warmStarterFaces=[];
   const groundHome = () => floorHomes?.[0] ?? state ?? {rooms};
   const groundRooms = () => groundHome().rooms;
   const exteriorFloors = () => floorHomes ?? [state ?? {rooms}];
@@ -228,7 +233,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const sofaFabricMaps = createSofaFabricMaps();
   Object.values(sofaFabricMaps).forEach(texture => textures.push(texture));
   const maps = { oak: grain('oak'), stone: grain('stone'), ceramic: grain('ceramic'), walnut: grain('oak'), marble: grain('stone'), wool: grain('wool'), linen: grain('linen'), velvet: grain('velvet'), ...Object.fromEntries(Object.entries(sofaFabricMaps).map(([name, texture]) => [`sofa-${name}`, texture])) };
-  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures }); root.add(roomExpansion);
+  roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures,wallTextureManager:wallTextures }); root.add(roomExpansion);
   // The outdoor estate is an isolated scene layer. Its house is generated from
   // the same floor plan as the interior, so adding a room inside changes the
   // silhouette outside; it never participates in interior surfaces or bounds.
@@ -266,7 +271,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
 
   function starterWallBlock(id) {
     const block = STARTER_WALL_BLOCKS.find(block => block.id === id);
-    const color=(['toy','warm'].includes(theme.id)?(id.includes('body')?theme.rooms.living.wall:id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):null)??block.color;
+    const color=(['toy','warm'].includes(theme.id)?(id.includes('body')?(theme.id==='warm'?getRoomTheme('living',null,theme).wall:theme.rooms.living.wall):id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):null)??block.color;
     return box(starterShell, color, block.size, block.position, block.radius);
   }
   // A miniature architectural slice, with real inner/outer skins on the editable wall.
@@ -305,7 +310,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   register('wall.inner', [inner]); register('wall.outer', [outer]);
   starterWallBlock('back-cornice');
   starterWallBlock('back-skirting');
-  register('wall.side', [starterWallBlock('side-body')]);
+  const starterSideBody=starterWallBlock('side-body');
+  register('wall.side', [starterSideBody]);
   starterWallBlock('side-skirting');
   starterWallBlock('side-cornice');
 
@@ -497,7 +503,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     for (const object of descendants) if (object.userData.transportType === 'elevator' && typeof object.userData.setElevatorFrame === 'function') {
       object.userData.dispose(resource=>{ownedGeometries.delete(resource);ownedMaterials.delete(resource);});
     }
-    group.traverse(o => { if (o.isMesh) { floorTextures?.release(o);o.geometry.dispose(); ownedGeometries.delete(o.geometry); o.material.dispose(); ownedMaterials.delete(o.material); } });
+    group.traverse(o => { if (o.isMesh) { floorTextures?.release(o);wallTextures?.release(o);o.geometry.dispose(); ownedGeometries.delete(o.geometry); o.material.dispose(); ownedMaterials.delete(o.material); } });
     group.removeFromParent(); for (let i = pickables.length - 1; i >= 0; i--) if (descendants.has(pickables[i])) pickables.splice(i, 1);
   }
   function syncDynamic(next) {
@@ -547,6 +553,21 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     const unlocked = stage.count >= 5 ? ['courtyard','garden','pool','tennis','treehouse','gazebo'] : stage.count >= 3 ? ['courtyard','garden','pool'] : stage.count >= 2 ? ['courtyard','garden'] : [];
     return { tier: tier?.id ?? 'courtyard', unlocked: new Set(unlocked), house: { width: bounds?.width ?? stage.width, depth: bounds?.depth ?? stage.depth } };
   }
+  function syncWarmStarterWallFaces() {
+    if(theme.id!=='warm')return;
+    for(const mesh of warmStarterFaces)release(mesh);warmStarterFaces=[];
+    outer.visible=true;starterSideBody.visible=true;
+    const home=state??{rooms};if(!hasStarterRoom(home))return;
+    for(const [original,axis,surfaceId]of [[outer,'x','wall.outer'],[starterSideBody,'z','wall.side']]) {
+      const faces=createSharedWallFaceMeshes(original,home.rooms,{axis,rectForRoom:roomRect,defaultSurfaceId:surfaceId,trimColor:theme.shell.trim??'#f4efe6'});if(!faces)continue;
+      original.visible=false;parts.set(surfaceId,(parts.get(surfaceId)??[]).filter(mesh=>mesh!==original));
+      for(const mesh of faces) {
+        starterShell.add(mesh);adopt(mesh);warmStarterFaces.push(mesh);
+        const id=mesh.userData.surfaceId;if(!id)continue;
+        parts.set(id,[...(parts.get(id)??[]),mesh]);roomSurfaceIds.add(id);pickables.push(mesh);roomPickables.add(mesh);
+      }
+    }
+  }
   function syncRoomEnvelope() {
     // The exterior is generated from the same floor plan: every added room
     // becomes a wing of the manor and widens the estate around it.
@@ -570,6 +591,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       roomSurfaceIds.add(surfaceId);
     }
     for (const object of all.filter(mesh => mesh.userData.surfaceId)) { pickables.push(object); roomPickables.add(object); }
+    syncWarmStarterWallFaces();
     if (!capturingHouse) fitSunToLayout();
     syncView();
   }
@@ -683,6 +705,13 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
           if(finish&&floorTextures.apply(o,finish))continue;
           floorTextures.release(o);
         }
+        if(wallTextures&&(id.startsWith('wall.')||parseRoomSurfaceId(id)?.part==='wall')) {
+          const parsed=parseRoomSurfaceId(id),owner=next.rooms.find(room=>room.id===(parsed?.roomId??o.userData.roomId));
+          const starter=id.startsWith('wall.'),skin=starter?next.surfaces[id]:owner?.wall;
+          const finish=resolveHomeWallFinish(owner?.kind??'living',skin,{themeId:theme.id,...starter?{legacyDefault:getDefaultWallAppearance(id)}:{}});
+          if(finish&&wallTextures.apply(o,finish))continue;
+          wallTextures.release(o);
+        }
         const room=themeRooms?.get(o.userData.themeRoomId);
         const appearance=room?getHomeSurfaceAppearance(id,next.surfaces[id]??a,theme,room):a;
         o.material.color.set(appearance.color);
@@ -692,7 +721,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
         o.material.roughness = materialId === 'gold' ? .35 : materialId === 'ceramic' ? .45 : ['stone','marble'].includes(materialId) ? .4 : .72; o.material.metalness = materialId === 'gold' ? .6 : 0;
       }
     }
-    syncUpgrades(next);roomExpansion.syncFloorFinishes?.(next); root.updateMatrixWorld(true); syncDynamic(next); syncView(); root.updateMatrixWorld(true); updateSelection(); markShadowsDirty();
+    syncUpgrades(next);roomExpansion.syncFloorFinishes?.(next);roomExpansion.syncWallFinishes?.(next); root.updateMatrixWorld(true); syncDynamic(next); syncView(); root.updateMatrixWorld(true); updateSelection(); markShadowsDirty();
     if(!capturingHouse){
       avatarActor.setWorld(next,activeFloor,{floors:floorHomes,arrivalPoint:pendingAvatarArrival?.index===activeFloor?pendingAvatarArrival.point:null});
       pendingAvatarArrival=null;
@@ -1534,6 +1563,6 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     zoom(direction) { stageCamera?.exit({restore:false});interruptCameraMotion(); zoom = boundedZoom(zoom + direction * .1, view); frameCamera(lastCameraBounds); },
     showCollision(volume) { showWallBlock(volume, true); },
     getStats() { return { ...renderer.info.render, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, surfaceCount: parts.size }; },
-    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
+    dispose() { disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose();wallTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
   };
 }

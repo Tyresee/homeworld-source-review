@@ -4,20 +4,20 @@ import {getRoomKind} from './home-layout.js';
 const wood=(id,label,pattern,color)=>({id,label,group:'wood',pattern,color,tileMeters:2.4,boardWidthMeters:['herringbone','narrow'].includes(pattern)?.12:.20,boardLengthMeters:pattern==='herringbone'?.6*Math.SQRT2:1.2,...pattern==='herringbone'?{columnMeters:.6}:{}});
 const tile=(id,label,color)=>({id,label,group:'tile',pattern:'tile',color,tileMeters:1.4});
 export const FLOOR_FINISHES=Object.freeze([
-  wood('wood-light-oak',"DisplayText4679",'wide','#d8b58c'),
+  wood('wood-light-oak',"DisplayText4681",'wide','#d8b58c'),
   wood('wood-walnut',"DisplayText0764",'wide','#8f6748'),
-  wood('wood-washed-oak',"DisplayText4680",'washed','#cdbfac'),
-  wood('wood-herringbone-oak',"DisplayText4681·DisplayText4682",'herringbone','#c29470'),
-  wood('wood-cherry',"DisplayText4683",'narrow','#b17a58'),
-  wood('wood-herringbone-walnut',"DisplayText4681·DisplayText4684",'herringbone','#94694a'),
-  tile('tile-terracotta-deep',"DisplayText4685",'#a5624a'),
-  tile('tile-terracotta',"DisplayText4686",'#b9755a'),
-  tile('tile-terracotta-light',"DisplayText4687",'#c98c6c'),
-  tile('tile-caramel',"DisplayText4688",'#c49a6c'),
-  tile('tile-sand',"DisplayText4689",'#c9b498'),
-  tile('tile-stone',"DisplayText4690",'#aea493'),
-  tile('tile-blue',"DisplayText4691",'#9aabb8'),
-  tile('tile-charcoal',"DisplayText4692",'#7a7671'),
+  wood('wood-washed-oak',"DisplayText4682",'washed','#cdbfac'),
+  wood('wood-herringbone-oak',"DisplayText4683·DisplayText4684",'herringbone','#c29470'),
+  wood('wood-cherry',"DisplayText4685",'narrow','#b17a58'),
+  wood('wood-herringbone-walnut',"DisplayText4683·DisplayText4686",'herringbone','#94694a'),
+  tile('tile-terracotta-deep',"DisplayText4687",'#a5624a'),
+  tile('tile-terracotta',"DisplayText4688",'#b9755a'),
+  tile('tile-terracotta-light',"DisplayText4689",'#c98c6c'),
+  tile('tile-caramel',"DisplayText4690",'#c49a6c'),
+  tile('tile-sand',"DisplayText4691",'#c9b498'),
+  tile('tile-stone',"DisplayText4692",'#aea493'),
+  tile('tile-blue',"DisplayText4693",'#9aabb8'),
+  tile('tile-charcoal',"DisplayText4694",'#7a7671'),
 ].map(Object.freeze));
 export const FLOOR_FINISH_IDS=Object.freeze(FLOOR_FINISHES.map(row=>row.id));
 const byId=new Map(FLOOR_FINISHES.map(row=>[row.id,row]));

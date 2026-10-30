@@ -1,0 +1,74 @@
+{
+  "status": "local-tested-source-ready-for-push",
+  "scope": "Warm candidate only; no production deployment or production student writes.",
+  "source": {
+    "accountTests": {
+      "passed": 698,
+      "failed": 0
+    },
+    "build": {
+      "passed": true,
+      "files": 471
+    },
+    "allTests": {
+      "total": 839,
+      "passed": 838,
+      "failed": 1,
+      "preExistingFailure": "tests/home-engine.test.mjs: furniture bounds catalogue count, 376 actual versus 311 expected; independently reproduced on prior HEAD"
+    }
+  },
+  "publicCopy": {
+    "coreTestsPassed": 379,
+    "focusedTestsPassed": 50,
+    "allTests": {
+      "total": 754,
+      "passed": 699,
+      "failed": 55,
+      "exactSameFailureNamesAsPriorHead": true,
+      "newFailures": 0,
+      "notes": "Existing source-review display/source-text expectation differences; assertions retained."
+    },
+    "vendor": {
+      "version": "0.186.1",
+      "licensedFilesChecked": 9,
+      "closureAndHashesPassed": true
+    },
+    "sourcePrivacyPassed": true,
+    "privatePlatformFixtureIncluded": false
+  },
+  "visual": {
+    "captures": 30,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "finalSharedFaceFixRecaptured": true,
+    "all30ByteIdenticalToPreFaceFixIsolatedViews": true,
+    "defaultToyBaselinePngsByteIdentical": 10,
+    "wallMetadataChecksPassed": 30,
+    "minimumStripeZeroShiftCorrelation": 0.9996397597591651,
+    "maximumStripeBestShiftPixels": 0,
+    "maximumFurnitureSampleVariantMae": 0,
+    "approvedDifference": "True 2.8cm world circle instead of prototype 6.65cm vertical ellipse; physical metre end-face UVs."
+  },
+  "application": {
+    "fictionalAccountsOnly": true,
+    "freeWallUpdates": 8,
+    "freeReceiptAmount": 0,
+    "refreshPersisted": true,
+    "studentIsolated": true,
+    "sharedFacesIndependent": true,
+    "overviewRoundTripPassed": true,
+    "consoleErrors": 0
+  },
+  "references": {
+    "archive": "wall-review-pack.zip",
+    "archiveSha256": "c2d9217d249354e3593dd1cfd25af3b14ac3354543be7761c5286c3cce0a7e2c",
+    "originalMembersByteIdentical": 35,
+    "prototypeIsDocumentationOnly": true
+  },
+  "freshClone": {
+    "status": "pending-after-code-push"
+  },
+  "deployed": false
+}

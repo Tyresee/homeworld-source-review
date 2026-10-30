@@ -2,10 +2,13 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 118,
-    "tests": 77,
-    "selectedSourceFiles": 226,
-    "packagedFiles": 356
+    "modules": 132,
+    "tests": 82,
+    "selectedSourceFiles": 235,
+    "packagedFiles": 464,
+    "browserModules": 113,
+    "serverModules": 9,
+    "qaScripts": 10
   },
   "normalization": {
     "localizedFragments": 5967,
@@ -17,38 +20,30 @@
   "productionDataIncluded": false,
   "validation": {
     "coreTestsPassed": 379,
-    "focusedTestsPassed": 49,
-    "allIncludedTestsAttempted": 723,
-    "allIncludedTestsPassed": 668,
+    "focusedTestsPassed": 50,
+    "allIncludedTestsAttempted": 754,
+    "allIncludedTestsPassed": 699,
     "allIncludedTestsWithDisplayExpectationDifferences": 55,
     "sameDisplayFailureNamesAsPreviousSnapshot": true,
-    "sourceAccountTestsPassed": 688,
-    "sourceFocusedTestsPassed": 49,
+    "sourceAccountTestsPassed": 698,
     "sourceFullTests": {
-      "total": 808,
-      "passed": 807,
+      "total": 839,
+      "passed": 838,
       "preExistingCatalogueCountFailures": 1
     },
-    "upstreamReferenceFilesByteIdentical": 24,
-    "referenceLanguageExceptionExplicitlyApproved": true,
-    "warmAppearanceSource": "approved warm-v6, root render and backdrop precedence",
-    "warmVisualComparison": "5 overall and 14 finish views passed with documented phase/depth/wall variations",
+    "wallVariantCaptures": 30,
+    "wallVariantDiagnosticsPassed": 30,
+    "finalSharedFaceFixRecaptured": true,
     "defaultToyPngsByteIdentical": 10,
-    "currentRealApplicationFreeFinishSelections": 14,
+    "fictionalApplicationFreeWallSelections": 8,
     "refreshAndStudentIsolationVerified": true,
+    "sharedFaceIsolationVerified": true,
     "offlineVendorVerification": "passed",
+    "sourcePrivacy": "passed",
+    "upstreamWallPackMembersByteIdentical": 35,
+    "referenceLanguageExceptionExplicitlyApproved": true,
     "freshCloneBrowserVerification": {
-      "status": "passed",
-      "testedCodeCommit": "457a8bc02dbcb986fb1f73caadbb291632b336ef",
-      "nodeModulesPresent": false,
-      "npmInstallationPerformed": false,
-      "viewsRendered": 5,
-      "allFiveDownloadedPngsByteIdenticalToSourceRenders": true,
-      "sourceResolution": [
-        1440,
-        900
-      ],
-      "browserConsoleErrors": 0
+      "status": "pending-after-code-push"
     },
     "deploymentPerformed": false
   },
@@ -64,10 +59,10 @@
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 226,
-    "changedSourceFiles": 12,
+    "normalizedSourceFiles": 235,
+    "changedSourceFiles": 3,
     "stableSeedLabels": 4676,
-    "newDisplayLabels": 41,
+    "newDisplayLabels": 61,
     "identityDataIncluded": false
   }
 }

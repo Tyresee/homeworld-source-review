@@ -88,6 +88,14 @@ export function prepareCommerceCommand(current,command,commandId){
       const changed=checked(applyChange(home,{type:'setFloorFinish',surfaceId:command.surfaceId,finishId:command.finishId}));
       result=changed.changed?reconcileHome(state,changed.state,options):{ok:true,state};break;
     }
+    case 'setWallFinish':{
+      const hasStyle=Object.hasOwn(command,'styleId'),hasColor=Object.hasOwn(command,'colorId');
+      if(hasStyle===hasColor)throw invalid("DisplayText4737.");
+      const field=hasStyle?'styleId':'colorId';
+      expectKeys(command,['surfaceId',field,'storey']);const options=floorOptions(command),home=getFloorHome(state,options.storey);
+      const changed=checked(applyChange(home,{type:'setWallFinish',surfaceId:command.surfaceId,[field]:command[field]}));
+      result=changed.changed?reconcileHome(state,changed.state,options):{ok:true,state};break;
+    }
     case 'placeRoom':expectKeys(command,['id','pose','storey']);result=placeOwnedRoom(state,command.id,command.pose,floorOptions(command));break;
     case 'resizeRoom':expectKeys(command,['id','size','storey']);result=resizeOwnedRoom(state,command.id,command.size,commandId,floorOptions(command));break;
     case 'constructFloor':expectKeys(command,['selection']);result=purchaseFloorConstruction(state,command.selection,commandId);break;

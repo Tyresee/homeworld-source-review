@@ -17,7 +17,7 @@ test('warm floor flyout has six wood and eight tile samples with a real-renderer
   assert.equal(menu.id,'floor-finish');assert.equal(menu.children.length,14);
   assert.equal(menu.children.filter(item=>item.group==='wood').length,6);assert.equal(menu.children.filter(item=>item.group==='tile').length,8);
   assert.deepEqual(menu.children.map(item=>item.id),FLOOR_FINISHES.map(item=>item.id));
-  assert.ok(menu.children.every(item=>item.swatchColor===FLOOR_FINISHES.find(finish=>finish.id===item.id).color&&/DisplayText4701/.test(item.detail)));
+  assert.ok(menu.children.every(item=>item.swatchColor===FLOOR_FINISHES.find(finish=>finish.id===item.id).color&&/DisplayText4714/.test(item.detail)));
   assert.equal(previewed.length,0,'opening a menu does not eagerly generate every texture');
   assert.equal(await menu.children[0].image(),'texture-source-reference');assert.equal(previewed[0],FLOOR_FINISHES[0]);
   menu.children.at(-1).action();assert.deepEqual(selected,[FLOOR_FINISHES.at(-1).id]);assert.deepEqual(homeFloor,before);

@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 511,
+  "totalFiles": 513,
   "files": [
     {
       "path": ".gitignore",
@@ -651,6 +651,14 @@
       "bytes": 783
     },
     {
+      "path": "docs/ui-warm-2026-10-30/fresh-clone-contact.png",
+      "bytes": 664902
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/fresh-clone.json",
+      "bytes": 2235
+    },
+    {
       "path": "docs/ui-warm-2026-10-30/look-dev-regression.json",
       "bytes": 2521
     },
@@ -660,7 +668,7 @@
     },
     {
       "path": "docs/ui-warm-2026-10-30/README.md",
-      "bytes": 4290
+      "bytes": 4670
     },
     {
       "path": "docs/ui-warm-2026-10-30/screenshots/building-1440.png",
@@ -708,7 +716,7 @@
     },
     {
       "path": "docs/WARM_UI_HANDOFF.md",
-      "bytes": 10278
+      "bytes": 10990
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -972,7 +980,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 51029
+      "bytes": 51220
     },
     {
       "path": "game.manifest.json",
@@ -992,7 +1000,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 3015
+      "bytes": 3859
     },
     {
       "path": "package-lock.json",

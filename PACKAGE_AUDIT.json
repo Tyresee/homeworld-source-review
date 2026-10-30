@@ -5,7 +5,7 @@
     "modules": 123,
     "tests": 85,
     "selectedSourceFiles": 242,
-    "packagedFiles": 511,
+    "packagedFiles": 513,
     "browserModules": 114,
     "serverModules": 9,
     "qaScripts": 12
@@ -19,7 +19,7 @@
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "status": "tested-local-awaiting-fresh-GitHub-clone",
+    "status": "verified-and-pushed-code-with-fresh-clone",
     "sourceHomeTests": {
       "command": "npm run verify:student-homes",
       "expandedTestCommand": "node --test tests/student-homes-*.test.mjs tests/student-home-*.test.mjs",
@@ -94,10 +94,33 @@
       "realStudentDataIncluded": false
     },
     "freshClone": {
-      "status": "pending push and independent clone-back"
+      "status": "passed",
+      "codeCommit": "4431be6e4ce25c4185bf8a988a96d7f5508cdd28",
+      "source": "GitHub clone-back",
+      "nodeVersion": "v24.16.0",
+      "nodeModulesPresent": false,
+      "npmInstallPerformed": false,
+      "uiViewsRendered": 3,
+      "robotV4Rendered": true,
+      "dressingSubmenuOpened": true,
+      "zoomChangedSampledScene": true,
+      "resetRestoredIdenticalSampledPixels": true,
+      "lookDevViewsRendered": 5,
+      "lookDevPNGsByteIdentical": true,
+      "browserConsoleErrors": 0,
+      "evidence": "docs/ui-warm-2026-10-30/fresh-clone.json"
     },
     "productionDeployed": false,
-    "wallHeightAndCutawayChanged": false
+    "wallHeightAndCutawayChanged": false,
+    "finalPrivacyAudit": {
+      "newOrModifiedTextDocuments": 13,
+      "newUIPNGMetadataChecked": 16,
+      "changedRuntimeModulesASTCompared": 9,
+      "privatePathsOrIdentityMatches": 0,
+      "productionOrPriceLogicChanges": false,
+      "deliverySymlinks": 0,
+      "rawReviewerReferencesApproved": true
+    }
   },
   "sourceRefresh": {
     "purpose": "Optional look-development review candidate",

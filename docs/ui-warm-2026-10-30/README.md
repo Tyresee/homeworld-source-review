@@ -35,6 +35,6 @@ The UI lab uses an explicit local fictional platform adapter with the real home 
 - [Browser action checks](source-ui-checks.json): bounded zoom/reset, guarded input hotkeys and student selection.
 - [Computed public layout](public-ui-readback.json): title 30px, balance 34px, charcoal screen, no overflow and no corner-control overlap.
 - [Visual comparison report](comparison/REPORT.md), matching pair images and image hashes.
-- Fresh-clone evidence is recorded after the code has been pushed and cloned back from GitHub.
+- [Fresh-clone record](fresh-clone.json) and [four-view contact](fresh-clone-contact.png): tested GitHub code 4431be6e4ce25c4185bf8a988a96d7f5508cdd28 with no node_modules and no npm installation. All three app views and the dressing submenu worked; zoom changed the scene and reset restored identical sampled pixels. Five Look Dev PNGs matched the source baseline byte-for-byte, with zero browser console errors. The contact alone reduces four originals to half-size tiles.
 
 Reference 05/06 show an intermediate top toolbar. The final implementation follows the later written dock requirements and references 07/08. The remote is inset far enough to clear the real camera dock. Wallets display authoritative fictional lab balances instead of reproducing a prototype unavailable-wallet dash. Caption text follows the specified 14px minimum. Wall height/cutaway remains deferred by explicit user instruction.

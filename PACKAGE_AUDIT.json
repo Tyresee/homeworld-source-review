@@ -479,6 +479,16 @@
       "writes": 0,
       "errors": 0,
       "evidence": "docs/qa/share-view-2026-11-04/copy-update-receipt.json"
+    },
+    "legacyDisplayTitleMaintenance": {
+      "ownerAuthorized": true,
+      "trustedExactTenantAndLearnerMatching": true,
+      "capabilitiesPreserved": true,
+      "nonTitleRecordAndVisualContentPreserved": true,
+      "homeProfilesAndPointsUnchanged": true,
+      "regularGetRemainsReadOnly": true,
+      "privateFixtureChecksPassed": 3,
+      "liveDataExportIncluded": false
     }
   }
 }

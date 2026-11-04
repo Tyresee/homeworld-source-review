@@ -15,7 +15,7 @@ This standalone preview serves only the bundled fictional snapshot and licensed 
 
 Run `npm run test:share` for the dedicated share checks and `npm run test:share:publisher` for the ten publisher retry regressions after installing the locked test dependencies. See `REVIEW_TEST_LIMITS.md` for the current core and historical full-suite limits.
 
-The public viewer never enters first person. Clicking rooms stays in the exterior floor view; elevator entry and rides are unavailable here. New links include the selected learner display name in the frozen title, and raw HTML/WeChat descriptions use the same copy helper. Old frozen links need to be regenerated to include a name.
+The public viewer never enters first person. Clicking rooms stays in the exterior floor view; elevator entry and rides are unavailable here. New links include the selected learner display name in the frozen title, and raw HTML/WeChat descriptions use the same copy helper. Previously generated generic titles have been repaired in place using exact trusted tenant/learner roster matches. Their public links and saved home contents are preserved; routine visitor GETs remain read-only.
 
 The formal account/shared-model dependency closure is refreshed together, so the viewer uses the current home geometry interfaces. Earlier handoffs and original approved references below are retained as historical evidence; they do not override this current handoff.
 

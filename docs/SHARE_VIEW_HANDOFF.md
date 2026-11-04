@@ -10,7 +10,7 @@ The earlier room-entry, blue-ring and elevator-ride interactions have been remov
 
 The page has one home title, a small read-only badge, a short loading state and the model. The former promotional copy and jump link are removed. No lesson count or other achievement statistic is invented when no trusted source exists.
 
-New authenticated publications freeze the selected learner's authorized roster display name in the existing `snapshot.title`. Only this display text is added to the public projection. Account IDs, financial records and other roster fields remain excluded. A caller cannot supply its own name/title field. Unicode boundaries, control characters and the existing title limit are handled on the server. Old links retain their original frozen snapshot; generate a new link to include the name. Reusing a command ID preserves the original title even if a roster name later changes.
+New authenticated publications freeze the selected learner's authorized roster display name in the existing `snapshot.title`. Only this display text is added to the public projection. Account IDs, financial records and other roster fields remain excluded. A caller cannot supply its own name/title field. Unicode boundaries, control characters and the existing title limit are handled on the server. An owner-authorized maintenance repair has also filled the display titles of existing generic links from exact trusted tenant/learner roster matches. The original public capabilities and all saved visual content are preserved; no visitor GET performs that maintenance. Reusing a command ID preserves the original title even if a roster name later changes.
 
 ## Reading order
 
@@ -73,3 +73,6 @@ Useful independent reviews are geometry diversity, upper-floor/roof ownership, h
 ## Coordinated copy and diagnostics follow-up
 
 A later authorized change keeps the named title and uses the fixed description “Every small effort can be seen.”. It adds optional, sanitized WeChat diagnostics under an explicit `wxdiag=1` selector. Normal links show no diagnostic panel, and no raw URL, capability, signature, account or original SDK error is displayed. The exterior controller, world, UI, snapshot and publication runtime hashes are unchanged from the validated four-state release. The earlier 1,698-check full regression is its baseline; the current copy/diagnostics follow-up passed all 46 relevant original-source checks. The public normalized checks are recorded separately in `PACKAGE_AUDIT.json`.
+
+
+Legacy title maintenance is an explicit offline, title-only repair. It verifies the existing keyed capability and record checksum, resolves one active roster match, backs up raw originals, and changes only the display title and backing checksum under the single-writer lock. Missing or ambiguous identity matches stop before writing. Ownership/mode and non-title content are verified; a partial failure restores all original records. No live learner names, links, profile exports or private maintenance artifacts are included in this analysis copy.

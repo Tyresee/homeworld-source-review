@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createLuxuryItem} from '../public/js/home-luxury-models.js';
+import {TELEVISION_CHANNEL_TITLES} from '../public/js/home-television-channels.js';
 import {createStudentHomeObjectRuntime,sampleObjectClock,drawTelevisionFrame,OBJECT_LIGHT_LIMIT} from '../public/js/student-home-object-runtime.js';
 import {OBJECT_CAPABILITY_KINDS} from '../public/js/home-object-state.js';
 
@@ -91,7 +92,7 @@ test('models on another floor and sold units cannot create lights or media runti
 
 test('each television channel has independently readable drawing content and a black standby state',()=>{
   const calls=[];const ctx=new Proxy({}, {get:(target,key)=>target[key]??((...args)=>calls.push([key,...args])),set:(target,key,value)=>{target[key]=value;return true;}});
-  for(const[channel,title]of ['FOREST TV','WEATHER','SPORTS','MUSIC'].entries()){calls.length=0;drawTelevisionFrame(ctx,{power:true,channel},1234);assert.ok(calls.some(c=>c[0]==='fillText'&&c[1]===title));}
+  for(const[channel,title]of TELEVISION_CHANNEL_TITLES.entries()){calls.length=0;drawTelevisionFrame(ctx,{power:true,channel},1234);assert.ok(calls.some(c=>c[0]==='fillText'&&c[1]===title));}
   calls.length=0;drawTelevisionFrame(ctx,{power:false},0);assert.ok(!calls.some(c=>c[0]==='fillText'));
 });
 
@@ -115,4 +116,15 @@ test('soft lamp pools clip to the actual floor perimeter instead of floating bey
   const pool=f.models[0].group.children.find(n=>n.isMesh&&n.userData.objectRuntime),vertices=pool.geometry.attributes.position,p=new THREE.Vector3();assert.ok(vertices.count>0);
   for(let n=0;n<vertices.count;n++){p.fromBufferAttribute(vertices,n).applyMatrix4(pool.matrixWorld);assert.ok(p.x<=2+1e-6&&p.x>=-2-1e-6);assert.ok(p.z<=2+1e-6&&p.z>=-2-1e-6);assert.ok(Math.abs(p.y-.105)<1e-6);}
   const old=pool.geometry;f.runtime.sync(f.commerce,f.models,0);assert.equal(pool.geometry,old,'steady clock/TV frames reuse the clipped pool geometry');
+});
+
+test('all twelve original TV programmes produce distinct animated frames without loading external media',()=>{
+  const frames=[],context=()=>{const calls=[],ctx=new Proxy({}, {get:(target,key)=>target[key]??((...args)=>calls.push([key,...args])),set:(target,key,value)=>(calls.push(['set',key,value]),target[key]=value,true)});return{ctx,calls};};
+  assert.equal(TELEVISION_CHANNEL_TITLES.length,12);
+  for(let channel=0;channel<12;channel++){
+    const a=context(),b=context();drawTelevisionFrame(a.ctx,{power:true,channel},1234);drawTelevisionFrame(b.ctx,{power:true,channel},3234);
+    assert.notEqual(JSON.stringify(a.calls),JSON.stringify(b.calls),`channel ${channel} must animate`);frames.push(JSON.stringify(a.calls));
+    assert.ok(a.calls.some(call=>call[0]==='fillText'&&call[1]===TELEVISION_CHANNEL_TITLES[channel]));
+  }
+  assert.equal(new Set(frames).size,12);
 });

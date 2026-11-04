@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {createStudentHomeRobotController} from '../public/js/student-home-robot-controller.js';
 import {createHomeState,applyChange} from '../public/js/home-engine.js';
-import {planRobotTelevision} from '../public/js/student-home-robot-interactions.js';
+import {planRobotTelevision,planRobotSofaTelevision,isRobotTelevisionSeatKind} from '../public/js/student-home-robot-interactions.js';
+import {ROBOT_SEAT_KINDS} from '../public/js/home-furniture-capabilities.js';
 import {isRobotActivityShape,normalizeRobotActivity} from '../public/js/student-home-robot-state.js';
 import {createLuxuryItem} from '../public/js/home-luxury-models.js';
 import {getFurniturePose} from '../public/js/home-engine.js';
@@ -17,9 +18,9 @@ before(async()=>{
  oldDocument=globalThis.document;oldRaf=globalThis.requestAnimationFrame;oldCancel=globalThis.cancelAnimationFrame;globalThis.document=new EventTarget();document.hidden=false;frames=new Map();globalThis.requestAnimationFrame=fn=>{frames.set(++serial,fn);return serial;};globalThis.cancelAnimationFrame=id=>frames.delete(id);
 });
 after(()=>{globalThis.document=oldDocument;globalThis.requestAnimationFrame=oldRaf;globalThis.cancelAnimationFrame=oldCancel;});
-function world({rotation=180,seat=true,kind='ipRetroTelevision',wall=false}={}){
+function world({rotation=180,seat=true,seatKind='sofa',kind='ipRetroTelevision',wall=false}={}){
  let home=createHomeState({profile:'account',slab:{rects:[{minX:-6,minZ:-6,width:12,depth:12}]}});
- for(const item of[{id:'tv',kind,x:0,z:-2.5,rotation:0},...(seat?[{id:'seat',kind:'sofa',x:0,z:1.8,rotation}]:[]),...(wall?[{id:'obstacle',kind:'archedWardrobe',x:0,z:-.8,rotation:0}]:[])]){const result=applyChange(home,{type:'furniture',...item});assert.equal(result.ok,true,result.error);home=result.state;}return home;
+ for(const item of[{id:'tv',kind,x:0,z:-2.5,rotation:0},...(seat?[{id:'seat',kind:seatKind,x:0,z:1.8,rotation}]:[]),...(wall?[{id:'obstacle',kind:'archedWardrobe',x:0,z:-.8,rotation:0}]:[])]){const result=applyChange(home,{type:'furniture',...item});assert.equal(result.ok,true,result.error);home=result.state;}return home;
 }
 function advance(count=1){for(let n=0;n<count&&frames.size;n++){const callbacks=[...frames.values()];frames.clear();for(const callback of callbacks)callback(performance.now()+50);}}
 function until(c,condition,limit=2200){for(let n=0;n<limit;n++){if(condition(c.getState()))return;advance();}assert.fail(JSON.stringify(c.getState()));}
@@ -47,7 +48,7 @@ for(const phase of ['to-remote','pickup','to-seat','sit','watch','rise','to-retu
 });
 
 test('the watch choice explains absent, backwards or blocked seating and never places a robot through the television',t=>{
- for(const options of[{seat:false},{rotation:0},{wall:true}]){const home=world(options),c=actor(t,home),before=c.getState().point,result=c.interact('furniture:tv','watch');assert.equal(result.ok,false);assert.match(result.error,/DisplayText0779|DisplayText1465|DisplayText4634/);assert.deepEqual(c.getState().point,before);}
+ for(const [options,reason,message] of[[{seat:false},'missing-seat',/DisplayText5048.*DisplayText5049/],[{rotation:0},'seat-facing',/DisplayText5049.*DisplayText5050/],[{wall:true},'view-blocked',/DisplayText5051.*DisplayText5052/]]){const home=world(options),c=actor(t,home),before=c.getState().point,result=c.interact('furniture:tv','watch');assert.equal(result.ok,false);assert.match(result.error,message);const plan=planRobotTelevision(home,'tv',{navigation:c.getState().navigation});assert.equal(plan.reason,reason);assert.deepEqual(c.getState().point,before);}
 });
 
 test('sold or removed TV/seat and opposite-facing replacement invalidate watch saves; A/B clearing releases the remote without commanding B',t=>{
@@ -66,4 +67,43 @@ for(const kind of['ipRetroTelevision','ipWideTelevision','ipCinemaTelevision'])t
  for(const rotation of[90,180,270]){const base=world({kind}),a=rotation*Math.PI/180,home={...base,furniture:base.furniture.map(item=>({...item,x:item.x*Math.cos(a)+item.z*Math.sin(a),z:-item.x*Math.sin(a)+item.z*Math.cos(a),rotation:(item.rotation+rotation)%360}))};
   const c=actor(t,home);assert.equal(c.interact('furniture:tv','watch').ok,true);until(c,s=>s.phase==='watch'&&!s.scheduled);const saved=c.captureActivity({emit:false});assert.equal(isRobotActivityTargetValid(record(home),saved),true);const fresh=actor(t,home);fresh.setAvatar({activity:saved,equipped:{}});compare(pose(c),pose(fresh));c.setVisible(false);fresh.setVisible(false);
  }
+});
+
+test('the real held remote reaches the new aquarium channel after Music and wraps channel twelve to one',t=>{
+  const home=world(),requests=[],c=actor(t,home,{onObjectAction:request=>{requests.push(request);return{ok:true};}});
+  assert.equal(c.interact('furniture:tv','watch').ok,true);until(c,state=>state.phase==='watch'&&!state.scheduled);
+  for(const[from,to]of [[3,4],[11,0]]){
+    const commerce=record(home).commerce;commerce.version=6;commerce.objectStates={tv:{power:true,channel:from,volume:1}};c.setObjectContext(commerce);
+    assert.equal(c.changeTelevisionChannel('tv').ok,true);until(c,state=>state.phase==='watch'&&!state.scheduled);
+    assert.equal(requests.at(-1).patch.channel,to);assert.equal(c.getState().television.remoteHeld,true);assert.equal(c.group.getObjectByName('robot-television-remote').visible,true);
+  }
+});
+
+const rotateHome=(home,degrees)=>{const a=degrees*Math.PI/180;return{...home,furniture:home.furniture.map(item=>({...item,x:item.x*Math.cos(a)+item.z*Math.sin(a),z:-item.x*Math.sin(a)+item.z*Math.cos(a),rotation:(item.rotation+degrees)%360}))};};
+for(const televisionKind of['ipRetroTelevision','ipWideTelevision','ipCinemaTelevision'])test(`${televisionKind} recognizes every shared seated catalogue capability at all four rotations`,()=>{
+  for(const seatKind of ROBOT_SEAT_KINDS)for(const rotation of[0,90,180,270]){
+    const home=rotateHome(world({kind:televisionKind,seatKind}),rotation),navigation={radius:.65,height:1.6},plan=planRobotTelevision(home,'tv',{navigation});
+    assert.equal(isRobotTelevisionSeatKind(seatKind),true);assert.equal(plan.ok,true,`${televisionKind} / ${seatKind} / ${rotation}: ${plan.error}`);assert.equal(plan.seatId,'seat');
+    const launchedFromSeat=planRobotSofaTelevision(home,'seat',{navigation});assert.equal(launchedFromSeat.ok,true);assert.equal(launchedFromSeat.seatId,'seat');
+  }
+  for(const invalid of['compactToilet','bdSmartToilet','bed','kitchenSink','ipWideTelevision'])assert.equal(isRobotTelevisionSeatKind(invalid),false);
+});
+
+for(const kind of['ipRetroTelevision','ipWideTelevision','ipCinemaTelevision'])test(`${kind} and the reported curved sofa fetch, sit, face the screen and restore using the real v4 robot in every orientation`,t=>{
+  for(const rotation of[0,90,180,270]){
+    const home=rotateHome(world({kind,seatKind:'lcCurvedSofa'}),rotation),before=JSON.stringify(home),commands=[],c=actor(t,home,{onObjectAction:request=>{commands.push(request);return{ok:true};}});
+    const choice=c.interactions('furniture:tv').find(row=>row.id==='watch');assert.ok(choice);assert.notEqual(choice.disabled,true,`${kind}/${rotation}: ${choice.reason}`);
+    assert.equal(c.interact('furniture:tv','watch').ok,true);until(c,state=>state.phase==='watch'&&!state.scheduled);
+    const saved=c.captureActivity({emit:false});assert.equal(saved.kind,'watch');assert.equal(saved.seatId,'seat');assert.equal(isRobotActivityShape(saved),true);assert.equal(isRobotActivityTargetValid(record(home),saved),true,'the same seat is accepted by authoritative save validation');
+    const sofa=home.furniture.find(row=>row.id==='seat'),tv=home.furniture.find(row=>row.id==='tv'),robot=c.group.getObjectByName('robot-avatar'),forward=new THREE.Vector3(0,0,1).applyQuaternion(robot.quaternion),toScreen=new THREE.Vector3(tv.x-sofa.x,0,tv.z-sofa.z).normalize();
+    assert.ok(forward.dot(toScreen)>.99,'settled robot faces the screen, never the sofa back');assert.deepEqual(commands.map(request=>request.patch),[{power:true}]);assert.equal(pose(c).remote,true);
+    const restoreCommands=[],fresh=actor(t,home,{onObjectAction:request=>restoreCommands.push(request)});fresh.setAvatar({activity:saved,equipped:{}});compare(pose(c),pose(fresh));assert.deepEqual(restoreCommands,[],'restoring a seated viewer does not switch/re-command the television');assert.equal(JSON.stringify(home),before,'planning, movement and restore never move furniture or alter the owned layout');c.setVisible(false);fresh.setVisible(false);
+  }
+});
+
+test('a selected seat preserves the exact actionable TV failure instead of asking for another sofa',()=>{
+  const navigation={radius:.65,height:1.6};
+  for(const [home,reason,message]of[[world({rotation:0}),'seat-facing',/DisplayText5050/],[world({wall:true}),'remote-access',/DisplayText3986.*DisplayText4634/]]){
+    const direct=planRobotTelevision(home,'tv',{navigation,seatId:'seat'}),fromSeat=planRobotSofaTelevision(home,'seat',{navigation});assert.equal(direct.reason,reason);assert.deepEqual(fromSeat,direct);assert.match(fromSeat.error,message);
+  }
 });

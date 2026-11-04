@@ -184,7 +184,8 @@ test('ledger validation rejects forged credit, duplicate sales and missing tombs
 });
 
 test('resale transaction IDs are reserved across purchases, area and construction actions',()=>{
-  let state=buy(fresh());state=accepted(sellOwnedItem(state,state.owned[0].id,'sale-settlement'));
+  const home=createHomeState();home.placements.plant={x:1.8,z:1.3};
+  let state=buy(accepted(createCommerceState(home)));state=accepted(sellOwnedItem(state,state.owned[0].id,'sale-settlement'));
   const cart=accepted(setCartQuantity(state,'plant-classic',1));
   rejected(checkoutCart(cart,'sale-settlement'),cart,/DisplayText4644/);
   rejected(purchaseFloorConstruction(state,{storey:0,rects:[{minX:-2.8,minZ:-2.6,width:8,depth:5.2}]},'sale-settlement'),state,/DisplayText4644/);

@@ -1,6 +1,6 @@
 {
-  "edition": "source-review-v2-offline-look-dev",
-  "totalFiles": 749,
+  "edition": "source-review-v3-read-only-share",
+  "totalFiles": 823,
   "files": [
     {
       "path": ".gitignore",
@@ -8,7 +8,79 @@
     },
     {
       "path": "CORE_TESTS.json",
-      "bytes": 3224
+      "bytes": 3810
+    },
+    {
+      "path": "FILE_INDEX.json",
+      "bytes": 84311
+    },
+    {
+      "path": "LOOK_DEV_REVIEW.md",
+      "bytes": 5765
+    },
+    {
+      "path": "MODULE_MAP.md",
+      "bytes": 7024
+    },
+    {
+      "path": "NORMALIZATION_NOTES.md",
+      "bytes": 3229
+    },
+    {
+      "path": "PACKAGE_AUDIT.json",
+      "bytes": 13548
+    },
+    {
+      "path": "PROJECT_BRIEF.md",
+      "bytes": 30756
+    },
+    {
+      "path": "README.md",
+      "bytes": 10821
+    },
+    {
+      "path": "REVIEW_TEST_LIMITS.md",
+      "bytes": 4863
+    },
+    {
+      "path": "VENDORED_THREE.md",
+      "bytes": 2018
+    },
+    {
+      "path": "WARM_FLOORS_REVIEW.md",
+      "bytes": 6545
+    },
+    {
+      "path": "docs/MULTIFLOOR_ROAM_HANDOFF.md",
+      "bytes": 4487
+    },
+    {
+      "path": "docs/ROAM_FIXES_HANDOFF.md",
+      "bytes": 2838
+    },
+    {
+      "path": "docs/ROAM_HANDOFF.md",
+      "bytes": 12721
+    },
+    {
+      "path": "docs/SHARE_VIEW_HANDOFF.md",
+      "bytes": 7946
+    },
+    {
+      "path": "docs/WALL_CUTAWAY_HANDOFF.md",
+      "bytes": 9698
+    },
+    {
+      "path": "docs/WALL_SYSTEM_HANDOFF.md",
+      "bytes": 7170
+    },
+    {
+      "path": "docs/WARM_UI_HANDOFF.md",
+      "bytes": 11256
+    },
+    {
+      "path": "docs/look-dev-captures/README.md",
+      "bytes": 1427
     },
     {
       "path": "docs/look-dev-captures/default--bathroom.png",
@@ -35,20 +107,16 @@
       "bytes": 17111
     },
     {
-      "path": "docs/look-dev-captures/README.md",
-      "bytes": 1427
-    },
-    {
-      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
-      "bytes": 2267373
-    },
-    {
       "path": "docs/look-dev-captures/review-2026-10-29/IMPORT_PROVENANCE.json",
       "bytes": 5807
     },
     {
       "path": "docs/look-dev-captures/review-2026-10-29/README.md",
       "bytes": 1908
+    },
+    {
+      "path": "docs/look-dev-captures/review-2026-10-29/compare-default-toy-v6.png",
+      "bytes": 2267373
     },
     {
       "path": "docs/look-dev-captures/review-2026-10-29/tiles-kitchen-sheet.png",
@@ -151,20 +219,20 @@
       "bytes": 4933
     },
     {
-      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/house.b64.txt",
-      "bytes": 6984140
-    },
-    {
-      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/index.html",
-      "bytes": 5335
-    },
-    {
       "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/LICENSE.three",
       "bytes": 1081
     },
     {
       "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/OrbitControls.js",
       "bytes": 40755
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/house.b64.txt",
+      "bytes": 6984140
+    },
+    {
+      "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/index.html",
+      "bytes": 5335
     },
     {
       "path": "docs/look-dev-captures/review-roam-2026-10-30/prototype/roam-site/roam.js",
@@ -319,6 +387,10 @@
       "bytes": 11610
     },
     {
+      "path": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
+      "bytes": 1286
+    },
+    {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/matrix-kitchen.png",
       "bytes": 839138
     },
@@ -333,10 +405,6 @@
     {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/prototype/wall-proto.patch",
       "bytes": 5607
-    },
-    {
-      "path": "docs/look-dev-captures/review-walls-2026-10-30/README.md",
-      "bytes": 1286
     },
     {
       "path": "docs/look-dev-captures/review-walls-2026-10-30/renders/dots-c1--kitchen.png",
@@ -487,6 +555,10 @@
       "bytes": 2677
     },
     {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
+      "bytes": 8933
+    },
+    {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/acceptance-plan.json",
       "bytes": 869
     },
@@ -525,6 +597,10 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/baseline-verification.json",
       "bytes": 1530
+    },
+    {
+      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/REPORT.md",
+      "bytes": 6792
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/actual-matrix-kitchen.png",
@@ -567,10 +643,6 @@
       "bytes": 662598
     },
     {
-      "path": "docs/look-dev-captures/warm-walls-2026-10-30/comparison/REPORT.md",
-      "bytes": 6792
-    },
-    {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/five-views/warm-walls--bathroom.png",
       "bytes": 832375
     },
@@ -593,10 +665,6 @@
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/fresh-clone-verification.json",
       "bytes": 1299
-    },
-    {
-      "path": "docs/look-dev-captures/warm-walls-2026-10-30/README.md",
-      "bytes": 8933
     },
     {
       "path": "docs/look-dev-captures/warm-walls-2026-10-30/render-readbacks.json",
@@ -731,8 +799,8 @@
       "bytes": 3557
     },
     {
-      "path": "docs/MULTIFLOOR_ROAM_HANDOFF.md",
-      "bytes": 4487
+      "path": "docs/qa/direct-door-entry-2026-10-30/README.md",
+      "bytes": 2382
     },
     {
       "path": "docs/qa/direct-door-entry-2026-10-30/after-direct-door.png",
@@ -745,10 +813,6 @@
     {
       "path": "docs/qa/direct-door-entry-2026-10-30/browser-proof.json",
       "bytes": 293
-    },
-    {
-      "path": "docs/qa/direct-door-entry-2026-10-30/README.md",
-      "bytes": 2382
     },
     {
       "path": "docs/qa/direct-door-entry-2026-10-30/restored-estate.png",
@@ -767,12 +831,12 @@
       "bytes": 656742
     },
     {
-      "path": "docs/qa/multifloor-roam-2026-10-30/privacy.json",
-      "bytes": 373
-    },
-    {
       "path": "docs/qa/multifloor-roam-2026-10-30/README.md",
       "bytes": 1444
+    },
+    {
+      "path": "docs/qa/multifloor-roam-2026-10-30/privacy.json",
+      "bytes": 373
     },
     {
       "path": "docs/qa/multifloor-roam-2026-10-30/tests.json",
@@ -783,12 +847,24 @@
       "bytes": 5882
     },
     {
-      "path": "docs/ROAM_FIXES_HANDOFF.md",
-      "bytes": 2838
+      "path": "docs/qa/share-view-2026-11-04/browser-receipt.json",
+      "bytes": 4447
     },
     {
-      "path": "docs/ROAM_HANDOFF.md",
-      "bytes": 12721
+      "path": "docs/qa/share-view-2026-11-04/browser-smoke.cjs",
+      "bytes": 7445
+    },
+    {
+      "path": "docs/qa/share-view-2026-11-04/focus.png",
+      "bytes": 573224
+    },
+    {
+      "path": "docs/qa/share-view-2026-11-04/overview.png",
+      "bytes": 248442
+    },
+    {
+      "path": "docs/roam-2026-10-30-fixes/README.md",
+      "bytes": 7794
     },
     {
       "path": "docs/roam-2026-10-30-fixes/contact-sheet.png",
@@ -935,10 +1011,6 @@
       "bytes": 8883
     },
     {
-      "path": "docs/roam-2026-10-30-fixes/README.md",
-      "bytes": 7794
-    },
-    {
       "path": "docs/roam-2026-10-30-fixes/renders/01-exterior-orbit.json",
       "bytes": 14149
     },
@@ -1075,6 +1147,10 @@
       "bytes": 760039
     },
     {
+      "path": "docs/roam-2026-10-30/README.md",
+      "bytes": 718
+    },
+    {
       "path": "docs/roam-2026-10-30/contact-sheet.png",
       "bytes": 1232088
     },
@@ -1165,10 +1241,6 @@
     {
       "path": "docs/roam-2026-10-30/measurements/test-summary.json",
       "bytes": 8599
-    },
-    {
-      "path": "docs/roam-2026-10-30/README.md",
-      "bytes": 718
     },
     {
       "path": "docs/roam-2026-10-30/renders/01-exterior-orbit.png",
@@ -1287,6 +1359,14 @@
       "bytes": 961451
     },
     {
+      "path": "docs/ui-warm-2026-10-30/README.md",
+      "bytes": 4670
+    },
+    {
+      "path": "docs/ui-warm-2026-10-30/comparison/REPORT.md",
+      "bytes": 8757
+    },
+    {
       "path": "docs/ui-warm-2026-10-30/comparison/layout-checks.json",
       "bytes": 5344
     },
@@ -1327,10 +1407,6 @@
       "bytes": 6199
     },
     {
-      "path": "docs/ui-warm-2026-10-30/comparison/REPORT.md",
-      "bytes": 8757
-    },
-    {
       "path": "docs/ui-warm-2026-10-30/default-toy-ui-regression.json",
       "bytes": 783
     },
@@ -1349,10 +1425,6 @@
     {
       "path": "docs/ui-warm-2026-10-30/public-ui-readback.json",
       "bytes": 2879
-    },
-    {
-      "path": "docs/ui-warm-2026-10-30/README.md",
-      "bytes": 4670
     },
     {
       "path": "docs/ui-warm-2026-10-30/screenshots/building-1440.png",
@@ -1395,12 +1467,8 @@
       "bytes": 9792
     },
     {
-      "path": "docs/WALL_CUTAWAY_HANDOFF.md",
-      "bytes": 9698
-    },
-    {
-      "path": "docs/WALL_SYSTEM_HANDOFF.md",
-      "bytes": 7170
+      "path": "docs/wall-cutaway-2026-10-30/README.md",
+      "bytes": 4092
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/application-building-scene.png",
@@ -1419,6 +1487,10 @@
       "bytes": 607300
     },
     {
+      "path": "docs/wall-cutaway-2026-10-30/comparison/REPORT.md",
+      "bytes": 5219
+    },
+    {
       "path": "docs/wall-cutaway-2026-10-30/comparison/evidence.json",
       "bytes": 3640
     },
@@ -1429,10 +1501,6 @@
     {
       "path": "docs/wall-cutaway-2026-10-30/comparison/pair-warm-walls-native.png",
       "bytes": 2268585
-    },
-    {
-      "path": "docs/wall-cutaway-2026-10-30/comparison/REPORT.md",
-      "bytes": 5219
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/fresh-clone.json",
@@ -1453,10 +1521,6 @@
     {
       "path": "docs/wall-cutaway-2026-10-30/public-test-baseline.json",
       "bytes": 11166
-    },
-    {
-      "path": "docs/wall-cutaway-2026-10-30/README.md",
-      "bytes": 4092
     },
     {
       "path": "docs/wall-cutaway-2026-10-30/render-regression.json",
@@ -1495,8 +1559,8 @@
       "bytes": 1004669
     },
     {
-      "path": "docs/WARM_UI_HANDOFF.md",
-      "bytes": 11256
+      "path": "docs/warm-floor-captures/README.md",
+      "bytes": 3600
     },
     {
       "path": "docs/warm-floor-captures/app--bedroom--wood-cherry.png",
@@ -1563,10 +1627,6 @@
       "bytes": 1530
     },
     {
-      "path": "docs/warm-floor-captures/README.md",
-      "bytes": 3600
-    },
-    {
       "path": "docs/warm-floor-captures/verification.json",
       "bytes": 1937
     },
@@ -1593,6 +1653,14 @@
     {
       "path": "docs/warm-floor-captures/warm-render-readback.json",
       "bytes": 19748
+    },
+    {
+      "path": "docs/warm-v6-validation/README.md",
+      "bytes": 7163
+    },
+    {
+      "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
+      "bytes": 2782
     },
     {
       "path": "docs/warm-v6-validation/app/tile-blue.png",
@@ -1663,10 +1731,6 @@
       "bytes": 751
     },
     {
-      "path": "docs/warm-v6-validation/README.md",
-      "bytes": 7163
-    },
-    {
       "path": "docs/warm-v6-validation/render-readback.json",
       "bytes": 19760
     },
@@ -1705,10 +1769,6 @@
     {
       "path": "docs/warm-v6-validation/verification.json",
       "bytes": 1439
-    },
-    {
-      "path": "docs/warm-v6-validation/VISUAL_REVIEW.md",
-      "bytes": 2782
     },
     {
       "path": "docs/warm-v6-validation/visual-validation.json",
@@ -1759,28 +1819,8 @@
       "bytes": 1126258
     },
     {
-      "path": "FILE_INDEX.json",
-      "bytes": 77910
-    },
-    {
       "path": "game.manifest.json",
       "bytes": 1681
-    },
-    {
-      "path": "LOOK_DEV_REVIEW.md",
-      "bytes": 5765
-    },
-    {
-      "path": "MODULE_MAP.md",
-      "bytes": 5462
-    },
-    {
-      "path": "NORMALIZATION_NOTES.md",
-      "bytes": 2304
-    },
-    {
-      "path": "PACKAGE_AUDIT.json",
-      "bytes": 8448
     },
     {
       "path": "package-lock.json",
@@ -1788,15 +1828,19 @@
     },
     {
       "path": "package.json",
-      "bytes": 872
-    },
-    {
-      "path": "PROJECT_BRIEF.md",
-      "bytes": 29622
+      "bytes": 1423
     },
     {
       "path": "public/assets/asset-lab/robot-v1/models/v4/robot.glb",
       "bytes": 890024
+    },
+    {
+      "path": "public/assets/home-share/sample.json",
+      "bytes": 24603
+    },
+    {
+      "path": "public/assets/home-share/share-bunny-v2.jpg",
+      "bytes": 73532
     },
     {
       "path": "public/assets/quick-actions/sit.webp",
@@ -1820,15 +1864,31 @@
     },
     {
       "path": "public/home-roam.css",
-      "bytes": 3776
+      "bytes": 8660
     },
     {
       "path": "public/home-room-planner.css",
       "bytes": 3559
     },
     {
+      "path": "public/home-share-view.css",
+      "bytes": 4803
+    },
+    {
+      "path": "public/home-share.css",
+      "bytes": 2965
+    },
+    {
+      "path": "public/home-share.html",
+      "bytes": 3039
+    },
+    {
       "path": "public/home-shop.css",
       "bytes": 32857
+    },
+    {
+      "path": "public/js/home-architecture-layout.js",
+      "bytes": 5652
     },
     {
       "path": "public/js/home-avatar-catalog.js",
@@ -1844,7 +1904,7 @@
     },
     {
       "path": "public/js/home-avatar-navigation.js",
-      "bytes": 18868
+      "bytes": 19595
     },
     {
       "path": "public/js/home-avatar-state.js",
@@ -1860,7 +1920,7 @@
     },
     {
       "path": "public/js/home-building-collision.js",
-      "bytes": 12269
+      "bytes": 12357
     },
     {
       "path": "public/js/home-camera-input.js",
@@ -1872,7 +1932,19 @@
     },
     {
       "path": "public/js/home-commerce.js",
-      "bytes": 83564
+      "bytes": 93597
+    },
+    {
+      "path": "public/js/home-computer-collection.js",
+      "bytes": 2214
+    },
+    {
+      "path": "public/js/home-computer-display.js",
+      "bytes": 5903
+    },
+    {
+      "path": "public/js/home-computer-models.js",
+      "bytes": 11047
     },
     {
       "path": "public/js/home-construction-grid.js",
@@ -1887,32 +1959,72 @@
       "bytes": 6024
     },
     {
+      "path": "public/js/home-cooking-effects.js",
+      "bytes": 3903
+    },
+    {
+      "path": "public/js/home-cooking-pot.js",
+      "bytes": 2641
+    },
+    {
+      "path": "public/js/home-cooking-stations.js",
+      "bytes": 2442
+    },
+    {
       "path": "public/js/home-decor-models.js",
       "bytes": 28945
     },
     {
+      "path": "public/js/home-elevator-keypad.js",
+      "bytes": 2710
+    },
+    {
       "path": "public/js/home-elevator-model.js",
-      "bytes": 9295
+      "bytes": 11696
+    },
+    {
+      "path": "public/js/home-elevator-placeholder.js",
+      "bytes": 2144
     },
     {
       "path": "public/js/home-elevator-products.js",
       "bytes": 559
     },
     {
+      "path": "public/js/home-elevator-stack.js",
+      "bytes": 1669
+    },
+    {
+      "path": "public/js/home-elevator-transit.js",
+      "bytes": 14123
+    },
+    {
       "path": "public/js/home-engine.js",
-      "bytes": 69059
+      "bytes": 69461
+    },
+    {
+      "path": "public/js/home-entrance-clearance.js",
+      "bytes": 4290
     },
     {
       "path": "public/js/home-estate-landmarks.js",
-      "bytes": 16571
+      "bytes": 17124
     },
     {
       "path": "public/js/home-estate-manor.js",
-      "bytes": 33973
+      "bytes": 34324
     },
     {
       "path": "public/js/home-estate-outdoor.js",
       "bytes": 41356
+    },
+    {
+      "path": "public/js/home-exterior-elevator-door.js",
+      "bytes": 855
+    },
+    {
+      "path": "public/js/home-exterior-elevator-model.js",
+      "bytes": 8278
     },
     {
       "path": "public/js/home-feedback.js",
@@ -1924,7 +2036,7 @@
     },
     {
       "path": "public/js/home-floor-planner.js",
-      "bytes": 19802
+      "bytes": 19951
     },
     {
       "path": "public/js/home-floor-textures.js",
@@ -1932,7 +2044,7 @@
     },
     {
       "path": "public/js/home-furniture-capabilities.js",
-      "bytes": 942
+      "bytes": 1335
     },
     {
       "path": "public/js/home-furniture-models.js",
@@ -1940,7 +2052,7 @@
     },
     {
       "path": "public/js/home-house-overview.js",
-      "bytes": 13824
+      "bytes": 14471
     },
     {
       "path": "public/js/home-household-collection.js",
@@ -1957,6 +2069,10 @@
     {
       "path": "public/js/home-interactive-models.js",
       "bytes": 6684
+    },
+    {
+      "path": "public/js/home-interior-lighting.js",
+      "bytes": 3812
     },
     {
       "path": "public/js/home-inventory-menu.js",
@@ -1992,11 +2108,15 @@
     },
     {
       "path": "public/js/home-luxury-models.js",
-      "bytes": 55913
+      "bytes": 56112
     },
     {
       "path": "public/js/home-manor-layout.js",
       "bytes": 5612
+    },
+    {
+      "path": "public/js/home-material-maps.js",
+      "bytes": 2788
     },
     {
       "path": "public/js/home-modular-kitchen-collection.js",
@@ -2008,7 +2128,7 @@
     },
     {
       "path": "public/js/home-object-state.js",
-      "bytes": 4930
+      "bytes": 5512
     },
     {
       "path": "public/js/home-outdoor-catalog.js",
@@ -2020,7 +2140,7 @@
     },
     {
       "path": "public/js/home-outdoor-placement.js",
-      "bytes": 4872
+      "bytes": 5204
     },
     {
       "path": "public/js/home-outdoor-world.js",
@@ -2043,20 +2163,40 @@
       "bytes": 29573
     },
     {
+      "path": "public/js/home-roam-access.js",
+      "bytes": 13409
+    },
+    {
       "path": "public/js/home-roam-audio.js",
       "bytes": 3805
     },
     {
+      "path": "public/js/home-roam-cabin-ui.js",
+      "bytes": 8378
+    },
+    {
       "path": "public/js/home-roam-controller.js",
-      "bytes": 17690
+      "bytes": 23780
     },
     {
       "path": "public/js/home-roam-copy.js",
-      "bytes": 3849
+      "bytes": 6232
     },
     {
       "path": "public/js/home-roam-daylight.js",
       "bytes": 4041
+    },
+    {
+      "path": "public/js/home-roam-elevator-cabin.js",
+      "bytes": 13770
+    },
+    {
+      "path": "public/js/home-roam-elevator-menu.js",
+      "bytes": 9306
+    },
+    {
+      "path": "public/js/home-roam-elevator-panel.js",
+      "bytes": 9986
     },
     {
       "path": "public/js/home-roam-geometry.js",
@@ -2064,23 +2204,43 @@
     },
     {
       "path": "public/js/home-roam-interactions.js",
-      "bytes": 26061
+      "bytes": 27188
+    },
+    {
+      "path": "public/js/home-roam-interior-entry.js",
+      "bytes": 7954
+    },
+    {
+      "path": "public/js/home-roam-landmark-doors.js",
+      "bytes": 3700
     },
     {
       "path": "public/js/home-roam-model.js",
-      "bytes": 14967
+      "bytes": 23075
+    },
+    {
+      "path": "public/js/home-roam-outdoor.js",
+      "bytes": 5043
     },
     {
       "path": "public/js/home-roam-transport.js",
-      "bytes": 4718
+      "bytes": 7770
+    },
+    {
+      "path": "public/js/home-roam-trip.js",
+      "bytes": 5895
     },
     {
       "path": "public/js/home-roam-ui.js",
-      "bytes": 7094
+      "bytes": 8746
+    },
+    {
+      "path": "public/js/home-roam-view-only.js",
+      "bytes": 905
     },
     {
       "path": "public/js/home-roam-world.js",
-      "bytes": 18686
+      "bytes": 33971
     },
     {
       "path": "public/js/home-roof-candidates.js",
@@ -2092,7 +2252,7 @@
     },
     {
       "path": "public/js/home-room-expansion.js",
-      "bytes": 42503
+      "bytes": 47316
     },
     {
       "path": "public/js/home-room-planner.js",
@@ -2116,19 +2276,47 @@
     },
     {
       "path": "public/js/home-scene.js",
-      "bytes": 115504
+      "bytes": 135568
+    },
+    {
+      "path": "public/js/home-share-controller.js",
+      "bytes": 13214
+    },
+    {
+      "path": "public/js/home-share-copy.js",
+      "bytes": 655
+    },
+    {
+      "path": "public/js/home-share-model.js",
+      "bytes": 19039
+    },
+    {
+      "path": "public/js/home-share-page.js",
+      "bytes": 9764
+    },
+    {
+      "path": "public/js/home-share-ui.js",
+      "bytes": 4907
+    },
+    {
+      "path": "public/js/home-share-wechat.js",
+      "bytes": 9840
+    },
+    {
+      "path": "public/js/home-share-world.js",
+      "bytes": 7361
     },
     {
       "path": "public/js/home-shop-browse.js",
-      "bytes": 9638
+      "bytes": 9712
     },
     {
       "path": "public/js/home-shop-catalog.js",
-      "bytes": 16674
+      "bytes": 16769
     },
     {
       "path": "public/js/home-shop-rooms.js",
-      "bytes": 8329
+      "bytes": 8347
     },
     {
       "path": "public/js/home-shop-ui.js",
@@ -2148,11 +2336,11 @@
     },
     {
       "path": "public/js/home-staircase-shape.js",
-      "bytes": 3527
+      "bytes": 7517
     },
     {
       "path": "public/js/home-staircase.js",
-      "bytes": 9481
+      "bytes": 9548
     },
     {
       "path": "public/js/home-static-upgrades.js",
@@ -2163,8 +2351,12 @@
       "bytes": 895
     },
     {
+      "path": "public/js/home-television-channels.js",
+      "bytes": 5715
+    },
+    {
       "path": "public/js/home-theme.js",
-      "bytes": 6998
+      "bytes": 7094
     },
     {
       "path": "public/js/home-utility-daily-collection.js",
@@ -2196,7 +2388,11 @@
     },
     {
       "path": "public/js/robot-avatar.js",
-      "bytes": 32707
+      "bytes": 34960
+    },
+    {
+      "path": "public/js/robot-proportions.js",
+      "bytes": 4820
     },
     {
       "path": "public/js/robot-wardrobe-catalog.js",
@@ -2204,7 +2400,7 @@
     },
     {
       "path": "public/js/robot-wardrobe.js",
-      "bytes": 14212
+      "bytes": 15973
     },
     {
       "path": "public/js/roof-review.js",
@@ -2220,7 +2416,11 @@
     },
     {
       "path": "public/js/student-home-editor.js",
-      "bytes": 57242
+      "bytes": 64622
+    },
+    {
+      "path": "public/js/student-home-elevator-camera.js",
+      "bytes": 6219
     },
     {
       "path": "public/js/student-home-floor-menu.js",
@@ -2232,27 +2432,27 @@
     },
     {
       "path": "public/js/student-home-object-menu.js",
-      "bytes": 2038
+      "bytes": 2207
     },
     {
       "path": "public/js/student-home-object-outbox.js",
-      "bytes": 6845
+      "bytes": 6970
     },
     {
       "path": "public/js/student-home-object-runtime.js",
-      "bytes": 17130
+      "bytes": 17673
     },
     {
       "path": "public/js/student-home-quick-action-menu.js",
-      "bytes": 3270
+      "bytes": 3622
     },
     {
       "path": "public/js/student-home-quick-actions.js",
-      "bytes": 8777
+      "bytes": 13861
     },
     {
       "path": "public/js/student-home-robot-controller.js",
-      "bytes": 75370
+      "bytes": 82536
     },
     {
       "path": "public/js/student-home-robot-dance.js",
@@ -2260,19 +2460,19 @@
     },
     {
       "path": "public/js/student-home-robot-elevator.js",
-      "bytes": 7757
+      "bytes": 11377
     },
     {
       "path": "public/js/student-home-robot-football.js",
-      "bytes": 8541
+      "bytes": 9922
     },
     {
       "path": "public/js/student-home-robot-interactions.js",
-      "bytes": 20744
+      "bytes": 33802
     },
     {
       "path": "public/js/student-home-robot-motion.js",
-      "bytes": 3706
+      "bytes": 6401
     },
     {
       "path": "public/js/student-home-robot-outbox.js",
@@ -2284,15 +2484,19 @@
     },
     {
       "path": "public/js/student-home-robot-state.js",
-      "bytes": 7732
+      "bytes": 8122
     },
     {
       "path": "public/js/student-home-robot-swimming.js",
-      "bytes": 14268
+      "bytes": 18642
     },
     {
       "path": "public/js/student-home-scene.js",
       "bytes": 12162
+    },
+    {
+      "path": "public/js/student-home-share-dialog.js",
+      "bytes": 12210
     },
     {
       "path": "public/js/student-home-stage-camera.js",
@@ -2308,7 +2512,7 @@
     },
     {
       "path": "public/js/student-home-thumbnails.js",
-      "bytes": 3514
+      "bytes": 3737
     },
     {
       "path": "public/js/student-home-wardrobe.js",
@@ -2320,11 +2524,11 @@
     },
     {
       "path": "public/js/student-home-world.js",
-      "bytes": 7428
+      "bytes": 7597
     },
     {
       "path": "public/js/student-homes.js",
-      "bytes": 21380
+      "bytes": 24872
     },
     {
       "path": "public/roof-review.css",
@@ -2344,7 +2548,11 @@
     },
     {
       "path": "public/student-home-quick-actions.css",
-      "bytes": 10477
+      "bytes": 14351
+    },
+    {
+      "path": "public/student-home-share.css",
+      "bytes": 4618
     },
     {
       "path": "public/student-home-warm.css",
@@ -2356,15 +2564,11 @@
     },
     {
       "path": "public/student-homes.html",
-      "bytes": 4554
+      "bytes": 4610
     },
     {
-      "path": "README.md",
-      "bytes": 8949
-    },
-    {
-      "path": "REVIEW_TEST_LIMITS.md",
-      "bytes": 3298
+      "path": "scripts/qa/computer-shop-fixture.mjs",
+      "bytes": 2821
     },
     {
       "path": "scripts/qa/look-dev-backdrop.mjs",
@@ -2372,7 +2576,7 @@
     },
     {
       "path": "scripts/qa/look-dev-fixtures.mjs",
-      "bytes": 9530
+      "bytes": 9531
     },
     {
       "path": "scripts/qa/look-dev-preset-safety.mjs",
@@ -2459,12 +2663,36 @@
       "bytes": 23239
     },
     {
+      "path": "scripts/qa/share-view-fixture.mjs",
+      "bytes": 3505
+    },
+    {
+      "path": "scripts/qa/share-view-review.mjs",
+      "bytes": 5596
+    },
+    {
+      "path": "scripts/qa/student-ui-classroom-regression-fixture.mjs",
+      "bytes": 2386
+    },
+    {
+      "path": "scripts/qa/student-ui-elevator-command-fixture.mjs",
+      "bytes": 2591
+    },
+    {
+      "path": "scripts/qa/student-ui-elevator-keypad-fixture.mjs",
+      "bytes": 3992
+    },
+    {
+      "path": "scripts/qa/student-ui-exterior-elevator-fixture.mjs",
+      "bytes": 2119
+    },
+    {
       "path": "scripts/qa/student-ui-multi-floor-fixture.mjs",
-      "bytes": 3464
+      "bytes": 3484
     },
     {
       "path": "scripts/qa/student-ui-review.mjs",
-      "bytes": 7589
+      "bytes": 9759
     },
     {
       "path": "scripts/qa/student-ui-vendor-loader.mjs",
@@ -2480,7 +2708,7 @@
     },
     {
       "path": "server/student-homes/app.mjs",
-      "bytes": 10421
+      "bytes": 14640
     },
     {
       "path": "server/student-homes/cli.mjs",
@@ -2500,23 +2728,43 @@
     },
     {
       "path": "server/student-homes/profile.mjs",
-      "bytes": 3071
+      "bytes": 3430
     },
     {
       "path": "server/student-homes/robot-activity.mjs",
-      "bytes": 6992
+      "bytes": 8123
+    },
+    {
+      "path": "server/student-homes/share-document.mjs",
+      "bytes": 1512
+    },
+    {
+      "path": "server/student-homes/share-page.mjs",
+      "bytes": 596
+    },
+    {
+      "path": "server/student-homes/share-snapshot.mjs",
+      "bytes": 6909
+    },
+    {
+      "path": "server/student-homes/shares.mjs",
+      "bytes": 8604
     },
     {
       "path": "server/student-homes/static-assets.mjs",
-      "bytes": 3034
+      "bytes": 3072
     },
     {
       "path": "server/student-homes/store.mjs",
-      "bytes": 23216
+      "bytes": 24327
     },
     {
       "path": "tests/fixtures/home-shop-dom.mjs",
       "bytes": 4337
+    },
+    {
+      "path": "tests/fixtures/share-proxy.conf",
+      "bytes": 864
     },
     {
       "path": "tests/home-floor-finishes.test.mjs",
@@ -2536,11 +2784,11 @@
     },
     {
       "path": "tests/home-roam-controller.test.mjs",
-      "bytes": 11054
+      "bytes": 29142
     },
     {
       "path": "tests/home-roam-copy.test.mjs",
-      "bytes": 4882
+      "bytes": 5122
     },
     {
       "path": "tests/home-roam-daylight.test.mjs",
@@ -2548,7 +2796,7 @@
     },
     {
       "path": "tests/home-roam-geometry.test.mjs",
-      "bytes": 15472
+      "bytes": 15650
     },
     {
       "path": "tests/home-roam-idle.test.mjs",
@@ -2556,39 +2804,71 @@
     },
     {
       "path": "tests/home-roam-interactions.test.mjs",
-      "bytes": 18473
+      "bytes": 19813
     },
     {
       "path": "tests/home-roam-model-floors.test.mjs",
-      "bytes": 12610
+      "bytes": 25462
     },
     {
       "path": "tests/home-roam-shadow-bootstrap.test.mjs",
-      "bytes": 7448
+      "bytes": 8833
     },
     {
       "path": "tests/home-roam-television.test.mjs",
-      "bytes": 10023
+      "bytes": 10129
     },
     {
       "path": "tests/home-roam-transport-controller.test.mjs",
-      "bytes": 12635
+      "bytes": 18959
     },
     {
       "path": "tests/home-roam-transport.test.mjs",
-      "bytes": 10839
+      "bytes": 17105
     },
     {
       "path": "tests/home-roam-ui.test.mjs",
-      "bytes": 8502
+      "bytes": 18201
     },
     {
       "path": "tests/home-roam-world.test.mjs",
-      "bytes": 11981
+      "bytes": 12132
     },
     {
       "path": "tests/home-scene-door-entry.test.mjs",
-      "bytes": 5137
+      "bytes": 5287
+    },
+    {
+      "path": "tests/home-share-controller.test.mjs",
+      "bytes": 12737
+    },
+    {
+      "path": "tests/home-share-copy.test.mjs",
+      "bytes": 2030
+    },
+    {
+      "path": "tests/home-share-metadata.test.mjs",
+      "bytes": 1234
+    },
+    {
+      "path": "tests/home-share-model.test.mjs",
+      "bytes": 7933
+    },
+    {
+      "path": "tests/home-share-orbit-view.test.mjs",
+      "bytes": 6140
+    },
+    {
+      "path": "tests/home-share-viewer-materials.test.mjs",
+      "bytes": 3509
+    },
+    {
+      "path": "tests/home-share-viewer.test.mjs",
+      "bytes": 14080
+    },
+    {
+      "path": "tests/home-share-wechat.test.mjs",
+      "bytes": 13773
     },
     {
       "path": "tests/home-theme-rooms.test.mjs",
@@ -2616,11 +2896,11 @@
     },
     {
       "path": "tests/look-dev-house.test.mjs",
-      "bytes": 6798
+      "bytes": 6811
     },
     {
       "path": "tests/look-dev-ui.test.mjs",
-      "bytes": 4533
+      "bytes": 4695
     },
     {
       "path": "tests/look-dev-warm-floors.test.mjs",
@@ -2647,12 +2927,16 @@
       "bytes": 5646
     },
     {
+      "path": "tests/share-view-review.test.mjs",
+      "bytes": 3972
+    },
+    {
       "path": "tests/student-home-account-world.test.mjs",
       "bytes": 4125
     },
     {
       "path": "tests/student-home-catalog-growth.test.mjs",
-      "bytes": 12689
+      "bytes": 12732
     },
     {
       "path": "tests/student-home-construction-grid.test.mjs",
@@ -2664,7 +2948,7 @@
     },
     {
       "path": "tests/student-home-elevator-model.test.mjs",
-      "bytes": 10098
+      "bytes": 13053
     },
     {
       "path": "tests/student-home-elevator-shop.test.mjs",
@@ -2672,7 +2956,7 @@
     },
     {
       "path": "tests/student-home-entrance-clearance.test.mjs",
-      "bytes": 7233
+      "bytes": 7390
     },
     {
       "path": "tests/student-home-facade-a.test.mjs",
@@ -2684,7 +2968,7 @@
     },
     {
       "path": "tests/student-home-floor-planner.test.mjs",
-      "bytes": 12433
+      "bytes": 13608
     },
     {
       "path": "tests/student-home-interactive-models.test.mjs",
@@ -2692,7 +2976,7 @@
     },
     {
       "path": "tests/student-home-interactive-shop.test.mjs",
-      "bytes": 1608
+      "bytes": 1859
     },
     {
       "path": "tests/student-home-kitchen-fit.test.mjs",
@@ -2700,7 +2984,7 @@
     },
     {
       "path": "tests/student-home-manor-entrance-picking.test.mjs",
-      "bytes": 9739
+      "bytes": 9970
     },
     {
       "path": "tests/student-home-modular-kitchen-models.test.mjs",
@@ -2708,15 +2992,15 @@
     },
     {
       "path": "tests/student-home-object-outbox.test.mjs",
-      "bytes": 9352
+      "bytes": 15390
     },
     {
       "path": "tests/student-home-object-runtime.test.mjs",
-      "bytes": 12472
+      "bytes": 13420
     },
     {
       "path": "tests/student-home-quick-action-menu.test.mjs",
-      "bytes": 3064
+      "bytes": 3788
     },
     {
       "path": "tests/student-home-quick-actions.test.mjs",
@@ -2732,7 +3016,7 @@
     },
     {
       "path": "tests/student-home-robot-controller.test.mjs",
-      "bytes": 34036
+      "bytes": 45191
     },
     {
       "path": "tests/student-home-robot-dance-controller.test.mjs",
@@ -2744,19 +3028,19 @@
     },
     {
       "path": "tests/student-home-robot-editor.test.mjs",
-      "bytes": 76680
+      "bytes": 99908
     },
     {
       "path": "tests/student-home-robot-elevator-controller.test.mjs",
-      "bytes": 14229
+      "bytes": 17094
     },
     {
       "path": "tests/student-home-robot-elevator.test.mjs",
-      "bytes": 10619
+      "bytes": 13355
     },
     {
       "path": "tests/student-home-robot-football.test.mjs",
-      "bytes": 7032
+      "bytes": 7711
     },
     {
       "path": "tests/student-home-robot-orientation.test.mjs",
@@ -2764,7 +3048,7 @@
     },
     {
       "path": "tests/student-home-robot-quick-actions.test.mjs",
-      "bytes": 12262
+      "bytes": 13259
     },
     {
       "path": "tests/student-home-robot-stairs.test.mjs",
@@ -2780,7 +3064,7 @@
     },
     {
       "path": "tests/student-home-robot-swim-controller.test.mjs",
-      "bytes": 11950
+      "bytes": 13443
     },
     {
       "path": "tests/student-home-robot-swim-pose.test.mjs",
@@ -2788,11 +3072,11 @@
     },
     {
       "path": "tests/student-home-robot-swimming.test.mjs",
-      "bytes": 7866
+      "bytes": 12489
     },
     {
       "path": "tests/student-home-robot-television.test.mjs",
-      "bytes": 11326
+      "bytes": 16283
     },
     {
       "path": "tests/student-home-robot-wardrobe.test.mjs",
@@ -2811,6 +3095,10 @@
       "bytes": 8098
     },
     {
+      "path": "tests/student-home-share-dialog.test.mjs",
+      "bytes": 12854
+    },
+    {
       "path": "tests/student-home-shop-browse.test.mjs",
       "bytes": 3334
     },
@@ -2820,7 +3108,7 @@
     },
     {
       "path": "tests/student-home-stage-camera-ui.test.mjs",
-      "bytes": 3840
+      "bytes": 3911
     },
     {
       "path": "tests/student-home-stage-camera.test.mjs",
@@ -2836,11 +3124,11 @@
     },
     {
       "path": "tests/student-home-stage-scene.test.mjs",
-      "bytes": 12362
+      "bytes": 12697
     },
     {
       "path": "tests/student-home-toilets.test.mjs",
-      "bytes": 5678
+      "bytes": 5681
     },
     {
       "path": "tests/student-home-wall-menu.test.mjs",
@@ -2852,7 +3140,7 @@
     },
     {
       "path": "tests/student-home-warm-camera-controls.test.mjs",
-      "bytes": 5175
+      "bytes": 5273
     },
     {
       "path": "tests/student-home-warm-ui.test.mjs",
@@ -2860,7 +3148,7 @@
     },
     {
       "path": "tests/student-home-world-view.test.mjs",
-      "bytes": 9330
+      "bytes": 9465
     },
     {
       "path": "tests/student-homes-catalog-compat.test.mjs",
@@ -2872,7 +3160,7 @@
     },
     {
       "path": "tests/student-homes-elevator-commerce.test.mjs",
-      "bytes": 16088
+      "bytes": 18119
     },
     {
       "path": "tests/student-homes-floor-finishes.test.mjs",
@@ -2880,7 +3168,7 @@
     },
     {
       "path": "tests/student-homes-object-state.test.mjs",
-      "bytes": 15040
+      "bytes": 15861
     },
     {
       "path": "tests/student-homes-payment-http.test.mjs",
@@ -2892,7 +3180,7 @@
     },
     {
       "path": "tests/student-homes-resale-commerce.test.mjs",
-      "bytes": 13093
+      "bytes": 13189
     },
     {
       "path": "tests/student-homes-resale-http.test.mjs",
@@ -2920,11 +3208,27 @@
     },
     {
       "path": "tests/student-homes-robot-state.test.mjs",
-      "bytes": 19673
+      "bytes": 26867
     },
     {
       "path": "tests/student-homes-server.test.mjs",
-      "bytes": 16225
+      "bytes": 19004
+    },
+    {
+      "path": "tests/student-homes-share-http.test.mjs",
+      "bytes": 13444
+    },
+    {
+      "path": "tests/student-homes-share-proxy.test.mjs",
+      "bytes": 1100
+    },
+    {
+      "path": "tests/student-homes-share-snapshot.test.mjs",
+      "bytes": 11345
+    },
+    {
+      "path": "tests/student-homes-shares.test.mjs",
+      "bytes": 10870
     },
     {
       "path": "tests/student-homes-starter-grant.test.mjs",
@@ -2936,11 +3240,11 @@
     },
     {
       "path": "tests/student-homes-television-integration.test.mjs",
-      "bytes": 7072
+      "bytes": 7743
     },
     {
       "path": "tests/student-homes-ui.test.mjs",
-      "bytes": 40350
+      "bytes": 56067
     },
     {
       "path": "tests/student-homes-wall-finishes.test.mjs",
@@ -2948,7 +3252,15 @@
     },
     {
       "path": "tests/student-ui-review.test.mjs",
-      "bytes": 15298
+      "bytes": 20880
+    },
+    {
+      "path": "vendor/three/LICENSE",
+      "bytes": 1081
+    },
+    {
+      "path": "vendor/three/MANIFEST.json",
+      "bytes": 2113
     },
     {
       "path": "vendor/three/build/three.core.js",
@@ -2981,22 +3293,6 @@
     {
       "path": "vendor/three/examples/jsm/utils/SkeletonUtils.js",
       "bytes": 11535
-    },
-    {
-      "path": "vendor/three/LICENSE",
-      "bytes": 1081
-    },
-    {
-      "path": "vendor/three/MANIFEST.json",
-      "bytes": 2113
-    },
-    {
-      "path": "VENDORED_THREE.md",
-      "bytes": 2018
-    },
-    {
-      "path": "WARM_FLOORS_REVIEW.md",
-      "bytes": 6545
     }
   ]
 }

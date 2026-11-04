@@ -60,7 +60,7 @@ test('every new fitted-kitchen and roomy-furniture SKU enters the formal account
 });
 
 test('adding new goods preserves the 410 previous account SKUs, their prices, footprints and interrupted-purchase catalogue identity',()=>{
-  const old=accountCatalog().filter(row=>!collectionIds.has(row.collection)&&row.collection!=='interactive-home-2026-10').map(({skuId,kind,price,width,depth,height})=>({skuId,kind,price,width,depth,height})).sort((a,b)=>a.skuId.localeCompare(b.skuId));
+  const old=accountCatalog().filter(row=>!collectionIds.has(row.collection)&&row.collection!=='interactive-home-2026-10'&&row.collection!=='computers-2026-11-03').map(({skuId,kind,price,width,depth,height})=>({skuId,kind,price,width,depth,height})).sort((a,b)=>a.skuId.localeCompare(b.skuId));
   assert.equal(old.length,410);
   // Snapshot was read from the last committed account-only release, before
   // these additive collections existed. It contains no student data.
@@ -99,7 +99,7 @@ test('real new cooker, sink, dishwasher and roomy bed expose reachable matching 
   representatives.push(ROOMY_FURNITURE_COLLECTION.find(row=>row.id==='rfCloudDouble'));
   for(const spec of representatives){assert.ok(spec);
     for(const rotation of[0,90]){
-      const placed=applyChange(createHomeState({profile:'account'}),{type:'furniture',id:'grown-item',kind:spec.id,x:0,z:0,rotation});assert.equal(placed.ok,true,placed.error);
+      const placed=applyChange(createHomeState({profile:'account'}),{type:'furniture',id:'grown-item',kind:spec.id,x:.5,z:0,rotation});assert.equal(placed.ok,true,placed.error);
       controller.setWorld(placed.state);const action=getFurnitureRobotAction(spec.id),choices=controller.interactions('furniture:grown-item');
       assert.ok(choices.some(row=>row.id===action),`${spec.id}/${rotation} offers ${action}`);
       assert.equal(controller.interact('furniture:grown-item',action).ok,true);rig.until(controller,action);
@@ -127,7 +127,7 @@ test('every new wide bed retains a reachable sleep action in a spacious bedroom 
 test('a purchased roomy bed supports robot-initiated sleep that survives store restart and restores only its owner',async t=>{
   const f=await storeFixture(t),rig=await robotFixture(t),writes=[],events=[];let saveTail=Promise.resolve();
   const bought=await f.command({type:'checkout',lines:[{skuId:'rfCloudDouble-classic',quantity:1}]}),id=bought.home.commerce.owned[0].id;
-  const placed=await f.command({type:'placeItem',id,pose:{x:0,z:0,rotation:90},storey:0});
+  const placed=await f.command({type:'placeItem',id,pose:{x:.5,z:0,rotation:90},storey:0});
   // The renderer now emits recoverable approach and entrance checkpoints.
   // Serialize them like the editor so each write uses the acknowledged revision.
   const first=rig.create({onActivityChange:activity=>{events.push(activity);saveTail=saveTail.then(()=>f.command({type:'setRobotActivity',activity}));writes.push(saveTail);}});

@@ -40,9 +40,10 @@ function resaleQuote(record,command,prepared){
 /** Single writer process; atomic replace + fsync. A crash leaves the lock in place,
  * requiring explicit operator inspection, never silently stealing another process's lock. */
 export class StudentHomeStore {
-  constructor({dataDir,fsImpl=fs,clock=()=>new Date().toISOString()}={}) {
+  constructor({dataDir,fsImpl=fs,clock=()=>new Date().toISOString(),migrateElevators=true}={}) {
     if(typeof dataDir!=='string'||!dataDir)throw new TypeError('Explicit dataDir required.');
     this.dir=resolve(dataDir);this.lockDir=join(this.dir,'.student-homes-process-lock');this.fs=fsImpl;this.clock=clock;
+    this.migrateElevators=migrateElevators;
     this.token=randomUUID();this.ready=false;this.closed=false;this.tail=Promise.resolve();
   }
   async initialize() {
@@ -73,8 +74,9 @@ export class StudentHomeStore {
       if(!exactKeys(record,['schemaVersion','tenantId','studentId','actorUserId','home',...extra,'checksum'])||![1,2].includes(record.schemaVersion)
         ||record.tenantId!==tenantId||record.studentId!==studentId||!isIdentity(record.actorUserId)
         ||record.checksum!==digest(JSON.stringify(body))||!validateStudentHome(record.home,studentId))throw storageFailure();
-      const next={...record,home:migrateStudentHome(record.home),operations:record.operations??[],pending:record.pending??null};
+      const next={...record,home:migrateStudentHome(record.home,{exterior:this.migrateElevators&&!record.pending}),operations:record.operations??[],pending:record.pending??null};
       if(!this.validTransactions(next))throw storageFailure();
+      if(this.ready&&!this.closed&&record.home.schemaVersion===2&&JSON.stringify(next.home)!==JSON.stringify(record.home))await this.writeRecord(next,{compactOperations:false});
       return next;
     }catch{throw storageFailure();}
   }
@@ -109,15 +111,23 @@ export class StudentHomeStore {
       &&validateStudentHome(p.draft,record.studentId)&&p.draft.revision===record.home.revision+1;
   }
   async read(tenantId,studentId) {return (await this.readRecord(tenantId,studentId))?.home??null;}
-  async writeRecord(record){
+  async writeRecord(record,{compactOperations=true}={}){
     const {tenantId,studentId,actorUserId,home,pending=null}=record;
-    const operations=compactRobotCheckpoints(record.operations??[]);record.operations=operations;
+    const operations=compactOperations?compactRobotCheckpoints(record.operations??[]):record.operations??[];record.operations=operations;
     if(!isIdentity(actorUserId)||!validateStudentHome(home,studentId)||!this.validTransactions({...record,operations,pending}))throw storageFailure();
     const body={schemaVersion:2,tenantId,studentId,actorUserId,home,operations,pending},output={...body,checksum:digest(JSON.stringify(body))};
     const serialized=JSON.stringify(output)+'\n';if(Buffer.byteLength(serialized)>16*1024*1024)throw storageFailure();
     const destination=this.fileFor(tenantId,studentId),temporary=`${destination}.${randomUUID()}.tmp`;let handle;
     try{
-      handle=await this.fs.open(temporary,'wx',0o600);await handle.writeFile(serialized);await handle.sync();await handle.close();handle=null;
+      let owner;
+      try{owner=await this.fs.lstat(destination);if(!owner.isFile()||owner.isSymbolicLink())throw storageFailure();}
+      catch(error){if(error.code!=='ENOENT')throw error;}
+      handle=await this.fs.open(temporary,'wx',0o600);
+      // Maintenance may run as an administrator while the game runs under a
+      // dedicated account. Preserve the existing file owner before publishing
+      // its replacement; a root-owned 0600 file would lock the game out.
+      if(owner){const created=await handle.stat();if(created.uid!==owner.uid||created.gid!==owner.gid)await handle.chown(owner.uid,owner.gid);}
+      await handle.writeFile(serialized);await handle.sync();await handle.close();handle=null;
       await this.fs.rename(temporary,destination);
       const directory=await this.fs.open(this.dir,'r');try{await directory.sync();}finally{await directory.close();}
     }catch{throw storageFailure();}
@@ -164,7 +174,7 @@ export class StudentHomeStore {
     if(order.status!=='committed')throw unavailable('payment_pending',"DisplayText4560, DisplayText4016.");
     const receipt={commandId:pending.commandId,type:pending.command.type,amount:pending.amount,orderId:pending.orderId,status:'delivered',detail:reconcileRobotActivityDetail(record,pending.draft,pending.detail)};
     record.home=pending.draft;record.actorUserId=pending.actorUserId;record.operations.push({commandId:pending.commandId,hash:pending.hash,receipt});record.pending=null;
-    await this.writeRecord(record);return {record,receipt,wallet:response.wallet};
+    await this.writeRecord(record);if(this.migrateElevators)record=await this.readRecord(record.tenantId,record.studentId);return {record,receipt,wallet:response.wallet};
   }
   async recoverResale(record,payments){
     const pending=record.pending;
@@ -195,7 +205,7 @@ export class StudentHomeStore {
     const receipt={commandId:pending.commandId,type:'sellItem',amount:0,creditAmount:pending.creditAmount,direction:'credit',orderId:pending.orderId,status:'delivered',
       detail:reconcileRobotActivityDetail(record,pending.draft,{...pending.detail,platformResale:clone(resale)})};
     record.home=pending.draft;record.actorUserId=pending.actorUserId;record.operations.push({commandId:pending.commandId,hash:pending.hash,receipt});record.pending=null;
-    await this.writeRecord(record);return {record,receipt,wallet:response.wallet};
+    await this.writeRecord(record);if(this.migrateElevators)record=await this.readRecord(record.tenantId,record.studentId);return {record,receipt,wallet:response.wallet};
   }
   getSnapshot(tenantId,studentId,payments) {return this.operation(async()=>{
     let record=await this.readRecord(tenantId,studentId);if(!record)return {home:null,robotActivity:null};

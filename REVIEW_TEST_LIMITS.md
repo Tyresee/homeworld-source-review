@@ -1,5 +1,23 @@
 # Validation of the normalized copy
 
+## Current read-only share refresh (2026-11-04)
+
+The default core list retains all 70 prior files and adds fourteen share-view, public-snapshot, share-dialog, metadata and portable-preview test files. It passes 659/659 checks across 84 files. The dedicated source share set passes 93/93, and the portable preview safety check passes 1/1, and the ten publisher retry/scope/ambiguous-outcome regressions pass 10/10.
+
+```sh
+npm test
+npm run test:share
+npm run test:share:publisher
+```
+
+The publisher command selects the ten new publication regressions from the actual account controller test file. It does not claim that the broader display-sensitive UI file is fully passing. The new share assertions use the normalized runtime's English or canonical display identifiers; no behavioral checks were removed. Earlier display-sensitive assertions remain available in the full suite.
+
+The complete public suite was not re-run for this refresh. The 55 normalization-sensitive failures reported below are historical counts, not a new whole-suite result. The original localized implementation passed 1,698 tests for the merged exterior-only sharing and WeChat copy update; that result is separate from this normalized copy.
+
+The standalone sample preview requires Node and a WebGL 2 browser, using the licensed vendor runtime without npm. It has no account or save API. Its current browser evidence and the exterior-only navigation contract are under `docs/qa/share-view-2026-11-04/`. Physical-device acceptance is not claimed.
+
+## Earlier delivery validation (historical)
+
 All 845 included checks were attempted in this review copy: 790 passed and 55 did not pass. The failing assertions involve display/source-text expectations affected by normalization; they are retained unchanged in the review package rather than weakened to force a pass. The 55 failing test names are identical to the previous snapshot; there are no new failing test names. This is not a production test result.
 
 The default core subset now includes all ten new free-visit test files and passes 436/436. The focused viewing suite passes 67/67. The new look-development preset/safety/ZIP tests pass 4/4 without installing dependencies. The real no-node_modules browser matrix is recorded separately in LOOK_DEV_REVIEW.md.

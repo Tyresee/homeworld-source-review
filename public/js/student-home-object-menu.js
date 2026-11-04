@@ -10,6 +10,7 @@ export function getHomeObjectMenu(commerce,owned,{change,demonstrate,robotChanne
     {id:'object-power',label:state.power?"DisplayText3905":"DisplayText3906",detail:state.power?"DisplayText3907":"DisplayText3908",action:set({power:!state.power})},
     {id:'object-brightness',label:"DisplayText3909",children:["DisplayText3910","DisplayText3911","DisplayText3912"].map((label,i)=>({id:`brightness-${i+1}`,label:`${state.brightness===i+1?'✓ ':''}${label}`,action:set({power:true,brightness:i+1})}))},
   ];
+  if(cap.type==='computer')return [{id:'object-power',label:state.power?"DisplayText4915":"DisplayText4916",detail:"DisplayText4917",action:set({power:!state.power})}];
   if(cap.type==='clock')return [
     {id:'object-demonstrate',label:owned.item.kind==='cuckooClock'?"DisplayText3913":"DisplayText3914",detail:"DisplayText3915, DisplayText3916",action:()=>demonstrate(owned.id)},
     {id:'object-chime',label:state.chime?"DisplayText3917":"DisplayText3918",detail:"DisplayText3919",action:set({chime:!state.chime})},

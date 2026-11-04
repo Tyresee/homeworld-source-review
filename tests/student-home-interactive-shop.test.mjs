@@ -1,14 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {COMPUTER_COLLECTION} from '../public/js/home-computer-collection.js';
 import {accountCatalog} from '../server/student-homes/commerce.mjs';
 import {getShopDepartment,getShopPage,isNewShopProduct,shopFamilyLabel} from '../public/js/home-shop-browse.js';
 
 const products=getShopDepartment(accountCatalog(),'shop');
 const tvKinds=['ipRetroTelevision','ipWideTelevision','ipCinemaTelevision'];
-test('interactive televisions lead newest arrivals and stay discoverable inside the living room',()=>{
+test('interactive televisions follow new computers on the first page and still lead the living room',()=>{
   for(const options of[{}, {room:'living'}, {room:'living',newOnly:true}]){
-    const result=getShopPage(products,options);assert.deepEqual(result.items.slice(0,3).map(p=>p.kind),tvKinds);
-    assert.ok(result.items.slice(0,3).every(isNewShopProduct));
+    const result=getShopPage(products,options),offset=options.room?0:4;
+    if(!options.room)assert.deepEqual(result.items.slice(0,4).map(p=>p.kind),COMPUTER_COLLECTION.map(row=>row.id));
+    assert.deepEqual(result.items.slice(offset,offset+3).map(p=>p.kind),tvKinds);
+    assert.ok(result.items.slice(offset,offset+3).every(isNewShopProduct));
   }
   const result=getShopPage(products,{room:'living',family:'televisions',query:"DisplayText1156",newOnly:true});
   assert.equal(result.total,3);assert.equal(result.pages,1);assert.deepEqual(result.items.map(p=>p.kind),tvKinds);

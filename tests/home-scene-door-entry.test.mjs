@@ -16,7 +16,7 @@ function fixture({theme='warm',door=true,view='estate',callbackEnabled=true}={})
     setPointerCapture:id=>captures.add(id),hasPointerCapture:id=>captures.has(id),releasePointerCapture:id=>captures.delete(id)};
   const context={THREE,theme:{id:theme},view,presentationPaused:false,state:{},dragging:null,spaceHeld:false,spaceUsedForPan:false,
     touchPoints:new Map(),pinchDistance:null,lastPointerEvent:null,lastPanAt:-Infinity,furniturePlacement:null,
-    stageCamera:null,floorClickWalk:false,outdoorState:null,DRAG_THRESHOLD:4,performance:{now:()=>100},
+    stageCamera:null,elevatorTransit:null,elevatorCamera:null,freezeElevatorSettle(){},clearElevatorTransit(){},floorClickWalk:false,outdoorState:null,DRAG_THRESHOLD:4,performance:{now:()=>100},
     avatarActor:{supportsOutdoor:false},renderer:{domElement:canvas},container:{focus(){}},
     eventRay(){},floorPoint:()=>new THREE.Vector3(),setDragQuality(){},syncPointerCursor(){},hideCollisionGuide(){},
     onCancel:undefined,onPanStart(){},interruptCameraMotion(){},panCamera(){events.pan++;},
@@ -34,10 +34,10 @@ function fixture({theme='warm',door=true,view='estate',callbackEnabled=true}={})
   return {context,events,captures,down:patch=>context.pointerDown(event(patch)),move:patch=>context.pointerMove(event(patch)),up:patch=>context.pointerUp(event(patch))};
 }
 
-test('an ordinary Warm exterior door click requests entry exactly once after releasing its editor gesture',()=>{
-  const f=fixture();f.down();assert.equal(f.events.entry.length,0);assert.ok(f.captures.has(1));f.up();
+test('ordinary Warm and Toy exterior door clicks request entry exactly once after releasing the editor gesture',()=>{
+  for(const theme of ['warm','toy']){const f=fixture({theme});f.down();assert.equal(f.events.entry.length,0);assert.ok(f.captures.has(1));f.up();
   assert.equal(f.events.entry.length,1);assert.equal(f.events.entry[0].view,'estate');
-  assert.equal(f.events.object.length,0);assert.equal(f.events.estate.length,0);f.up();assert.equal(f.events.entry.length,1);
+  assert.equal(f.events.object.length,0);assert.equal(f.events.estate.length,0);f.up();assert.equal(f.events.entry.length,1);}
 });
 
 test('roof, wall and non-door house clicks keep their existing selection path',()=>{
@@ -45,8 +45,8 @@ test('roof, wall and non-door house clicks keep their existing selection path',(
   assert.deepEqual(f.events.estate,['manor']);assert.equal(f.events.object.length,1);
 });
 
-test('the new door shortcut is absent in Default, Toy and an unconnected scene',()=>{
-  for(const options of[{theme:'default'},{theme:'toy'},{callbackEnabled:false}]){
+test('the door shortcut is absent in Default, unknown themes and an unconnected scene',()=>{
+  for(const options of[{theme:'default'},{theme:'unknown'},{callbackEnabled:false}]){
     const f=fixture(options);f.down();f.up();assert.equal(f.events.entry.length,0);
     assert.deepEqual(f.events.estate,['manor']);assert.equal(f.events.object.length,1);
   }

@@ -10,13 +10,17 @@ import {reconcileRobotActivityDetail} from '../server/student-homes/robot-activi
 import {ROBOT_CLOTHING_PRODUCTS} from '../public/js/robot-wardrobe-catalog.js';
 import * as commerce from '../public/js/home-commerce.js';
 import {applyChange,PALETTE} from '../public/js/home-engine.js';
+import {listAvatarInteractions} from '../public/js/home-avatar-navigation.js';
 import {getHomeSwatches,HOME_THEMES} from '../public/js/home-theme.js';
 import {getWarmFloorMenu} from '../public/js/student-home-floor-menu.js';
 import {getWarmWallMenu,getWallMenuTarget} from '../public/js/home-wall-menu.js';
 import {FLOOR_FINISHES} from '../public/js/home-floor-finishes.js';
-import {roomRect} from '../public/js/home-layout.js';
+import {roomRect,getRoomKind} from '../public/js/home-layout.js';
+import {getElevatorServedFloors} from '../public/js/student-home-robot-elevator.js';
+import {buildElevatorKeypad,keypadScreenFloor,ELEVATOR_KEYPAD_COPY} from '../public/js/home-elevator-keypad.js';
 import {getStoredPlacementGroups} from '../public/js/home-inventory-menu.js';
-import {getHomeStairs} from '../public/js/home-staircase-shape.js';
+import {getHomeStairs,areElevatorsAligned} from '../public/js/home-staircase-shape.js';
+import {getHomeElevatorStacks} from '../public/js/home-elevator-stack.js';
 import {cloneRobotActivity,sameRobotActivity,isRobotActivityShape} from '../public/js/student-home-robot-state.js';
 import {createStudentHomeRobotOutbox} from '../public/js/student-home-robot-outbox.js';
 import {getHomeObjectMenu} from '../public/js/student-home-object-menu.js';
@@ -34,14 +38,14 @@ function ownedHome(studentId=A){
   const home=createStudentHome(studentId),prepared=prepareCommerceCommand(home.commerce,{type:'checkout',lines:[{skuId:outfit,quantity:1},{skuId:'bed-classic',quantity:1}]},'robot-editor-fixture-buy');
   return {...home,commerce:prepared.commerce,house:houseFromCommerce(prepared.commerce),revision:1};
 }
-function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,delayRoam=false}={}){
+function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,delayRoam=false,realFurnitureInteractions=false}={}){
   let saved=clone(initial),savedActivity=null,balance=46_440,serial=0;
   const bindings={},requests=[],statuses=[],retries=[],frames=[],listeners=new Map(),calls={activity:[],commerce:[],interactions:[],stairs:[],placements:[],views:[],stage:[],stageCamera:[],danceRequests:[],exitCamera:0,resumeCamera:0,dance:0,stopDance:0,clear:0,stand:0};
   let stageState={requested:false,active:false},stageFloor=0;
   let stageCameraState={active:false,returning:false,available:false,suppressed:false};
   let roamActive=false,roamEpoch=0,roamPrevious='interior',finishRoam;
   const setStageCamera=value=>{stageCameraState={...value};bindings.world?.onStageCameraChange?.(stageCameraState);};
-  const document={modalOpen:false,querySelector(){return this.modalOpen?{}:null;},addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);}};
+  const document={modalOpen:false,visibilityState:'visible',querySelector(){return this.modalOpen?{}:null;},querySelectorAll(){return this.modalOpen?[{getClientRects:()=>[{}]}]:[];},addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);}};
   const ui=name=>{const calls={open:[],raw:[],close:0,refresh:0,dispose:0};return {calls,open(...args){calls.open.push(clone(args));calls.raw.push(args);},close(){calls.close++;},refresh(){calls.refresh++;},dispose(){calls.dispose++;}};};
   const shop=ui('shop'),wardrobe=ui('wardrobe'),menu=ui('menu'),floorPlanner=ui('floor'),roomPlanner=ui('room');
   const robotSource={fixtureSource:true},thumbnails={sources:[],image:()=> 'fixture-thumbnail',setRobotSource(value){this.sources.push(value);},dispose(){}};
@@ -61,25 +65,34 @@ function fixture(initial=ownedHome(),theme=HOME_THEMES.default,{warmUI=false,del
     danceAvatar(options){calls.dance++;calls.danceRequests.push(clone(options));if(calls.danceResult?.ok===false){bindings.world.onStatus({message:calls.danceResult.error,error:true});return calls.danceResult;}stageState={requested:true,active:false};bindings.world.onStatus({message:"DisplayText4599, DisplayText4600."});return {ok:true};},
     stopAvatarDance(){calls.stopDance++;stageState={requested:false,active:false};bindings.world.onStatus({message:"DisplayText4601."});return {ok:true};},
     getAvatarInteractions:target=>{
+      if(realFurnitureInteractions&&target?.startsWith('furniture:')){
+        const current=calls.commerce.at(-1);
+        return listAvatarInteractions(commerce.getFloorHome(current.commerce,current.floor),target,{from:{x:0,z:2.5}});
+      }
       if(target?.startsWith('furniture:'))return[{id:'lie',label:"DisplayText0252"},{id:'admire',label:"DisplayText4602",disabled:true}];
       const owned=target?.startsWith('outdoor:')?saved.commerce.owned.find(row=>row.id===target.slice(8)&&row.status==='placed'):null;
       return owned?.item.kind==='outdoor-pool-1'?[{id:'swim',label:"DisplayText4141"}]:owned?.item.kind==='outdoor-football-1'?[{id:'football',kind:'football',label:"DisplayText3935"}]:[];
     },
-    getAvatarStairs:()=>[{id:'stair-fixture',label:"DisplayText4028"}],
+    getAvatarStairs:()=>{
+      if(calls.stairChoices)return clone(calls.stairChoices);
+      const current=calls.commerce.at(-1),rows=current?getHomeStairs(commerce.getFloorHome(current.commerce,current.floor)):[];
+      return rows.length?rows.map(row=>({id:row.id,type:row.type??'stairs',direction:row.direction,label:row.type==='elevator'?(row.direction==='up'?"DisplayText4026":"DisplayText4027"):(row.direction==='up'?"DisplayText4028":"DisplayText4029")})):[{id:'stair-fixture',label:"DisplayText4028"}];
+    },
     interactAvatar(target,id){calls.interactions.push({target,id});return {ok:true};},
-    useAvatarStairs(id){calls.stairs.push(id);return {ok:true};},
+    getElevatorCameraState(){return calls.elevatorCameraState??{};},useAvatarStairs(id,targetFloor){calls.stairs.push(id);(calls.elevatorTargets??=[]).push(targetFloor);return calls.stairResult??{ok:true};},
     beginFurniturePlacement(item){calls.placements.push({type:'furniture',item:clone(item)});},
     beginOutdoorPlacement(item){calls.placements.push({type:'outdoor',item:clone(item)});},
-    clear(){this.exitRoam();calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;},dispose(){this.exitRoam();},
+    clear(){this.exitRoam();calls.clear++;stageState={requested:false,active:false};stageFloor=0;setStageCamera({active:false,returning:false,available:false,suppressed:false});},cancelDrag(){},cancelPlacement(){},selectSurface(){},setTool(){},standAvatar(){calls.stand++;return calls.standResult;},dispose(){this.exitRoam();},
   };
   const capture=(name,instance)=>options=>{bindings[name]=options;return instance;};
   const getKitchenPair=jsonCall(areKitchenModulesCompatible),getDockPose=jsonCall(getKitchenDockPose);
-  const context={getObjectQuickActions,getQuickActionOwned,createStudentHomeQuickActions:options=>{bindings.quick=options;return {show(value){calls.quick=value;},updateStatus(value,options){calls.quickStatus=value;calls.quickStatusOptions=options;},close(){calls.quick=null;},dispose(){}};},createStudentHomeObjectOutbox:()=>{const real=createStudentHomeObjectOutbox({storage:null});return {...real,enqueue:jsonCall(real.enqueue)};},getHomeObjectMenu:(c,o,h)=>getHomeObjectMenu(clone(c),clone(o),h),getObjectState:jsonCall(getObjectState),
+  const context={getObjectQuickActions,getQuickActionOwned,createStudentHomeQuickActions:options=>{bindings.quick=options;return {show(value){calls.quick=value;calls.quickRenders=(calls.quickRenders??0)+1;},updateStatus(value,options){calls.quickStatus=value;calls.quickStatusOptions=options;},close(){calls.quick=null;},dispose(){}};},createStudentHomeObjectOutbox:()=>{const real=createStudentHomeObjectOutbox({storage:null});return {...real,enqueue:jsonCall(real.enqueue)};},getHomeObjectMenu:(c,o,h)=>getHomeObjectMenu(clone(c),clone(o),h),getObjectState:jsonCall(getObjectState),
     setTimeout,clearTimeout,document,
     cloneRobotActivity:jsonCall(cloneRobotActivity),sameRobotActivity:jsonCall(sameRobotActivity),isRobotActivityShape:jsonCall(isRobotActivityShape),createStudentHomeRobotOutbox:()=>createStudentHomeRobotOutbox({storage:null}),
     getKitchenFit,areKitchenModulesCompatible:getKitchenPair, getKitchenDockPose:getDockPose,
-    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeSwatches:palette=>getHomeSwatches(palette,theme),getWarmFloorMenu:options=>getWarmFloorMenu({...options,theme}),getWarmWallMenu:options=>getWarmWallMenu({...options,theme}),getWallMenuTarget,
-    ELEVATOR_UPGRADE_PRODUCT:commerce.ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade:jsonCall(commerce.quoteStaircaseUpgrade),getHomeStairs,
+    ROBOT_CLOTHING_PRODUCTS,SHOP_CATALOG:commerce.SHOP_CATALOG,PALETTE,getHomeTheme:()=>theme,getHomeSwatches:palette=>getHomeSwatches(palette,theme),getWarmFloorMenu:options=>getWarmFloorMenu({...options,theme}),getWarmWallMenu:options=>getWarmWallMenu({...options,theme}),getWallMenuTarget,
+    getRoomKind,getElevatorServedFloors,buildElevatorKeypad,keypadScreenFloor,ELEVATOR_KEYPAD_COPY,
+    ELEVATOR_UPGRADE_PRODUCT:commerce.ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade:jsonCall(commerce.quoteStaircaseUpgrade),getHomeStairs,areElevatorsAligned,getHomeElevatorStacks,
     listOwnedResaleQuotes:jsonCall(commerce.listOwnedResaleQuotes),
     getFloorHomes:commerce.getFloorHomes,getFloorHome:commerce.getFloorHome,roomRect,
     setCartQuantity:jsonCall(commerce.setCartQuantity),quoteFloorConstruction:jsonCall(commerce.quoteFloorConstruction),
@@ -131,6 +144,32 @@ test('left-click quick actions target exactly the selected owned furniture and c
   f.bindings.world.onObjectClick(request);f.editor.setView('estate');assert.equal(f.calls.quick,null);
   f.editor.setView('interior');f.bindings.world.onObjectClick(request);await f.show(ownedHome(B));assert.equal(f.calls.quick,null);
   assert.equal((await f.bindings.quick.onAction('robot:lie',`furniture:${bed.id}`)).ok,false,'old student action cannot operate on the next student');f.editor.dispose();
+});
+
+test('left-clicking an owned stove exposes real cooking first and dispatches only to that stove',async t=>{
+  const initial=createStudentHome(A);let sequence=0;
+  const change=command=>{const prepared=prepareCommerceCommand(initial.commerce,command,`cook-quick-fixture-${++sequence}`);initial.commerce=prepared.commerce;initial.house=houseFromCommerce(prepared.commerce);initial.revision++;};
+  change({type:'constructFloor',selection:{storey:0,rects:[{minX:-6,minZ:-6,width:12,depth:12}]}});
+  change({type:'checkout',lines:[{skuId:'mkDoubleGas-classic',quantity:2}]});
+  const stoves=initial.commerce.owned.filter(row=>row.skuId==='mkDoubleGas-classic');assert.equal(stoves.length,2);
+  for(const [i,stove]of stoves.entries())change({type:'placeItem',id:stove.id,pose:{x:i?1.5:-1.5,z:0,rotation:i?90:0},storey:0});
+  const f=fixture(initial,HOME_THEMES.warm,{warmUI:true,realFurnitureInteractions:true});t.after(()=>f.editor.dispose());await f.show();
+  const before=f.saved(),balance=f.state().wallet.balance;
+  for(const stove of stoves){
+    const target=`furniture:${stove.id}`,realActions=listAvatarInteractions(initial.commerce.home,target,{from:{x:0,z:2.5}});
+    assert.equal(realActions[0]?.id,'cook','the actual placed stove has a reachable cooking action');
+    f.bindings.world.onObjectClick({view:'interior',data:{furnitureId:stove.id,surfaceId:target}});
+    assert.equal(f.calls.quick.targetId,target);
+    const primary=f.calls.quick.actions[0];
+    assert.equal(primary.id,'robot:cook');assert.equal(primary.label,"DisplayText4775");assert.equal(primary.icon,'cook');assert.equal(primary.disabled,false);
+    assert.equal(f.calls.quick.actions.some(action=>action.id==='robot:admire'),false,'cooking is discoverable without the generic admire action');
+    assert.equal(f.requests.length,0,'selecting a stove sends no account or purchase command');
+    const other=stoves.find(row=>row.id!==stove.id);
+    assert.equal((await f.bindings.quick.onAction('robot:cook',`furniture:${other.id}`)).ok,false,'an action cannot be redirected to another owned stove');
+    assert.equal((await f.bindings.quick.onAction('robot:cook',target)).ok,true);
+  }
+  assert.deepEqual(f.calls.interactions,stoves.map(stove=>({target:`furniture:${stove.id}`,id:'cook'})));
+  assert.equal(f.requests.length,0,'the UI dispatches cooking without a finance or furniture command');assert.deepEqual(f.saved(),before);assert.equal(f.state().wallet.balance,balance);
 });
 
 test('left-clicking the robot exposes its dance action and starts the stage without a purchase or furniture mutation',async()=>{
@@ -665,6 +704,15 @@ test('Warm viewing closes editing surfaces and blocks stale edits without writin
   assert.equal(f.requests.length,0);assert.deepEqual(f.saved(),before);f.editor.exitRoam();assert.equal(f.editor.getView(),'interior');assert.equal(f.editor.getRoamState().active,false);assert.equal(f.requests.length,0);f.editor.dispose();
 });
 
+test('Toy L1 viewing uses the same protected no-save editor lifecycle without requiring Warm chrome',async()=>{
+  const f=fixture(ownedHome(),HOME_THEMES.toy);await f.show();const before=f.saved();
+  assert.equal((await f.editor.setView('roam')).ok,true);assert.equal(f.editor.isRoaming(),true);
+  assert.equal((await f.bindings.shop.onCheckout()).ok,false);assert.equal(f.editor.openRobotQuickActions(),false);
+  assert.equal(f.requests.length,0);assert.deepEqual(f.saved(),before);f.editor.exitRoam();
+  f.editor.setView('estate');assert.equal((await f.bindings.world.onEntranceClick()).ok,true);
+  assert.deepEqual(f.calls.roamEntries.at(-1),{enterDoor:true});assert.equal(f.requests.length,0);assert.deepEqual(f.saved(),before);f.editor.dispose();
+});
+
 test('view entry honors the existing write lock and a student switch cancels an asynchronous load',async()=>{
   const locked=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await locked.show();const wearing=locked.bindings.shop.onPlace(locked.owned(outfit).id);assert.equal(locked.requests.length,1);
   assert.equal((await locked.editor.enterRoam()).ok,false);assert.equal(locked.editor.isRoaming(),false);locked.requests[0].accept();await wearing;locked.editor.dispose();
@@ -683,7 +731,7 @@ test('the Warm outdoor entrance closes editors and enters through the door witho
 });
 
 test('door requests refuse default, wrong views, saving, leaving and a not-yet-shown identity',async()=>{
-  for(const theme of[HOME_THEMES.default,HOME_THEMES.toy]){
+  for(const theme of[HOME_THEMES.default]){
     const legacy=fixture(ownedHome(),theme);await legacy.show();legacy.editor.setView('estate');assert.equal((await legacy.bindings.world.onEntranceClick()).ok,false);assert.equal(legacy.calls.roamEntries,undefined);assert.equal(legacy.requests.length,0);legacy.editor.dispose();
   }
   const f=fixture(ownedHome(),HOME_THEMES.warm,{warmUI:true});await f.show();assert.equal((await f.bindings.world.onEntranceClick()).ok,false);f.editor.setView('estate');
@@ -701,4 +749,139 @@ test('door loading ignores duplicate clicks and cannot reopen after switching st
     f.finishRoam();assert.equal((await entering).detached,true);assert.equal(f.editor.isRoaming(),false);assert.equal(f.editor.getRoamState().entering,false);assert.equal(f.requests.length,0);
     if(depart==='student'){assert.equal(f.saved().studentId,B);assert.equal(f.editor.getView(),'interior');f.editor.dispose();}
   }
+});
+
+
+function elevatorChoiceHome(count=3,rotation=0){
+  let home=createStudentHome(A,'2026-11-01T00:00:00.000Z'),serial=0;
+  const command=value=>{const p=prepareCommerceCommand(home.commerce,value,`editor-elevator-choice-${++serial}`);home={...home,commerce:p.commerce,house:houseFromCommerce(p.commerce),revision:home.revision+1};};
+  for(const storey of[0,1])command({type:'constructFloor',selection:{storey,rects:[{minX:-5.6,minZ:-3.8,width:11.2,depth:7.8}]}});
+  if(rotation)for(const [storey,direction]of[[0,'up'],[1,'down']]){
+    const floor=commerce.getFloorHomes(home.commerce)[storey],row=getHomeStairs(floor)[0],r=applyChange(floor,{type:'stairs',stairs:{...row,rotation,direction}});assert.equal(r.ok,true,r.error);
+    if(storey)home.commerce.upperFloors[storey-1]=r.state;else home.commerce.home=r.state;
+  }
+  command({type:'upgradeStaircase',id:getHomeStairs(home.commerce.home)[0].id,storey:0});
+  for(let storey=2;storey<count;storey++)command({type:'constructFloor',selection:{storey,rects:[{minX:-5.6,minZ:-3.8,width:11.2,depth:7.8}]}});
+  return home;
+}
+
+for(const rotation of[0,90,180,270])test(`a shared elevator at ${rotation} degrees offers every served floor from any connection mesh`,async()=>{
+  const home=elevatorChoiceHome(4,rotation),f=fixture(home),floors=commerce.getFloorHomes(home.commerce);await f.show(home);
+  for(const selectedFloor of[1,2])for(const meshStairId of new Set(floors.flatMap(getHomeStairs).map(row=>row.id))){
+    f.bindings.world.onStoreyChange(selectedFloor);
+    f.bindings.world.onObjectClick({view:'interior',data:{stairId:meshStairId}});const model=f.calls.quick;
+    assert.equal(model.title,"DisplayText4847");assert.deepEqual(clone(model.actions.map(row=>row.command.targetFloor)),[0,1,2,3].filter(index=>index!==selectedFloor));
+    assert.equal(model.keypad.rows.flat().find(cell=>cell?.state==='here').floor,selectedFloor);
+    assert.ok(model.actions.every(row=>getHomeStairs(floors[selectedFloor]).some(record=>record.id===row.command.id)),'a remote mesh is rebound to a real local connection in this shaft');
+    const target=selectedFloor===1?3:0,choice=model.actions.find(row=>row.command.targetFloor===target),before=f.calls.stairs.length;
+    assert.equal((await f.bindings.quick.onAction(choice.id,model.targetId)).ok,true);assert.equal(f.calls.elevatorTargets.at(-1),target);assert.equal(f.calls.stairs.length,before+1);
+    assert.ok(f.calls.quick.keypad.rows.flat().filter(Boolean).every(cell=>cell.disabled),'one press starts the trip and disables all floor buttons');
+    f.bindings.world.onStoreyChange(target);assert.ok(f.calls.quick,'arrival preserves this elevator remote');assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.state==='here').floor,target);assert.ok(f.calls.quick.keypad.arrivalToken>0);
+    assert.equal(f.requests.length,0,'a floor key dispatches a robot action, never a purchase or layout edit');
+  }
+  f.editor.dispose();
+});
+
+test('elevator context lists direct target floors and preserves an actual departure rejection',async()=>{
+  const home=elevatorChoiceHome(),f=fixture(home);await f.show(home);f.bindings.world.onStoreyChange(1);
+  const rows=getHomeStairs(home.commerce.upperFloors[0]),up=rows.find(row=>row.direction==='up'),down=rows.find(row=>row.direction==='down');
+  f.calls.stairChoices=rows.map(row=>({id:row.id,type:'elevator',direction:row.direction,label:"DisplayText4848",disabled:row.id===up.id,reason:row.id===up.id?"DisplayText5047":undefined}));
+  f.bindings.world.onContextMenu({view:'interior',data:{stairId:down.id},clientX:200,clientY:150});
+  const menu=f.menu.calls.raw.at(-1)[0].items.find(row=>row.id==='robot-stairs');assert.match(menu.label,/DisplayText4848.*DisplayText4849/);assert.deepEqual(clone(menu.children.map(row=>row.label)),["DisplayText4857 1 DisplayText0931","DisplayText4857 3 DisplayText0931"]);assert.equal(menu.children[1].disabled,true);assert.match(menu.children[1].detail,/Furniture/);
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:down.id}});const quick=f.calls.quick;
+  assert.equal((await f.bindings.quick.onAction('elevator-floor:2',quick.targetId)).ok,false);assert.equal(f.calls.stairs.length,0);
+  assert.equal((await f.bindings.quick.onAction('elevator-floor:0',quick.targetId)).ok,true);assert.deepEqual(f.calls.stairs,[down.id]);assert.deepEqual(f.calls.elevatorTargets,[0]);
+  f.bindings.world.onStoreyChange(2);assert.equal(menu.children[0].action().ok,false,'a stale context action cannot move another floor');assert.equal(f.calls.stairs.length,1);f.editor.dispose();
+});
+
+test('bottom and top keypads expose every other served floor and stale choices cannot affect another floor or student',async()=>{
+  const home=elevatorChoiceHome(),f=fixture(home),floors=commerce.getFloorHomes(home.commerce);await f.show(home);
+  const first=getHomeStairs(floors[0])[0],last=getHomeStairs(floors[2])[0];
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:last.id}});let model=f.calls.quick;assert.deepEqual(clone(model.actions.map(row=>row.command.targetFloor)),[1,2]);const stale={target:model.targetId,id:model.actions[0].id};
+  f.bindings.world.onStoreyChange(2);assert.equal(f.calls.quick,null);assert.equal((await f.bindings.quick.onAction(stale.id,stale.target)).ok,false);
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:first.id}});model=f.calls.quick;assert.deepEqual(clone(model.actions.map(row=>row.command.targetFloor)),[0,1]);
+  const oldStudent={target:model.targetId,id:model.actions[0].id};f.editor.setView('estate');f.bindings.world.onObjectClick({view:'estate',data:{stairId:first.id}});assert.equal(f.calls.quick,null);await f.show(ownedHome(B));assert.equal((await f.bindings.quick.onAction(oldStudent.id,oldStudent.target)).ok,false);assert.equal(f.calls.stairs.length,0);f.editor.dispose();
+});
+
+test('elevator activity locks and lights the direct target while ordinary stairs keep their original single-direction panel',async()=>{
+  const home=elevatorChoiceHome(),rows=getHomeStairs(home.commerce.upperFloors[0]),up=rows.find(row=>row.direction==='up'),down=rows.find(row=>row.direction==='down'),activity={kind:'elevator',itemId:up.id,storey:1,step:4,progress:.3,rotation:0,time:0};
+  assert.equal(isRobotActivityShape(activity),true);const f=fixture(home);await f.show(home,activity);
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:down.id}});assert.equal(f.calls.quick.status,ELEVATOR_KEYPAD_COPY.hintRiding);assert.ok(f.calls.quick.keypad.rows.flat().filter(Boolean).every(cell=>cell.disabled));assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.lit).floor,2);assert.equal(f.requests.length,0);f.editor.dispose();
+  const ordinary=createStudentHome(A),prepared=prepareCommerceCommand(ordinary.commerce,{type:'constructFloor',selection:{storey:1,rects:[{minX:-2.8,minZ:-2.6,width:5.6,depth:5.2}]}},'editor-ordinary-floor');
+  ordinary.commerce=prepared.commerce;ordinary.house=houseFromCommerce(prepared.commerce);const stairs=getHomeStairs(ordinary.commerce.home)[0],g=fixture(ordinary);await g.show(ordinary);
+  g.bindings.world.onObjectClick({view:'interior',data:{stairId:stairs.id}});assert.equal(g.calls.quick.title,"DisplayText3769");assert.equal(g.calls.quick.keypad,undefined);assert.equal(g.calls.quick.actions.length,1);assert.match(g.calls.quick.actions[0].label,/DisplayText4028/);assert.equal(g.requests.length,0);g.editor.dispose();
+});
+
+test('legacy separate paid elevator shafts never borrow a served floor from another shaft',async()=>{
+  let home=createStudentHome(A),serial=0;
+  const command=value=>{const p=prepareCommerceCommand(home.commerce,value,`editor-separate-shaft-${++serial}`);home={...home,commerce:p.commerce,house:houseFromCommerce(p.commerce),revision:home.revision+1};};
+  for(const storey of[0,1,2])command({type:'constructFloor',selection:{storey,rects:[{minX:-5.6,minZ:-3.8,width:11.2,depth:7.8}]}});
+  const floors=commerce.getFloorHomes(home.commerce),second=getHomeStairs(floors[1]).find(row=>row.direction==='up');
+  for(const storey of[1,2]){const floor=commerce.getFloorHomes(home.commerce)[storey],record=getHomeStairs(floor).find(row=>row.id===second.id),moved=applyChange(floor,{type:'stairs',stairs:{...record,x:3.4,z:0}});assert.equal(moved.ok,true,moved.error);home.commerce.upperFloors[storey-1]=moved.state;}
+  const legacyPoses=new Map(commerce.getFloorHomes(home.commerce).flatMap(getHomeStairs).map(row=>[row.id,{x:row.x,z:row.z,rotation:row.rotation}]));
+  command({type:'upgradeStaircase',id:getHomeStairs(home.commerce.home)[0].id,storey:0});command({type:'upgradeStaircase',id:second.id,storey:1});
+  // Explicit pre-E1 fixture: current installation intentionally joins the
+  // fixed left-wall axis; old independent paid shafts must remain isolated.
+  for(const floor of commerce.getFloorHomes(home.commerce))for(const row of getHomeStairs(floor)){delete row.placement;Object.assign(row,legacyPoses.get(row.id));}
+  home.house=houseFromCommerce(home.commerce);assert.equal(commerce.validateCommerceState(home.commerce),true);
+  const f=fixture(home);await f.show(home);f.bindings.world.onStoreyChange(1);const middle=getHomeStairs(home.commerce.upperFloors[0]),down=middle.find(row=>row.direction==='down'),up=middle.find(row=>row.direction==='up');
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:down.id}});assert.deepEqual(clone(f.calls.quick.actions.map(row=>row.command.targetFloor)),[0]);assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.floor===2).state,'off');
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:up.id}});assert.deepEqual(clone(f.calls.quick.actions.map(row=>row.command.targetFloor)),[2]);assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.floor===0).state,'off');assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('elevator polling follows continuous focus, survives arrival, and stops when the remote closes or editor disposes',async()=>{
+  const home=elevatorChoiceHome(5),f=fixture(home);await f.show(home);const first=getHomeStairs(home.commerce.home)[0];f.bindings.world.onObjectClick({view:'interior',data:{stairId:first.id}});
+  await f.bindings.quick.onAction('elevator-floor:3',f.calls.quick.targetId);assert.equal(f.calls.elevatorTargets.at(-1),3);
+  f.calls.elevatorCameraState={active:true,fromStorey:0,targetStorey:3,residentStack:{focusStorey:1.7}};
+  await new Promise(resolve=>setTimeout(resolve,130));assert.equal(f.calls.quick.keypad.screenFloor,3);assert.equal(f.calls.quick.keypad.direction,'up');assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.lit).floor,3);
+  f.bindings.world.onStoreyChange(3);assert.ok(f.calls.quick);assert.equal(f.calls.quick.keypad.screenFloor,4);assert.equal(f.calls.quick.keypad.riding,false);assert.ok(f.calls.quick.keypad.arrivalToken>0);
+  f.bindings.quick.onClose();const renders=f.calls.quickRenders;await new Promise(resolve=>setTimeout(resolve,130));assert.equal(f.calls.quickRenders,renders);
+  f.bindings.world.onObjectClick({view:'interior',data:{stairId:first.id}});f.editor.dispose();const disposedRenders=f.calls.quickRenders;await new Promise(resolve=>setTimeout(resolve,130));assert.equal(f.calls.quickRenders,disposedRenders);
+});
+
+test('five-floor editor keypad marks an unserved top floor off and dispatches one direct fourth-floor target',async()=>{
+ const home=elevatorChoiceHome(5),floors=commerce.getFloorHomes(home.commerce),last=getHomeStairs(floors[3]).find(row=>row.direction==='up');
+ for(const index of[3,4]){floors[index].staircases=getHomeStairs(floors[index]).map(row=>row.id===last.id?{...row,type:'stairs'}:row);delete floors[index].stairs;}
+ const f=fixture(home);await f.show(home);f.bindings.world.onStoreyChange(1);const clicked=getHomeStairs(floors[1]).find(row=>row.type==='elevator');f.bindings.world.onObjectClick({view:'interior',data:{stairId:clicked.id}});
+ const model=f.calls.quick;assert.deepEqual(clone(model.keypad.rows.map(row=>row.map(cell=>cell?.number??null))),[[5,null],[3,4],[1,2]]);const off=model.keypad.rows.flat().find(cell=>cell?.floor===4);assert.equal(off.state,'off');assert.equal(off.disabled,true);assert.equal(off.title,ELEVATOR_KEYPAD_COPY.offTitle);assert.equal(model.keypad.rows.flat().find(cell=>cell?.floor===1).state,'here');
+ assert.equal((await f.bindings.quick.onAction('elevator-floor:3',model.targetId)).ok,true);assert.equal(f.calls.stairs.length,1);assert.equal(f.calls.elevatorTargets[0],3);assert.equal(f.requests.length,0);f.editor.dispose();
+});
+
+test('accepted stop during elevator approach clears the pending destination and reenables floor keys',async()=>{
+ const home=elevatorChoiceHome(5),f=fixture(home);await f.show(home);const stair=getHomeStairs(home.commerce.home)[0];f.bindings.world.onObjectClick({view:'interior',data:{stairId:stair.id}});const target=f.calls.quick.targetId;
+ assert.equal((await f.bindings.quick.onAction('elevator-floor:3',target)).ok,true);assert.equal(f.calls.quick.keypad.riding,true);assert.ok(f.calls.quick.keypad.rows.flat().filter(Boolean).every(cell=>cell.disabled));
+ assert.equal(f.bindings.quick.onStop(target).ok,true,'the controller accepts approach cancellation with its normal void success');assert.equal(f.calls.stand,1);assert.equal(f.calls.quick.keypad.riding,false);assert.equal(f.calls.quick.keypad.rows.flat().some(cell=>cell?.lit),false);assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.floor===3).disabled,false);
+ assert.equal((await f.bindings.quick.onAction('elevator-floor:1',target)).ok,true);assert.deepEqual(f.calls.elevatorTargets,[3,1],'a different floor can be selected after cancellation');f.editor.dispose();
+});
+
+test('a rejected stop inside the moving cabin propagates its reason and keeps the target locked and lit',async()=>{
+ const home=elevatorChoiceHome(5),f=fixture(home);await f.show(home);const stair=getHomeStairs(home.commerce.home)[0];f.bindings.world.onObjectClick({view:'interior',data:{stairId:stair.id}});const target=f.calls.quick.targetId;
+ await f.bindings.quick.onAction('elevator-floor:3',target);f.calls.elevatorCameraState={active:true,fromStorey:0,targetStorey:3,residentStack:{focusStorey:1.4}};f.calls.standResult={ok:false,error:"DisplayText3993, DisplayText3994."};
+ assert.deepEqual(f.bindings.quick.onStop(target),f.calls.standResult);assert.equal(f.calls.stand,1);assert.equal(f.calls.quick.keypad.riding,true);assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.floor===3).lit,true);assert.ok(f.calls.quick.keypad.rows.flat().filter(Boolean).every(cell=>cell.disabled));assert.equal((await f.bindings.quick.onAction('elevator-floor:1',target)).ok,false);assert.deepEqual(f.calls.elevatorTargets,[3]);f.editor.dispose();
+});
+
+test('manual floor selection uses the relocated robot floor rather than a previous standing checkpoint',async()=>{
+ const home=elevatorChoiceHome(5),f=fixture(home),activity={kind:'stand',environment:'interior',storey:0,point:{x:0,z:2},rotation:0};await f.show(home,activity);f.bindings.world.onStoreyChange(2);const floors=commerce.getFloorHomes(home.commerce),local=getHomeStairs(floors[2]);f.bindings.world.onObjectClick({view:'interior',data:{stairId:local[0].id}});
+ assert.equal(f.calls.commerce.at(-1).floor,2,'manual selection has handed the actor the new real floor');assert.equal(f.calls.quick.keypad.currentFloor,2);assert.equal(f.calls.quick.keypad.screenFloor,3);assert.equal(f.calls.quick.keypad.rows.flat().find(cell=>cell?.state==='here').floor,2);
+ assert.equal((await f.bindings.quick.onAction('elevator-floor:0',f.calls.quick.targetId)).ok,true);assert.equal(f.calls.elevatorTargets.at(-1),0);assert.ok(local.some(row=>row.id===f.calls.stairs.at(-1)),'the command starts from a connection on the selected floor');f.editor.dispose();
+});
+
+function homeWithComputer(kind){
+  let home=ownedHome();
+  const apply=command=>{const result=prepareCommerceCommand(home.commerce,command,'editor-computer-'+home.revision);home={...home,commerce:result.commerce,house:houseFromCommerce(result.commerce),revision:home.revision+1};};
+  apply({type:'checkout',lines:[{skuId:'writingDesk-classic',quantity:1},{skuId:kind+'-classic',quantity:1}]});
+  const desk=home.commerce.owned.find(row=>row.item.kind==='writingDesk'),computer=home.commerce.owned.find(row=>row.item.kind===kind);
+  apply({type:'placeItem',id:desk.id,storey:0,pose:{x:0,z:1.65,rotation:0}});
+  apply({type:'placeItem',id:computer.id,storey:0,pose:{mount:{type:'table',parentId:desk.id,u:.5,v:.5}}});
+  return {home,computerId:computer.id};
+}
+for(const kind of ['pcPocketLaptop','pcStudyAllInOne','pcNeonDesktop','pcStudioDual'])test(`${kind} real editor quick-menu power click passes its real object outbox and dispatches one zero-cost setting command`,async()=>{
+  const {home,computerId}=homeWithComputer(kind),f=fixture(home);await f.show(home,null,'computer-editor-actor');const wallet=f.state().wallet.balance,orders=clone(f.saved().commerce.orders);
+  f.bindings.world.onObjectClick({view:'interior',data:{furnitureId:computerId}});const target='furniture:'+computerId;
+  assert.equal(f.calls.quick.actions.find(row=>row.id==='object:power').label,"DisplayText4916");
+  const powering=f.bindings.quick.onAction('object:power',target);assert.equal(f.requests.length,1,'the outbox must not swallow a valid boolean-only power click');
+  assert.deepEqual(f.requests[0].command,{type:'setObjectState',id:computerId,storey:0,patch:{power:true}});assert.equal(f.calls.objectStates.at(-1).objectStates[computerId].power,true);
+  f.requests[0].accept();assert.equal((await powering).ok,true);assert.deepEqual(getObjectState(f.saved().commerce,computerId),{power:true});assert.equal(f.state().wallet.balance,wallet);assert.deepEqual(f.saved().commerce.orders,orders);
+  assert.equal(f.calls.quick.actions.find(row=>row.id==='object:power').label,"DisplayText4915");const off=f.bindings.quick.onAction('object:power',target);assert.equal(f.requests.length,2);assert.deepEqual(f.requests[1].command.patch,{power:false});f.requests[1].accept();assert.equal((await off).ok,true);assert.deepEqual(getObjectState(f.saved().commerce,computerId),{power:false});assert.equal(f.state().wallet.balance,wallet);
+  await f.show(ownedHome(B),null,'computer-editor-actor');assert.equal((await f.bindings.quick.onAction('object:power',target)).ok,false);assert.equal(f.requests.length,2,'a stale menu cannot dispatch the old student computer');f.editor.dispose();
 });

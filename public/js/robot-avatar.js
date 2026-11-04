@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {sampleRobotDance} from './student-home-robot-dance.js';
+import {applyRobotBodyProportions} from './robot-proportions.js';
 
 /** Rigid-part animation for the Blender robot, independent of home saves and commerce. */
 export const ROBOT_ACTIONS = Object.freeze(['idle', 'walk', 'wave', 'sit', 'lie', 'read', 'cook', 'wash', 'stairs', 'swim', 'dishwash']);
@@ -67,8 +68,8 @@ function applyExpression(state,blink=1) {
   const mouth=state.nodes.Mouth;mouth.scale.copy(state.faceRest.get(mouth));mouth.scale.x*=mouthX;mouth.scale.y*=mouthY;
 }
 
-/** The caller owns the loaded source's geometries/textures. Instances borrow those
- * immutable resources and own a clone of each material; no source transform changes. */
+/** The caller owns the loaded source's geometries/textures. Instances borrow
+ * immutable resources and own fitted body geometry and cloned materials. */
 export function createRobotAvatar(gltfScene) {
   if (!gltfScene?.isObject3D) throw new TypeError('createRobotAvatar needs a loaded glTF scene.');
   const sourceNodes=new Map();
@@ -85,8 +86,10 @@ export function createRobotAvatar(gltfScene) {
   const model=new THREE.Group();model.name='robot-avatar';
   const motion=new THREE.Group();motion.name='robot-runtime-pose';model.add(motion);
   const asset=gltfScene.clone(true);motion.add(asset);
+  const proportions=applyRobotBodyProportions(asset);
   const nodes=Object.fromEntries(REQUIRED.map(name=>[name,asset.getObjectByName(name)]));
   const materials=new Map(),meshes=[];
+  try{
   asset.traverse(node=>{
     if(!node.isMesh)return;
     meshes.push(node);
@@ -105,9 +108,9 @@ export function createRobotAvatar(gltfScene) {
   for(const name of ['HipL','HipR'])for(const child of nodes[name].children)if(child.isMesh)seatSupportMeshes.push(child);
   const torsoShell=asset.getObjectByName('TorsoShell');
   if(torsoShell?.isMesh)seatSupportMeshes.push(torsoShell);
-  if(!footMeshes.length||!torsoMeshes.length||!torsoShell?.isMesh||seatSupportMeshes.length<3){for(const m of materials.values())m.dispose();throw new Error('Robot must contain foot, torso and seated-support meshes.');}
+  if(!footMeshes.length||!torsoMeshes.length||!torsoShell?.isMesh||seatSupportMeshes.length<3)throw new Error('Robot must contain foot, torso and seated-support meshes.');
   const rest=new Map(JOINTS.map(name=>{const n=nodes[name];return[n,{position:n.position.clone(),quaternion:n.quaternion.clone(),scale:n.scale.clone()}];}));
-  const state={model,motion,asset,nodes,meshes,footMeshes,torsoMeshes,seatSupportMeshes,materials,rest,
+  const state={model,motion,asset,nodes,meshes,footMeshes,torsoMeshes,seatSupportMeshes,materials,rest,ownedGeometries:proportions.geometries,
     faceRest:new Map(['EyeL','EyeR','Mouth'].map(name=>[nodes[name],nodes[name].scale.clone()])),
     action:'idle',expression:'smile',backpackWanted:true,disposed:false,time:0,standingLift:0,lieLift:null,sitTranslation:null,
     inverse:new THREE.Matrix4(),matrix:new THREE.Matrix4(),box:new THREE.Box3(),vertex:new THREE.Vector3(),point:new THREE.Vector3(),
@@ -140,12 +143,17 @@ export function createRobotAvatar(gltfScene) {
   const sweptSize=swept.getSize(new THREE.Vector3());
   state.navigation={radius:state.navigation.radius+.02,height:swept.max.y+.02,width:sweptSize.x+.04,depth:sweptSize.z+.04,clearance:.02,walkSamples:32};
   poseRobotAvatar(model);
-  model.userData={robotAvatar:true,action:'idle',origin:'feet',forward:'+z',units:'meters',height:size[1],radius:state.navigation.radius,resourceOwnership:'borrowed geometry/textures; owned materials'};
+  model.userData={robotAvatar:true,action:'idle',origin:'feet',forward:'+z',units:'meters',height:size[1],radius:state.navigation.radius,proportions:proportions.profile,resourceOwnership:'borrowed source geometry/textures; owned fitted body geometry/materials'};
   return model;
+  }catch(error){
+    for(const material of materials.values())material.dispose();
+    for(const geometry of proportions.geometries)geometry.dispose();
+    instances.delete(model);throw error;
+  }
 }
 
 /** Deterministic in-place pose; callers own clocks, visibility scheduling and locomotion. */
-export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,swimBlend=1}={}) {
+export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,curl=0,ladder=0,compact=0,swimBlend=1,waterStyle='swim'}={}) {
   const state=stateFor(model);
   if(!ROBOT_ACTIONS.includes(action))throw new RangeError(`Unknown robot action: ${action}`);
   time=Number.isFinite(time)?Math.max(0,time):0;
@@ -157,10 +165,11 @@ export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,swimBlend=1}=
   if(action==='walk'||action==='stairs') {
     const beat=Math.sin(time*6.8);
     for(const [side,sign] of [['L',-1],['R',1]]){
-      delta(state,`Hip${side}`,sign*beat*(action==='stairs'?.64:.45));
+      delta(state,`Hip${side}`,sign*beat*(action==='stairs'?.64:compact?.26:.45));
       delta(state,`Knee${side}`,Math.max(0,-sign*beat)*(action==='stairs'?.95:.58));
-      delta(state,`Shoulder${side}`,-sign*beat*.38);
-      delta(state,`Elbow${side}`,-.10-Math.max(0,sign*beat)*.10);
+      const outward=Math.sign(state.rest.get(nodes[`Shoulder${side}`]).position.x)||1;
+      delta(state,`Shoulder${side}`,ladder?-1.7-sign*beat*.32:compact?-sign*beat*.14:-sign*beat*.38,0,compact?-outward*.22:0);
+      delta(state,`Elbow${side}`,ladder?-.65+sign*beat*.24:-.10-Math.max(0,sign*beat)*.10);
     }
     delta(state,'Head',0,Math.sin(time*3.4)*.025,Math.sin(time*6.8)*.012);
     motion.position.y-=boundsOf(state,state.footMeshes).min.y;
@@ -170,25 +179,26 @@ export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,swimBlend=1}=
     // contract. The hip pivot descends smoothly while the body pitches forward.
     const blend=THREE.MathUtils.clamp(Number.isFinite(swimBlend)?swimBlend:1,0,1);
     const cycle=time*Math.PI,roll=Math.sin(cycle)*.035*blend;
-    motion.rotation.set(Math.PI/2*blend,0,roll);
+    const upright=waterStyle==='float'||waterStyle==='soak';
+    motion.rotation.set((upright?.08:Math.PI/2)*blend,0,roll);
     const pivot=state.swimPivot??state.rest.get(nodes.HipRoot).position;
     state.swimRotatedPivot.copy(pivot).applyQuaternion(motion.quaternion);
     motion.position.set(-state.swimRotatedPivot.x,
       pivot.y*(1-blend)+Math.sin(cycle*2)*.012*blend-state.swimRotatedPivot.y,
       -state.swimRotatedPivot.z);
-    delta(state,'Torso',-.20*blend);
-    delta(state,'Head',-1.42*blend,Math.sin(cycle)*.045*blend,0);
+    delta(state,'Torso',(upright?-.06:-.20)*blend);
+    delta(state,'Head',(upright?-.10:-1.42)*blend,Math.sin(cycle)*.045*blend,0);
     for(const [side,offset]of[['L',0],['R',Math.PI]]){
       const phase=cycle+offset,outward=Math.sign(state.rest.get(nodes[`Shoulder${side}`]).position.x)||1;
       // Bounded shoulder sweeps are deliberate: multiplying accumulated Euler
       // revolutions by an exit blend would violently unwind a long swim. The
       // alternating reach/pull/recovery still moves hands through and above the
       // water, while any phase can now settle smoothly back to standing.
-      delta(state,`Shoulder${side}`,(-1.05-1.90*Math.cos(phase))*blend,0,
-        outward*(.24+.17*Math.sin(phase))*blend);
+      delta(state,`Shoulder${side}`,(upright?-.25-.12*Math.cos(phase):-1.05-1.90*Math.cos(phase))*blend,0,
+        outward*(upright?.55:.24+.17*Math.sin(phase))*blend);
       delta(state,`Elbow${side}`,(-.20-.35*(.5+.5*Math.cos(phase)))*blend);
       delta(state,`Wrist${side}`,-.12*blend,0,Math.sin(phase)*.08*blend);
-      const kick=Math.sin(cycle*2+offset);
+      const kick=Math.sin(cycle*2+offset)*(waterStyle==='soak'?.16:upright?.6:1);
       delta(state,`Hip${side}`,kick*.23*blend,0,outward*.035*blend);
       delta(state,`Knee${side}`,Math.max(0,-kick)*.28*blend);
       delta(state,`Ankle${side}`,(-.18-kick*.08)*blend);
@@ -219,6 +229,7 @@ export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,swimBlend=1}=
     motion.position.copy(state.sitTranslation);
     // Lifting both bent legs before swivelling onto a bed clears its side rail.
     const folded=Math.max(0,Math.min(1,Number(tuck)||0));
+    if(folded)delta(state,'Torso',-(ladder?.8:.30)*folded);
     if(folded)for(const side of ['L','R']){
       delta(state,`Hip${side}`,-Math.PI/2-folded*.50);
       delta(state,`Knee${side}`,Math.PI/2-folded*1.02);
@@ -243,10 +254,12 @@ export function poseRobotAvatar(model,{action='idle',time=0,tuck=0,swimBlend=1}=
     delta(state,'Head',.23,action==='read'?Math.sin(time*.8)*.045:0,0);
   } else if(action==='lie') {
     motion.position.set(0,0,0);motion.rotation.x=-Math.PI/2;
-    for(const side of ['L','R']){delta(state,`Hip${side}`,.03);delta(state,`Knee${side}`,.04);}
+    const folded=Math.max(0,Math.min(1,Number(curl)||0));
+    for(const side of ['L','R']){delta(state,`Hip${side}`,.03-folded*1.15);delta(state,`Knee${side}`,.04+folded*1.85);}
     const hip=localPoint(state,nodes.HipRoot);motion.position.x=-hip.x;motion.position.z=-hip.z;
-    if(state.lieLift===null)state.lieLift=-boundsOf(state).min.y;
-    motion.position.y=state.lieLift;
+    state.lieLifts??=new Map();const liftKey=folded.toFixed(3);
+    if(!state.lieLifts.has(liftKey))state.lieLifts.set(liftKey,-boundsOf(state).min.y);
+    motion.position.y=state.lieLifts.get(liftKey);
   } else {
     delta(state,'Head',Math.sin(time*.7)*.018,Math.sin(time*.55)*.065,0);
     for(const [side,sign]of[['L',-1],['R',1]])delta(state,`Shoulder${side}`,Math.sin(time*1.6+sign*.2)*.018);
@@ -291,7 +304,7 @@ export function poseRobotTelevisionArms(model,{holding=false,carrying=false,pres
 
 /** Surface work uses two actual hand sockets and measured world contacts.
  * Only the torso and arms lean; feet retain their standing ground contacts. */
-export function poseRobotSurfaceHands(model,{reach=0,contacts=null,lean=1.05}={}){
+export function poseRobotSurfaceHands(model,{reach=0,contacts=null,lean=1.05,wrists=false}={}){
   if(!contacts||reach<=0)return;
   const state=stateFor(model),nodes=state.nodes,blend=Math.max(0,Math.min(1,reach)),bend=lean*blend;
   delta(state,'Torso',bend);delta(state,'Head',-.20*blend);
@@ -299,15 +312,15 @@ export function poseRobotSurfaceHands(model,{reach=0,contacts=null,lean=1.05}={}
   for(const side of['L','R']){
     const shoulder=nodes[`Shoulder${side}`];shoulder.position.copy(state.rest.get(shoulder).position).applyAxisAngle(TV_LEAN_AXIS,bend);delta(state,`Shoulder${side}`,bend);
     const target=contacts[side],socket=model.getObjectByName(`HandSocket${side}`);if(!target||!socket)continue;
-    const cache=state.surfaceIK??={joint:new THREE.Vector3(),hand:new THREE.Vector3(),toHand:new THREE.Vector3(),toTarget:new THREE.Vector3(),world:new THREE.Quaternion(),parent:new THREE.Quaternion(),delta:new THREE.Quaternion(),base:[new THREE.Quaternion(),new THREE.Quaternion()]};
-    const joints=[nodes[`Elbow${side}`],shoulder];for(let i=0;i<2;i++)cache.base[i].copy(joints[i].quaternion);
-    for(let n=0;n<9;n++)for(const joint of joints){
+    const cache=state.surfaceIK??={joint:new THREE.Vector3(),hand:new THREE.Vector3(),toHand:new THREE.Vector3(),toTarget:new THREE.Vector3(),world:new THREE.Quaternion(),parent:new THREE.Quaternion(),delta:new THREE.Quaternion(),base:[new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]};
+    const joints=wrists?[nodes[`Wrist${side}`],nodes[`Elbow${side}`],shoulder]:[nodes[`Elbow${side}`],shoulder];for(let i=0;i<joints.length;i++)cache.base[i].copy(joints[i].quaternion);
+    for(let n=0;n<(wrists?28:9);n++)for(const joint of joints){
       model.updateWorldMatrix(true,true);joint.getWorldPosition(cache.joint);socket.getWorldPosition(cache.hand);
       cache.toHand.copy(cache.hand).sub(cache.joint).normalize();cache.toTarget.copy(target).sub(cache.joint).normalize();
       cache.delta.setFromUnitVectors(cache.toHand,cache.toTarget);joint.getWorldQuaternion(cache.world);joint.parent.getWorldQuaternion(cache.parent).invert();
       joint.quaternion.copy(cache.parent.multiply(cache.delta.multiply(cache.world)));
     }
-    for(let i=0;i<2;i++)joints[i].quaternion.slerp(cache.base[i],1-blend);
+    for(let i=0;i<joints.length;i++)joints[i].quaternion.slerp(cache.base[i],1-blend);
   }
   model.updateWorldMatrix(true,true);
 }
@@ -475,5 +488,19 @@ export function measureRobotAvatar(model) {
 export function disposeRobotAvatar(model) {
   const state=instances.get(model);if(!state||state.disposed)return;
   for(const material of state.materials.values())material.dispose();
+  for(const geometry of state.ownedGeometries)geometry.dispose();
   state.disposed=true;model.removeFromParent();model.userData.disposed=true;
+}
+
+/** Planning may inspect real intermediate rig poses synchronously. Restore
+ * every node and public/private pose flag before control returns to rendering. */
+export function withRobotPoseSnapshot(model,inspect){
+  const state=stateFor(model),nodes=[];model.traverse(node=>nodes.push({node,position:node.position.clone(),quaternion:node.quaternion.clone(),scale:node.scale.clone(),visible:node.visible}));
+  const previous={action:state.action,time:state.time,dataAction:model.userData.action,transition:model.userData.transition};
+  try{return inspect();}finally{
+    for(const saved of nodes){saved.node.position.copy(saved.position);saved.node.quaternion.copy(saved.quaternion);saved.node.scale.copy(saved.scale);saved.node.visible=saved.visible;}
+    state.action=previous.action;state.time=previous.time;model.userData.action=previous.dataAction;
+    if(previous.transition===undefined)delete model.userData.transition;else model.userData.transition=previous.transition;
+    model.updateWorldMatrix(true,true);
+  }
 }

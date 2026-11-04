@@ -1,7 +1,8 @@
-import {getFurnitureRobotAction,isRobotBedKind} from './home-furniture-capabilities.js';
+import {getFurnitureRobotAction,isRobotBedKind,ROBOT_SEAT_KINDS} from './home-furniture-capabilities.js';
 /** CPU-only navigation and interaction anchors. Build once per requested walk,
  * never from the animation loop. Uses the same model envelopes as placement. */
 import * as THREE from 'three';
+import {isExteriorElevator,getExteriorElevatorShaftBounds} from './home-staircase-shape.js';
 import { getFloorRects, hasStarterRoom } from './home-layout.js';
 import { getHomeBuildingVolumes } from './home-building-collision.js';
 import { getHomeCandidateVolume, getFurniturePose, FURNITURE_ITEMS } from './home-engine.js';
@@ -19,8 +20,8 @@ function optionsFor(options={}) {
     height:Number.isFinite(options.height)&&options.height>0?Math.max(.25,Math.min(2.4,options.height)):AVATAR_NAVIGATION.height,
     maxVisited:Number.isInteger(options.maxVisited)&&options.maxVisited>0?Math.min(16000,options.maxVisited):AVATAR_NAVIGATION.maxVisited};
 }
-function contextFor(home,options={}) {
-  const settings=optionsFor(options), rects=getFloorRects(home), floorY=AVATAR_NAVIGATION.floorY;
+function contextFor(home,options={},supportRects=[]) {
+  const settings=optionsFor(options), rects=[...getFloorRects(home),...supportRects], floorY=AVATAR_NAVIGATION.floorY;
   if(!rects.length)return null;
   const candidates=[];
   if(home.profile!=='upper'&&hasStarterRoom(home)) {
@@ -36,7 +37,7 @@ function contextFor(home,options={}) {
     candidates.push({id:`furniture:${item.id}`,item});
   }
   const volumes=[...getHomeBuildingVolumes(home),...candidates.map(c=>getHomeCandidateVolume(home,c)).filter(Boolean)]
-    .filter(v=>v.maxY>floorY+.04&&v.minY<floorY+settings.height-E);
+    .filter(v=>!v.placementOnly&&v.maxY>floorY+.04&&v.minY<floorY+settings.height-E);
   const obstacles=volumes.map(v=>({...v,minX:v.minX-settings.radius,maxX:v.maxX+settings.radius,minZ:v.minZ-settings.radius,maxZ:v.maxZ+settings.radius}));
   const bounds={minX:Math.min(...rects.map(r=>r.minX)),maxX:Math.max(...rects.map(r=>r.maxX)),minZ:Math.min(...rects.map(r=>r.minZ)),maxZ:Math.max(...rects.map(r=>r.maxZ))};
   const floorIndex=spatialIndex(rects),obstacleIndex=spatialIndex(obstacles);
@@ -98,6 +99,14 @@ function segmentClear(context,a,b) {
 }
 /** Public collision query is useful when the floor changes or furniture moves. */
 export function isAvatarPositionWalkable(home,point,options={}) {return contextFor(home,options)?.clear(point)??false;}
+
+/** Only an authored exterior boarding sequence can borrow the cabin floor.
+ * Ordinary navigation never receives this additional support rectangle. */
+export function isAvatarElevatorPassageClear(home,stairs,from,to,options={}) {
+  if(!isExteriorElevator(stairs))return false;
+  const shaft=getExteriorElevatorShaftBounds(stairs),context=contextFor(home,options,[shaft]);
+  return !!context&&segmentClear(context,from,to);
+}
 
 class Queue {
   constructor(){this.rows=[];}
@@ -161,7 +170,7 @@ export function findAvatarSpawn(home,preferred,options={}) {
 }
 
 const anchorCache=new Map();
-const seatKinds=new Set(['sofa','daybedSofa','diningChair','lcCloudSofa','lcSpindleSofa','lcWingChair','lcBarrelChair','lcWovenBench','lcPianoBench','lcEntryBench','lcOttoman','hhSpindleChair','hhTulipChair','hhDiningBench','hhShoeBench']);
+const seatKinds=new Set(ROBOT_SEAT_KINDS);
 const bedKinds={has:isRobotBedKind};
 function actionAnchor(item) {
   if(!seatKinds.has(item.kind)&&!bedKinds.has(item.kind))return null;
@@ -170,14 +179,17 @@ function actionAnchor(item) {
   model.updateMatrixWorld(true);
   model.traverse(mesh=>{if(!mesh.isMesh)return;const box=new THREE.Box3().setFromObject(mesh);parts.push({part:mesh.userData.part,box});});
   let selected=bedKinds.has(item.kind)?parts.filter(p=>['duvet','mattress','daybed-mattress','folded-blanket'].includes(p.part))
-    :parts.filter(p=>['seat-cushion','continuous-seat','round-seat','bench-seat','woven-seat-strip','wide-bench-cushion','bench-cushion'].includes(p.part));
+    :parts.filter(p=>['seat-cushion','continuous-seat','round-seat','bench-seat','woven-seat-strip','wide-bench-cushion','bench-cushion','curved-seat-section'].includes(p.part));
   if(item.kind==='sofa')selected=parts.filter(p=>p.part==='upholstery'&&p.box.max.y<.70&&p.box.max.y>.38&&p.box.max.x-p.box.min.x>.55&&p.box.max.z-p.box.min.z>.45);
-  if(['hhSpindleChair','hhTulipChair','hhDiningBench','hhShoeBench'].includes(item.kind))selected=parts.filter(p=>p.box.min.y>.40&&p.box.max.y<.70&&p.box.max.x-p.box.min.x>.4&&p.box.max.z-p.box.min.z>.35);
+  if(['hhSpindleChair','hhTulipChair','hhDiningBench','hhShoeBench','hhBarStool','bdBathStool','lcRockingChair'].includes(item.kind))selected=parts.filter(p=>p.box.min.y>.35&&p.box.max.y<.87&&p.box.max.y-p.box.min.y<.2&&p.box.max.x-p.box.min.x>.32&&p.box.max.z-p.box.min.z>.30);
   if(item.kind==='bed')selected=parts.filter(p=>p.box.max.y<.59&&p.box.max.y>.44&&p.box.max.x-p.box.min.x>1&&p.box.max.z-p.box.min.z>.7);
+  if(item.kind==='bdBathStool'&&!selected.length)selected=parts.filter(p=>p.box.min.y>.35&&p.box.max.y<.5);
   if(bedKinds.has(item.kind)&&selected.some(p=>p.part==='duvet'))selected=selected.filter(p=>p.part==='duvet');
   selected.sort((a,b)=>b.box.max.y-a.box.max.y);
-  const box=selected[0]?.box,center=box?.getCenter(new THREE.Vector3());
-  const anchor=box?{kind:bedKinds.has(item.kind)?'lie':'sit',x:item.kind==='sofa'?center.x:0,y:box.max.y+.012,z:bedKinds.has(item.kind)?0:center.z}:null;
+  let box=selected[0]?.box;
+  if(selected.length&&['lcWovenBench','bdBathStool'].includes(item.kind)){box=new THREE.Box3();for(const part of selected)box.union(part.box);}
+  const center=box?.getCenter(new THREE.Vector3());
+  const anchor=box?{kind:bedKinds.has(item.kind)?'lie':'sit',x:center.x,y:box.max.y+.012,z:bedKinds.has(item.kind)?0:center.z}:null;
   const geometries=new Set(),materials=new Set();model.traverse(mesh=>{if(mesh.geometry)geometries.add(mesh.geometry);for(const mat of [].concat(mesh.material??[]))materials.add(mat);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());
   if(anchorCache.size>=128)anchorCache.delete(anchorCache.keys().next().value);anchorCache.set(key,anchor);return anchor;
 }
@@ -243,7 +255,7 @@ export function listAvatarInteractions(home,targetId,options={}) {
   const kind=item?.kind;
   if(target.targetId==='table.top'||getFurnitureRobotAction(kind)==='read')result.unshift({id:'read',label:"DisplayText0253",targetId:target.targetId,kind:'read',approachIndex,approach,pose:stand});
   if(getFurnitureRobotAction(kind)==='wash')result.unshift({id:'wash',label:"DisplayText0254",targetId:target.targetId,kind:'wash',approachIndex,approach,pose:stand});
-  if(getFurnitureRobotAction(kind)==='cook')result.unshift({id:'cook',label:"DisplayText0255",targetId:target.targetId,kind:'cook',approachIndex,approach,pose:stand});
+  if(getFurnitureRobotAction(kind)==='cook')result.unshift({id:'cook',label:"DisplayText4775",targetId:target.targetId,kind:'cook',approachIndex,approach,pose:stand});
   if(getFurnitureRobotAction(kind)==='dishwash')result.unshift({id:'dishwash',label:"DisplayText0256",targetId:target.targetId,kind:'dishwash',approachIndex,approach,pose:stand});
   return result;
 }

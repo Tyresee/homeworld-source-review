@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { getDecalBounds, getFurnitureBounds, getFurnitureFootprint, getPlacementFootprint, getPlacementBounds, getTableFootprint, findHomeCollision, getHomeCandidateVolume, getPropBounds, findFurnitureRoom, findRoomAt, parseRoomSurfaceId, describeLayout, LAYOUT_PRESETS, getFurniturePose, getFurnitureMountBounds, getWallMountTargets, getFurniturePlacement } from './home-engine.js';
 import { createLuxuryItem } from './home-luxury-models.js';
+import {attachDefaultCookingPot} from './home-cooking-pot.js';
 import { createStaticUpgrade, STATIC_UPGRADE_SURFACES } from './home-static-upgrades.js';
 import { getWallAttachmentOffset, STARTER_WALL_BLOCKS } from './home-building-collision.js';
 import { createRoomExpansion } from './home-room-expansion.js';
@@ -25,10 +26,16 @@ import { createHomeFeedback } from './home-feedback.js';
 import { createStageLighting } from './student-home-stage-lighting.js';
 import { createStageCamera } from './student-home-stage-camera.js';
 import { createStageFraming } from './student-home-stage-framing.js';
-import { createSofaFabricMaps } from './home-sofa-fabrics.js';
+import { createHomeMaterialMaps } from './home-material-maps.js';
 import { freezePlacementAnchor, getFurniturePlacementAtAnchor } from './home-context-placement.js';
 import { getFurnitureTableSupport, getFurnitureTableUV } from './home-item-placement.js';
 import { createStaircase, splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs, getStaircaseSurfaceId } from './home-staircase.js';
+import {createHomeElevator} from './home-elevator-model.js';
+import {createHomeElevatorTransit,createHomeFloorStack,chooseHomeFloorWindow,LID_LIFT_HEIGHT} from './home-elevator-transit.js';
+import {createFloorPlaceholder} from './home-elevator-placeholder.js';
+import {createStudentHomeElevatorCamera} from './student-home-elevator-camera.js';
+import {getHomeElevatorPhysicalStacks} from './home-elevator-stack.js';
+import {STOREY_HEIGHT,FLOOR_Y,areElevatorsAligned,isExteriorElevator} from './home-staircase-shape.js';
 import { createAvatarController } from './home-avatar-controller.js';
 import { commitHomePlacement } from './home-placement-commit.js';
 import {getHomeTheme,getHomeSurfaceAppearance,getRoomTheme} from './home-theme.js';
@@ -46,17 +53,27 @@ export function createWarmStarterFloorSurface(stairs=null) {
 
 /** Build every real connection on the selected floor. Kept independent of
  * WebGL so floor targets and the cutaway can be verified with real geometry. */
-export function createFloorStaircaseGroup(home, activeFloor = 0) {
+export function createFloorStaircaseGroup(home, activeFloor = 0, floors = null) {
   const group = new THREE.Group(); group.name = 'floor-staircases';
-  for (const stairs of getHomeStairs(home)) {
-    const model = createStaircase(stairs), surfaceId = getStaircaseSurfaceId(stairs);
+  const rows=getHomeStairs(home),done=new Set(),stacks=Array.isArray(floors)?getHomeElevatorPhysicalStacks(floors):[];
+  const renderedRows=[...rows];for(const links of stacks)if(links[0]?.stairs.placement==='exterior-left-v1'&&!links.some(link=>rows.some(row=>row.id===link.stairs.id)))renderedRows.push(links[0].stairs);
+  for (const stairs of renderedRows) {
+    if(done.has(stairs.id))continue;
+    const globalStack=stacks.find(stack=>stack.some(link=>link.stairs.id===stairs.id));
+    const local=rows.filter(row=>areElevatorsAligned(row,stairs)).map(row=>({from:activeFloor+(row.direction==='down'?-1:0),to:activeFloor+(row.direction==='down'?0:1),stairs:row})).sort((a,b)=>a.from-b.from);
+    const links=globalStack??local,merged=stairs.type==='elevator'&&links.length>1;
+    const model = stairs.type==='elevator'?createHomeElevator(stairs,{connections:links.length?links.map(link=>({stairs:link.stairs,baseY:(link.from-activeFloor)*STOREY_HEIGHT})):null,groundY:-activeFloor*STOREY_HEIGHT}):createStaircase(stairs), surfaceId = getStaircaseSurfaceId(stairs);
+    if(merged)for(const link of links)done.add(link.stairs.id);
+    // Frame the focused room and its adjacent landing; the fixed full-height
+    // shaft must not shrink the whole room on a tall-house editor screen.
+    if(stairs.type==='elevator')model.userData.editorFraming={minY:-.4,maxY:rows.some(row=>row.direction==='up'&&areElevatorsAligned(row,stairs))?FLOOR_Y+STOREY_HEIGHT+2.10:FLOOR_Y+2.10};
     const target = activeFloor + (stairs.direction === 'up' ? 1 : -1);
     model.userData = {...model.userData, surfaceId, storeyTarget:target};
     // One shaft spans both real storeys. Capture it from its lower floor only;
     // the upstairs counterpart remains visible and interactive in single-floor view.
-    if(stairs.type==='elevator'&&stairs.direction==='down')model.userData.overviewExclude=true;
+    if(stairs.type==='elevator'&&((merged||stairs.placement==='exterior-left-v1')?activeFloor!==links[0].from:stairs.direction==='down'))model.userData.overviewExclude=true;
     model.traverse(object => {
-      if (object.isMesh) Object.assign(object.userData,{surfaceId,stairId:stairs.id,storeyTarget:target});
+      if (object.isMesh) {const owner=rows.find(row=>row.id===object.userData.stairId)??stairs;Object.assign(object.userData,{surfaceId:getStaircaseSurfaceId(owner),stairId:owner.id,storeyTarget:activeFloor+(owner.direction==='up'?1:-1)});}
     });
     group.add(model);
   }
@@ -72,13 +89,23 @@ export function applyFloorElevatorFrame(group, frame) {
     const update = model.userData.setElevatorFrame;
     if (typeof update !== 'function') continue;
     if (!frame || frame.reset) changed = update({}) || changed;
-    else if (model.userData.stairId === frame.stairId) changed = update(frame) || changed;
+    else if (model.userData.stairId === frame.stairId || model.userData.connectionIds?.includes(frame.stairId)) changed = update(frame) || changed;
   }
   return changed;
 }
 
+/** Align the centered exterior model with raw saved outdoor coordinates. The
+ * building overview stays centered; the estate uses the placement validator's
+ * world coordinates so a reserved shaft and its visible footprint coincide. */
+export function positionExteriorElevatorView({manor,staircase,groundHome,hasExterior=false,activeFloor=0,view='interior',houseMode='exterior'}){
+  const outside=view==='estate'||view==='building'&&houseMode==='exterior',bounds=hasExterior&&outside?getFloorBounds(groundHome):null;
+  manor.position.x=hasExterior&&view==='estate'?(bounds?.x??0):0;
+  manor.position.z=hasExterior&&view==='estate'?(bounds?.z??0):0;
+  if(staircase)staircase.position.set(outside&&view!=='estate'?-(bounds?.x??0):0,outside?activeFloor*STOREY_HEIGHT+manor.position.y:0,outside&&view!=='estate'?-(bounds?.z??0):0);
+}
+
 // Each editable part owns its material. Appearance changes never mutate a shared asset.
-export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onStageCameraChange, onRoamChange, onEntranceClick, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
+export function createHomeScene({ container, onSelect, onObjectClick, onEstateSelect, onEstateFocus, onEstateViewChange, onStoreyChange, onOutdoorMove, onDrag, onCancel, onObjectEdit, onPlacementPreview, onPlacementCommit, onPlacementReject, onPlacementCancel, onContextMenu, onPanStart, onAvatarClick, onAvatarStatus, onAvatarActivityChange, onAvatarObjectAction, onAvatarObjectPresentation, onBeforeModelRelease, onFloorCapture, onStageCameraChange, onRoamChange, onEntranceClick, avatarFactory = createAvatarController, floorClickWalk = false, theme = getHomeTheme(), onRenderSetup }) {
   const lighting=theme.lighting.editor??{};
   const floorTextures=theme.id==='warm'?createHomeFloorTextureManager():null;
   const wallTextures=theme.id==='warm'?createHomeWallTextureManager():null;
@@ -92,6 +119,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+
   // The estate is static while the teacher pans it. Updating a 2048px shadow
   // map on every pointer frame wastes the drag budget; scene mutations mark it
   // dirty and the next render refreshes it once.
@@ -116,6 +144,9 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const estateFeature = id => id==='manor' ? estateManor : outdoorState ? outdoorWorld.getFeature(id) : estateOutdoor.getFeature(id);
   let houseOverview = null, houseOverviewKey = '', houseMode = 'exterior', capturingHouse = false;
   const houseLabels = document.createElement('div'); houseLabels.className = 'house-floor-labels'; houseLabels.hidden = true; container.append(houseLabels);
+  const elevatorViewExit=document.createElement('button');elevatorViewExit.type='button';elevatorViewExit.hidden=true;elevatorViewExit.textContent="← DisplayText4904";
+  elevatorViewExit.style.cssText='position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:5;border:1px solid #d9d6c9;border-radius:20px;padding:10px 18px;background:#fffdf4;color:#354d40;font:600 14px system-ui;cursor:pointer;box-shadow:0 3px 14px #39352218';
+  elevatorViewExit.addEventListener('click',()=>{clearElevatorTransit();cameraPan.set(0,0,0);zoom=1;frameCamera();});container.append(elevatorViewExit);
   let houseLabelAnchors = [];
   const floorCameraPoses = new Map();
   const textures = [], ownedMaterials = new Set(), ownedGeometries = new Set();
@@ -132,7 +163,9 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   let dragging = null, scheduled = false, disposed = false, renderFrame = 0;
   let view = 'interior', estateFocus = null, requestedFocus = null, estateLevels = {manor:3};
   let roamExperience=null,roamLoading=false,roamEpoch=0,presentationPaused=false,roamCamera=null,roamCanvasVisibility='';
-  const usesInteriorCutaway = () => theme.id === 'warm' && view === 'interior' && !capturingHouse;
+  let capturingTransit=false,elevatorTransit=null,elevatorCamera=null,failedElevatorTransitId=null;
+  let elevatorStack=null,elevatorStackKey='',elevatorStackVisible=false,elevatorRuntimeKey='',elevatorRequestedId=null;
+  const usesInteriorCutaway = () => theme.id === 'warm' && view === 'interior' && (!capturingHouse||capturingTransit);
   const estatePan = new THREE.Vector3();
   const cameraPan = estatePan;
   let cameraMotion = null, cameraAnimation = 0, overviewPose = null, lastPanAt = -Infinity;
@@ -162,12 +195,15 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if(document.hidden)lastStageCameraFrame=null;
     else{stageCameraTime+=lastStageCameraFrame===null?0:Math.min(64,Math.max(0,now-lastStageCameraFrame));lastStageCameraFrame=now;}
     const filming=!document.hidden&&stageCamera?.update(stage,stageCameraTime);
+    const followingElevator=!document.hidden&&elevatorCamera?.update(now);
+    elevatorViewExit.hidden=!elevatorStackVisible||!!elevatorTransit||!!elevatorCamera?.getState().active;
     const fading=stageLighting?.update(stage,now);
     const amount=stageLighting?.getState().amount??0,oldSelection=selection.visible;
     if(amount>0)selection.visible=false;
     const dark=String(amount>.5);if(container.dataset.stageActive!==dark)container.dataset.stageActive=dark;
+
     renderer.render(scene,camera);selection.visible=oldSelection;updateHouseLabels();
-    if((fading||filming)&&!document.hidden)requestRender();
+    if((fading||filming||followingElevator)&&!document.hidden)requestRender();
   }
   function requestRender() { if (!scheduled&&!disposed&&!presentationPaused) { scheduled = true; renderFrame=requestAnimationFrame(render); } }
   function markShadowsDirty() { renderer.shadowMap.needsUpdate = true; }
@@ -180,9 +216,181 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   const feedback = createHomeFeedback({ container, camera, requestRender });
   let pendingAvatarArrival = null;
   const avatarActor = avatarFactory({ parent:scene, requestRender, onStatus:onAvatarStatus, onActivityChange:onAvatarActivityChange,onObjectAction:onAvatarObjectAction,onObjectPresentation:onAvatarObjectPresentation,
-    onStoreyChange:({index,point})=>{pendingAvatarArrival={index,point};onStoreyChange?.(index);},
-    onElevatorFrame:frame=>{if(disposed)return;applyFloorElevatorFrame(staircase,frame);requestRender();},
+    onStoreyChange:({index,point,stairId})=>{if(elevatorTransit?.targetStorey===index&&(!stairId||elevatorTransit.stairId===stairId))elevatorTransit.arriving=true;pendingAvatarArrival={index,point};onStoreyChange?.(index);},
+    onElevatorFrame:handleElevatorFrame,
   });
+  function readElevatorCameraPose(){
+    const target=camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3()));
+    return {position:{x:camera.position.x,y:camera.position.y,z:camera.position.z},target:{x:target.x,y:target.y,z:target.z},...Object.fromEntries(['left','right','top','bottom','near','far','zoom'].map(key=>[key,camera[key]]))};
+  }
+  function applyElevatorCameraPose(pose){
+    camera.position.set(pose.position.x,pose.position.y,pose.position.z);camera.lookAt(pose.target.x,pose.target.y,pose.target.z);
+    for(const key of['left','right','top','bottom','near','far','zoom'])camera[key]=pose[key];
+    camera.updateProjectionMatrix();camera.updateMatrixWorld(true);requestRender();
+  }
+  elevatorCamera=createStudentHomeElevatorCamera({getPose:readElevatorCameraPose,applyPose:applyElevatorCameraPose,reducedMotion:()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches});
+  function elevatorCaptureRoots(){return root.children.filter(child=>child.visible&&![staircase,estateManor,estateOutdoor,outdoorWorld,houseOverview,selection].includes(child));}
+  function captureElevatorFloors(storeys){
+    const saved={state,activeFloor,view,selected,pan:cameraPan.clone(),zoom,angle,bounds:lastCameraBounds?.clone()},snapshots=[];
+    capturingHouse=true;capturingTransit=true;
+    try{
+      for(const storey of storeys){
+        setState(floorHomes[storey],{activeFloor:storey});onFloorCapture?.(storey);
+        snapshots.push({storey,group:captureHomeFloor(elevatorCaptureRoots(),{floorIndex:storey,home:floorHomes[storey]})});
+      }
+      return snapshots;
+    }catch(error){for(const row of snapshots)row.group.userData.dispose?.();throw error;}
+    finally{
+      try{setState(saved.state,{activeFloor:saved.activeFloor});onFloorCapture?.(saved.activeFloor);}
+      catch(error){for(const row of snapshots)row.group.userData.dispose?.();throw error;}
+      finally{view=saved.view;selected=saved.selected;cameraPan.copy(saved.pan);zoom=saved.zoom;angle=saved.angle;lastCameraBounds=saved.bounds;capturingHouse=false;capturingTransit=false;syncView();updateSelection();}
+    }
+  }
+  function elevatorStackFingerprint(){return JSON.stringify([floorHomes,elevatorRuntimeKey]);}
+  function elevatorTripWindow(fromStorey,targetStorey){
+    if(!Number.isInteger(targetStorey)||Math.abs(targetStorey-fromStorey)<=1)return chooseHomeFloorWindow(floorHomes.length,fromStorey);
+    return [fromStorey,fromStorey+Math.sign(targetStorey-fromStorey),targetStorey].sort((a,b)=>a-b);
+  }
+  function ensureElevatorStack(window=null){
+    if(capturingHouse||disposed||!state||!Array.isArray(floorHomes)||floorHomes.length<2||!floorHomes.some(home=>getHomeStairs(home).some(row=>row.type==='elevator')))return false;
+    const storeys=window??chooseHomeFloorWindow(floorHomes.length,activeFloor),key=elevatorStackFingerprint();
+    if(elevatorStack&&elevatorStackKey===key&&storeys.every(index=>elevatorStack.getState().floors.some(row=>row.storey===index)))return true;
+    // Preparation is performed while stopped, before an explicit ride starts.
+    // The cache is not reconstructed by a cabin frame or an arrival handoff.
+    if(elevatorTransit)return !!elevatorStack;
+    const resident=elevatorStack?.getState().floors??[],oldKeys=elevatorStack?.group.userData.homeCacheKeys??{};
+    const keys=Object.fromEntries(storeys.map(index=>[index,JSON.stringify([floorHomes[index],elevatorRuntimeKey])]));
+    const missing=storeys.filter(index=>!resident.some(row=>row.storey===index)||oldKeys[index]!==keys[index]);
+    const snapshots=captureElevatorFloors(missing);
+    try{
+      if(elevatorStack)elevatorStack.setWindow({anchorStorey:activeFloor,storeys,snapshots});
+      else{elevatorStack=createHomeFloorStack({anchorStorey:activeFloor,snapshots});scene.add(elevatorStack.group);elevatorStack.group.visible=false;}
+      elevatorStack.group.userData.homeCacheKeys=keys;elevatorStackKey=key;return true;
+    }
+    catch(error){for(const row of snapshots)row.group.userData.dispose?.();throw error;}
+  }
+  function extendElevatorDepth(){
+    if(!elevatorStackVisible||!elevatorStack)return;
+    const resident=elevatorStack.getState(),floors=[...resident.floors,...(resident.placeholders??[])],storeys=floors.map(row=>row.storey);
+    const first=Math.min(...storeys),last=Math.max(...storeys),scratch=new THREE.Vector3();
+    const originY=elevatorStack.group.getWorldPosition(scratch).y,bounds=new THREE.Box3();
+    // Reserve the whole focus range before boarding, not just today's lifted
+    // pose. Relative to the followed camera a floor is (storey-focus)*height
+    // plus a lift in [0,LID_LIFT_HEIGHT]. Removing its current world Y makes
+    // this envelope independent of the animated focus and arrival rebases.
+    for(const floor of elevatorStack.group.children){
+      const storey=floor.userData.floorIndex;if(!storeys.includes(storey))continue;
+      const box=new THREE.Box3().setFromObject(floor);if(box.isEmpty())continue;
+      const y=floor.getWorldPosition(scratch).y;
+      box.min.y+=originY-y+(storey-last)*STOREY_HEIGHT;
+      box.max.y+=originY-y+(storey-first)*STOREY_HEIGHT+LID_LIFT_HEIGHT;
+      bounds.union(box);
+    }
+    if(bounds.isEmpty())return;
+    let near=Infinity,far=-Infinity;
+    for(const x of[bounds.min.x,bounds.max.x])for(const y of[bounds.min.y,bounds.max.y])for(const z of[bounds.min.z,bounds.max.z]){
+      const depth=-scratch.set(x,y,z).applyMatrix4(camera.matrixWorldInverse).z;near=Math.min(near,depth);far=Math.max(far,depth);
+    }
+    // An orthographic retreat along its own view axis changes depth only:
+    // screen position, scale and orientation are identical. Do it before the
+    // follow controller captures its base, so actual ride motion stays Y-only.
+    // The unlifted envelope prevents cumulative retreat on consecutive trips.
+    const back=Math.max(0,2-near);
+    if(back>1e-9){camera.position.addScaledVector(camera.getWorldDirection(scratch),-back);camera.updateMatrixWorld(true);}
+    camera.near=.01;camera.far=Math.max(camera.far,far+back+2);camera.updateProjectionMatrix();
+  }
+  function showElevatorStack(stairId,targetStorey=null){
+    if(view!=='interior'||capturingHouse)return false;
+    const stair=getHomeStairs(state).find(row=>row.id===stairId&&row.type==='elevator');
+    if(!stair)return false;
+    const target=Number.isInteger(targetStorey)?targetStorey:activeFloor+(stair.direction==='up'?1:-1);
+    if(!floorHomes[target]||!ensureElevatorStack(elevatorTripWindow(activeFloor,target)))return false;
+    if(!elevatorStack.getState().floors.some(row=>row.storey===target))return false;
+    // Prepare stand-ins at the explicit command, before reserving depth or
+    // capturing the camera baseline. No floor is captured/created mid-ride.
+    if(!elevatorTransit){
+      const resident=elevatorStack.getState(),real=new Set(resident.floors.map(row=>row.storey)),needed=[];
+      for(let index=Math.min(activeFloor,target)+1;index<Math.max(activeFloor,target);index++)if(!real.has(index))needed.push(index);
+      const prior=resident.placeholders??[];
+      if(prior.length!==needed.length||prior.some(row=>!needed.includes(row.storey))){
+        const placeholders=[];
+        try{for(const storey of needed)placeholders.push({storey,group:createFloorPlaceholder(floorHomes[storey],{storey})});elevatorStack.setPlaceholders(placeholders);}
+        catch(error){for(const row of placeholders)row.group.userData.dispose();throw error;}
+      }
+    }
+    elevatorRequestedId=stairId;
+    if(!elevatorStackVisible){
+      freezeElevatorSettle();stageCamera?.exit({restore:false});stopCameraMotion();clearPulse();feedback.clear();
+      elevatorStack.setAnchorStorey(activeFloor);elevatorStackVisible=true;elevatorStack.group.visible=true;hideTransitFloor();
+    }
+    // A prior arrival can leave this stack visible. A new explicit trip may
+    // widen its sparse window before boarding, so reserve the new span now.
+    extendElevatorDepth();markShadowsDirty();requestRender();
+    return true;
+  }
+  function hideTransitFloor(){if(elevatorStackVisible&&!capturingTransit){for(const child of root.children)if(child!==staircase)child.visible=false;selection.visible=false;}}
+  function clearElevatorTransit({restoreCamera=true,cancelCamera=true,releaseStack=false,keepStack=false}={}){
+    const trip=elevatorTransit;elevatorTransit=null;trip?.presentation.dispose();
+    if(!trip)elevatorStack?.setPlaceholders([]);
+    if(!keepStack){const stoppedId=trip?.stairId??elevatorRequestedId;if(stoppedId)failedElevatorTransitId=stoppedId;elevatorRequestedId=null;}
+    if(!keepStack){elevatorStackVisible=false;if(elevatorStack)elevatorStack.group.visible=false;}
+    elevatorViewExit.hidden=!keepStack;
+    if(releaseStack){elevatorStack?.dispose();elevatorStack=null;elevatorStackKey='';}
+    if(cancelCamera)elevatorCamera?.cancel({restore:restoreCamera});
+    if((trip||releaseStack||!keepStack)&&!disposed){syncView();markShadowsDirty();requestRender();}
+  }
+  function freezeElevatorSettle(){
+    if(!elevatorCamera?.getState().settling)return;
+    const held=readElevatorCameraPose(),bounds=lastCameraBounds?.clone()??cameraBounds(),scratch=new THREE.OrthographicCamera();
+    elevatorCamera.cancel();
+    const options={width:container.clientWidth||800,height:container.clientHeight||600,angle,zoom,padding:1.15,centerOffset:cameraPan};
+    frameHomeCamera(scratch,bounds,options);
+    zoom=boundedZoom(zoom*((scratch.top-scratch.bottom)/scratch.zoom)/((held.top-held.bottom)/held.zoom),view);
+    frameHomeCamera(scratch,bounds,{...options,zoom});cameraPan.add(new THREE.Vector3(held.position.x,held.position.y,held.position.z).sub(scratch.position));
+    frameCamera(bounds);
+  }
+  function beginElevatorTransit(frame){
+    if(view!=='interior'||capturingHouse||!state||!Array.isArray(floorHomes))return false;
+    const stair=getHomeStairs(state).find(row=>row.id===frame.stairId&&row.type==='elevator');
+    const delta=Number.isInteger(frame.floorDelta)&&frame.floorDelta!==0?frame.floorDelta:(stair?.direction==='up'?1:-1),targetStorey=activeFloor+delta;
+    if(!stair||!floorHomes[targetStorey])return false;
+    if(!showElevatorStack(frame.stairId,targetStorey))return false;
+    freezeElevatorSettle();
+    const fromStorey=activeFloor;
+    const shaft=staircase?.children.find(model=>model.userData.stairId===frame.stairId||model.userData.connectionIds?.includes(frame.stairId));
+    {
+      const presentation=createHomeElevatorTransit({fromStorey,targetStorey,stack:elevatorStack,shaft});
+      elevatorTransit={fromStorey,targetStorey,stairId:frame.stairId,presentation,arriving:false,homesKey:JSON.stringify(floorHomes),sourceKey:JSON.stringify(state)};scene.add(presentation.group);hideTransitFloor();
+      extendElevatorDepth();
+      // A restored checkpoint may first appear halfway along the shaft. The
+      // ordinary camera still frames its departure floor, so seed that floor's
+      // cabin height before following the actual resumed frame below.
+      if(!elevatorCamera.getState().active)elevatorCamera.follow({stairId:frame.stairId,cabinY:FLOOR_Y},performance.now());
+      markShadowsDirty();return true;
+    }
+  }
+  function handleElevatorFrame(frame){
+    if(disposed||capturingTransit)return;
+    if(!frame)frame={reset:true};
+    if(frame?.reset){
+      failedElevatorTransitId=null;
+      if(elevatorTransit){const trip=elevatorTransit;elevatorCamera.follow(frame,performance.now());trip.presentation.update(frame);queueMicrotask(()=>{if(elevatorTransit===trip)clearElevatorTransit();});}
+      else applyFloorElevatorFrame(staircase,frame);
+    }else{
+      if(elevatorTransit&&(elevatorTransit.stairId!==frame.stairId||elevatorCamera.getState().holding))clearElevatorTransit();
+      if(!elevatorTransit&&failedElevatorTransitId!==frame.stairId){
+        try{beginElevatorTransit(frame);}
+        catch(error){
+          failedElevatorTransitId=frame.stairId;clearElevatorTransit();frameCamera();
+          console.warn('Elevator camera presentation unavailable',error);
+          onAvatarStatus?.({message:"DisplayText4905, DisplayText4906."});
+        }
+      }
+      if(elevatorTransit){const result=elevatorTransit.presentation.update(frame);elevatorCamera.follow(frame,performance.now());if(result.shadowChanged)markShadowsDirty();}
+      else applyFloorElevatorFrame(staircase,frame);
+    }
+    requestRender();
+  }
   function material(color, options = {}) {
     const m = new THREE.MeshStandardMaterial({ color, roughness: .76, ...options }); ownedMaterials.add(m); return m;
   }
@@ -204,37 +412,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     parts.set(id, objects);
     for (const object of objects) { object.userData.surfaceId = id; pickables.push(object); }
   }
-  function grain(kind) {
-    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 256, 256);
-    if (kind === 'oak') {
-      for (let i = 0; i < 90; i++) {
-        const y = i * 3.1;
-        ctx.strokeStyle = i % 3 ? 'rgba(102,68,30,.09)' : 'rgba(108,65,28,.2)';
-        ctx.lineWidth = i % 3 ? .8 : 1.4; ctx.beginPath(); ctx.moveTo(0, y);
-        for (let x = 0; x <= 256; x += 8) ctx.lineTo(x, y + Math.sin(x / 48 + i) * 2.5);
-        ctx.stroke();
-      }
-    } else if (kind === 'stone') {
-      for (let i = 0; i < 11; i++) {
-        ctx.strokeStyle = 'rgba(104,113,108,.15)'; ctx.lineWidth = i % 3 === 0 ? 2 : .7;
-        ctx.beginPath(); ctx.moveTo(i * 40 - 50, 0); ctx.bezierCurveTo(i * 28 + 10, 70, i * 42 - 10, 140, i * 27 + 60, 256); ctx.stroke();
-      }
-    } else if (kind === 'wool' || kind === 'linen' || kind === 'velvet') {
-      const base = kind === 'wool' ? 'rgba(160,132,104,.16)' : kind === 'linen' ? 'rgba(112,137,124,.13)' : 'rgba(125,78,99,.14)';
-      ctx.strokeStyle = base; ctx.lineWidth = kind === 'velvet' ? 3 : 1.4;
-      for (let i = 0; i < 256; i += (kind === 'wool' ? 7 : 11)) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i + Math.sin(i) * 2); ctx.stroke(); }
-      if (kind === 'wool') for (let i = -256; i < 256; i += 18) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 256, 256); ctx.stroke(); }
-    } else {
-      ctx.strokeStyle = 'rgba(91,132,133,.14)'; ctx.lineWidth = 2;
-      for (let i = 0; i <= 256; i += 64) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke(); }
-    }
-    const t = new THREE.CanvasTexture(canvas); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; textures.push(t); return t;
-  }
-  const sofaFabricMaps = createSofaFabricMaps();
-  Object.values(sofaFabricMaps).forEach(texture => textures.push(texture));
-  const maps = { oak: grain('oak'), stone: grain('stone'), ceramic: grain('ceramic'), walnut: grain('oak'), marble: grain('stone'), wool: grain('wool'), linen: grain('linen'), velvet: grain('velvet'), ...Object.fromEntries(Object.entries(sofaFabricMaps).map(([name, texture]) => [`sofa-${name}`, texture])) };
+  const {maps,textures:materialTextures}=createHomeMaterialMaps();
+  textures.push(...materialTextures);
   roomExpansion = createRoomExpansion({ rooms, maps, includeWalls: true, includeGrid: true, theme, floorTextureManager:floorTextures,wallTextureManager:wallTextures, cutaway:usesInteriorCutaway() }); root.add(roomExpansion);
   // The outdoor estate is an isolated scene layer. Its house is generated from
   // the same floor plan as the interior, so adding a room inside changes the
@@ -274,7 +453,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   function starterWallBlock(id) {
     const block = STARTER_WALL_BLOCKS.find(block => block.id === id);
     const color=(['toy','warm'].includes(theme.id)?(id.includes('body')?(theme.id==='warm'?getRoomTheme('living',null,theme).wall:theme.rooms.living.wall):id.includes('skirting')?theme.rooms.living.trim:theme.shell.wallCap):null)??block.color;
-    return box(starterShell, color, block.size, block.position, block.radius);
+    const mesh=box(starterShell, color, block.size, block.position, block.radius);mesh.userData.starterBlockId=id;return mesh;
   }
   // A miniature architectural slice, with real inner/outer skins on the editable wall.
   box(starterShell, '#d0bb9b', [6, .38, 5.65], [0, -.3, 0], .17);
@@ -524,6 +703,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
           sticker.castShadow = false; sticker.receiveShadow = false;
           if (item.kind === 'flower') { const center=mesh(group,new THREE.CircleGeometry(.12,24),'#f7d779',[0,0,.002],{side:THREE.DoubleSide}); center.castShadow=false; }
         } else group = createLuxuryItem({ ...item, maps });
+        if(type==='furniture')attachDefaultCookingPot(group,item);
         adopt(group); dynamic.add(group);
         tagGroup(group,surfaceId,type === 'decal' ? {decalId:item.id} : type === 'prop' ? {propId:item.id} : {furnitureId:item.id,dynamicId:key});
         if (type !== 'decal') parts.set(key,[group]);
@@ -561,6 +741,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     outer.visible=true;starterSideBody.visible=true;
     const home=state??{rooms};if(!hasStarterRoom(home))return;
     for(const [original,axis,surfaceId]of [[outer,'x','wall.outer'],[starterSideBody,'z','wall.side']]) {
+      if(original===starterSideBody&&getHomeStairs(home).some(isExteriorElevator)){original.visible=false;continue;}
       const faces=createSharedWallFaceMeshes(original,home.rooms,{axis,rectForRoom:roomRect,defaultSurfaceId:surfaceId,trimColor:theme.shell.trim??'#f4efe6'});if(!faces)continue;
       original.visible=false;parts.set(surfaceId,(parts.get(surfaceId)??[]).filter(mesh=>mesh!==original));
       for(const mesh of faces) {
@@ -620,11 +801,15 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     roomExpansion.visible = view === 'interior';
     starterShell.visible = view === 'interior'&&!standaloneFloor();
     windowGroup.visible = view === 'interior'&&!standaloneFloor();
+    const exteriorLift=getHomeStairs(state).some(row=>row.placement==='exterior-left-v1'),anyExteriorLift=exteriorLift||floorHomes?.some(home=>getHomeStairs(home).some(row=>row.placement==='exterior-left-v1'));
+    for(const mesh of starterShell.children??[])if(['side-body','side-skirting'].includes(mesh.userData.starterBlockId))mesh.visible=!exteriorLift;
+    const sideUpgrade=upgradeItems.get('sidewall');if(sideUpgrade)sideUpgrade.group.visible=view==='interior'&&!exteriorLift;
     if(['upper','account'].includes(state?.profile))for(const object of[table,shelfGroup,stool,plant,rabbit,rug])object.visible=false;
-    if(staircase)staircase.visible=view==='interior';
+    positionExteriorElevatorView({manor:estateManor,staircase,groundHome:anyExteriorLift?{rooms:groundRooms(),slab:floorHomes?.[0]?.slab}:null,hasExterior:anyExteriorLift,activeFloor,view,houseMode});
+    if(staircase){const outside=view==='estate'||view==='building'&&houseMode==='exterior';staircase.visible=view==='interior'||anyExteriorLift&&outside;for(const model of staircase.children)model.visible=view==='interior'||!!model.userData.exteriorElevator;}
     selection.visible = view === 'interior' && !lifeMode;
-    avatarActor.setEnvironment?.(view);
-    avatarActor.setVisible((view === 'interior' || view === 'estate' && avatarActor.supportsOutdoor && !!outdoorState) && !capturingHouse);
+    if(!capturingTransit){avatarActor.setEnvironment?.(view);avatarActor.setVisible((view === 'interior' || view === 'estate' && avatarActor.supportsOutdoor && !!outdoorState) && !capturingHouse);}
+    hideTransitFloor();
   }
   /** Appearance of a surface: fixed living-room surfaces live in `surfaces`, added rooms carry their own skins. */
   function surfaceAppearance(next, id) {
@@ -672,24 +857,28 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     }
   }
   function syncStaircase(next) {
-    const stairs=getHomeStairs(next),key=JSON.stringify([stairs,activeFloor,standaloneFloor()]);if(key===staircaseKey)return;staircaseKey=key;
-    if(staircase){for(const model of staircase.children)parts.delete(model.userData.surfaceId);release(staircase);staircase=null;}
+    const stairs=getHomeStairs(next),key=JSON.stringify([stairs,activeFloor,standaloneFloor(),floorHomes?.map(getHomeStairs)]);if(key===staircaseKey)return;staircaseKey=key;
+    if(staircase){for(const model of staircase.children){parts.delete(model.userData.surfaceId);for(const id of model.userData.connectionIds??[])parts.delete(getStaircaseSurfaceId({id}));}release(staircase);staircase=null;}
     if(!standaloneFloor())rebuildStarterFloor(stairs);
-    if(!stairs.length)return;
-    staircase=createFloorStaircaseGroup(next,activeFloor);adopt(staircase);root.add(staircase);
+    if(!stairs.length&&!floorHomes?.some(home=>getHomeStairs(home).some(isExteriorElevator)))return;
+    staircase=createFloorStaircaseGroup(next,activeFloor,floorHomes);adopt(staircase);root.add(staircase);
     // The upstairs opening shows the straight flight and its open arrival platform.
     // The complete straight flight and its collision volume remain downstairs.
-    for(const model of staircase.children){tagGroup(model,model.userData.surfaceId);parts.set(model.userData.surfaceId,[model]);}
+    for(const model of staircase.children){tagGroup(model,model.userData.surfaceId);parts.set(model.userData.surfaceId,[model]);for(const id of model.userData.connectionIds??[])parts.set(getStaircaseSurfaceId({id}),[model]);if(model.userData.connectionIds?.length>1)model.traverse(node=>{if(node.isMesh){const owner=stairs.find(row=>row.id===node.userData.stairId);if(owner)node.userData.surfaceId=getStaircaseSurfaceId(owner);}});}
   }
   function setState(next, options = {}) {
     const nextFloor=Number.isInteger(options.activeFloor)?options.activeFloor:activeFloor;
     const changedFloor=nextFloor!==activeFloor||!!state&&state.profile!==next.profile;
+    const elevatorArrival=!capturingHouse&&elevatorTransit?.arriving&&elevatorTransit.targetStorey===nextFloor;
+    const arrivalCamera=elevatorArrival?readElevatorCameraPose():null,arrivalDelta=elevatorArrival?(nextFloor-elevatorTransit.fromStorey)*STOREY_HEIGHT:0;
+    if(elevatorStack&&!capturingHouse&&!elevatorArrival&&(JSON.stringify(options.floors??floorHomes)!==JSON.stringify(floorHomes)||JSON.stringify(next)!==JSON.stringify(state)))clearElevatorTransit({releaseStack:true});
+    if(changedFloor&&!capturingHouse&&!elevatorArrival)clearElevatorTransit();
     if(changedFloor && !capturingHouse) {
       stageFacingBound=false;
       stageCamera?.reset();
       floorCameraPoses.set(activeFloor,{pan:cameraPan.clone(),zoom,angle});
-      cancelDrag();clearFurniturePlacement(false);stopCameraMotion();clearPulse();selected='floor.main';lastCameraBounds=null;
-      const pose=floorCameraPoses.get(nextFloor);cameraPan.copy(pose?.pan??new THREE.Vector3());zoom=pose?.zoom??1;angle=pose?.angle??angle;onPanStart?.();
+      cancelDrag();clearFurniturePlacement(false);stopCameraMotion();clearPulse();selected='floor.main';if(!elevatorArrival)lastCameraBounds=null;
+      if(!elevatorArrival){const pose=floorCameraPoses.get(nextFloor);cameraPan.copy(pose?.pan??new THREE.Vector3());zoom=pose?.zoom??1;angle=pose?.angle??angle;}onPanStart?.();
     }
     activeFloor=nextFloor;
     if(Array.isArray(options.floors))floorHomes=options.floors;
@@ -738,7 +927,25 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if (!capturingHouse) {
       const allFloorsVisible=view==='building' && houseMode==='floors';
       if(allFloorsVisible)ensureHouseOverview();
-      if(changedFloor||changedLayout||allFloorsVisible)frameCamera(); requestRender();
+      if(elevatorArrival){
+        elevatorStack.setAnchorStorey(activeFloor);
+        applyElevatorCameraPose(arrivalCamera);
+        elevatorCamera.arrive({floorDeltaY:arrivalDelta,preserveFraming:true,now:performance.now()});
+        clearElevatorTransit({cancelCamera:false,keepStack:true});floorCameraPoses.set(activeFloor,{pan:cameraPan.clone(),zoom,angle});
+        if(Math.abs(arrivalDelta)>STOREY_HEIGHT){
+          const arrivedStack=elevatorStack,arrivedFloor=activeFloor,arrivedHomes=floorHomes;
+          // The long journey is finished. Only now may the sparse trip cache
+          // return to the destination's adjacent window (still <=3 captures).
+          queueMicrotask(()=>{
+            if(disposed||view!=='interior'||!elevatorStackVisible||elevatorTransit||elevatorStack!==arrivedStack||activeFloor!==arrivedFloor||floorHomes!==arrivedHomes)return;
+            try{ensureElevatorStack();extendElevatorDepth();markShadowsDirty();requestRender();}
+            catch(error){console.warn('Destination floor preparation unavailable',error);}
+          });
+        }
+      }else if(changedFloor||changedLayout||allFloorsVisible)frameCamera();requestRender();
+      if(!elevatorArrival&&!elevatorTransit&&view==='interior'){
+        try{ensureElevatorStack();}catch(error){console.warn('Adjacent floor preparation unavailable',error);}
+      }
     }
   }
   // Capture through the same interior builders as the editor. This changes only
@@ -753,13 +960,16 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     try {
       homes.forEach((home, index) => {
         setState(home, { activeFloor:index });
+        // Captures may reuse the live shaft without an intervening render.
+        // Capture the complete physical shaft for the building overview.
+
         snapshots.push(captureHomeFloor(root.children.filter(child => child.visible && ![estateManor,estateOutdoor,houseOverview,selection].includes(child)), { floorIndex:index, label:`${index + 1} DisplayText0931`, home }));
       });
     } catch (error) {
       snapshots.forEach(group => group.userData.dispose?.()); throw error;
     } finally {
       setState(saved.state, {activeFloor:saved.activeFloor});
-      view=saved.view; selected=saved.selected; cameraPan.copy(saved.pan); zoom=saved.zoom; angle=saved.angle; capturingHouse=false; syncView(); updateSelection();
+      view=saved.view; selected=saved.selected; cameraPan.copy(saved.pan); zoom=saved.zoom; angle=saved.angle; capturingHouse=false;  syncView(); updateSelection();
     }
     houseOverview?.userData.dispose?.(); houseOverview?.removeFromParent();
     houseOverview = createHouseOverview(snapshots); root.add(houseOverview); houseOverviewKey=key;
@@ -797,7 +1007,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     root.updateMatrixWorld(true);
     const bounds = new THREE.Box3();
     if (view === 'building') {
-      bounds.setFromObject(houseMode==='floors' ? houseOverview : estateManor);
+      bounds.setFromObject(houseMode==='floors' ? houseOverview : estateManor);if(houseMode==='exterior'&&staircase?.visible)bounds.expandByObject(staircase);
     } else if (view === 'estate' && estateFocus) {
       const feature = estateFeature(estateFocus);
       if (feature?.visible) bounds.setFromObject(feature, true).expandByScalar(.6);
@@ -812,7 +1022,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     } else {
       if(standaloneFloor())bounds.setFromObject(roomExpansion);
       else {bounds.setFromObject(starterShell);if(state?.slab||rooms.length>1)bounds.expandByObject(roomExpansion);}
-      if(staircase)for(const model of staircase.children){const stairBounds=new THREE.Box3().setFromObject(model);if(model.userData.stairs.direction==='down')stairBounds.min.y=Math.max(stairBounds.min.y,-.4);bounds.union(stairBounds);}
+      if(staircase)for(const model of staircase.children){const stairBounds=new THREE.Box3().setFromObject(model);if(model.userData.stairs.direction==='down'||model.userData.editorFraming)stairBounds.min.y=Math.max(stairBounds.min.y,-.4);if(model.userData.editorFraming)stairBounds.max.y=Math.min(stairBounds.max.y,model.userData.editorFraming.maxY);bounds.union(stairBounds);}
     }
     return bounds;
   }
@@ -823,7 +1033,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     // Box3 is a valid cached-bounds override.
     const expandedHouse=view==='building' && houseMode==='floors';
     if(expandedHouse)houseOverview?.arrange?.({angle,aspect:width/height});
-    const bounds = expandedHouse ? cameraBounds() : boundsOverride?.isBox3 ? boundsOverride : cameraBounds();
+    const bounds = elevatorStackVisible&&lastCameraBounds ? lastCameraBounds.clone() : expandedHouse ? cameraBounds() : boundsOverride?.isBox3 ? boundsOverride : cameraBounds();
     lastCameraBounds = bounds.clone();
     frameHomeCamera(camera, bounds, { width, height, angle, zoom, padding: view==='estate' ? 1.16 : 1.15, centerOffset: cameraPan, ...(expandedHouse?{fitBounds:houseOverview.children.map(floor=>new THREE.Box3().setFromObject(floor))}:{}) });
     if(view==='estate' && outdoorState){
@@ -837,6 +1047,10 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       camera.near=.01;camera.far=Math.max(camera.far,far+back+2);camera.updateProjectionMatrix();
     }
     if (renderer.domElement.width !== Math.round(width * renderer.getPixelRatio()) || renderer.domElement.height !== Math.round(height * renderer.getPixelRatio())) renderer.setSize(width, height);
+    if(elevatorStackVisible)extendElevatorDepth();
+    if(elevatorCamera?.getState().active&&!elevatorTransit?.arriving){
+      elevatorCamera.reframe(readElevatorCameraPose());
+    }
     requestRender();
   }
   function stopCameraMotion() {
@@ -1104,7 +1318,8 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   function beginFurniturePlacement(item) {
     if (view !== 'interior' || !state || !getFurnitureFootprint(item?.kind, item.rotation ?? 0)) return false;
     clearFurniturePlacement(false); cancelDrag();
-    const group = createLuxuryItem({ ...item, maps }), materials = new Set();
+    const group = createLuxuryItem({ ...item, maps });attachDefaultCookingPot(group,item);
+    const materials = new Set();
     const height = new THREE.Box3().setFromObject(group).getSize(new THREE.Vector3()).y;
     group.traverse(node => {
       if (!node.isMesh) return;
@@ -1252,11 +1467,12 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     // Keep the grabbed world point under the pointer, regardless of zoom.
     const before = cameraPan.clone();
     cameraPan.add(dragging.anchor.clone().sub(point));
-    cameraPan.y=0;
+    cameraPan.y=before.y;
     cameraPan.x=clamp(cameraPan.x,-40,40);cameraPan.z=clamp(cameraPan.z,-40,40);
     // Keep the depth interval aligned with the house while translating. This
     // hot path stays independent of scene complexity and preserves picking.
-    panHomeCamera(camera, cameraPan.clone().sub(before));
+    const delta=cameraPan.clone().sub(before);
+    if(elevatorCamera?.getState().active)elevatorCamera.pan(delta);else panHomeCamera(camera,delta);
     requestRender();
   }
   function beginPan(event, feature=null, contextData=null, spacePan=false) {
@@ -1275,7 +1491,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if (event.button !== 0 || event.ctrlKey) return;
     // Freeze before capturing any drag anchor. Manual input must never fight
     // an orbit that moves the same world point underneath the pointer.
-    stageCamera?.exit({restore:false});
+    freezeElevatorSettle();stageCamera?.exit({restore:false});
     lastPointerEvent = { clientX:event.clientX, clientY:event.clientY, pointerId:event.pointerId };
     if(event.pointerType==='touch') {
       touchPoints.set(event.pointerId,{x:event.clientX,y:event.clientY});
@@ -1287,6 +1503,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     }
     if (spaceHeld) { onPanStart?.(); beginPan(event, null, null, true); return; }
     eventRay(event);
+    if(elevatorTransit){beginPan(event);return;}
     if (view === 'building') {
       const target=houseMode==='floors'?houseOverview:estateManor;
       const hit=raycaster.intersectObject(target,true).find(hit=>hit.object.visible);
@@ -1453,7 +1670,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
       if(!moved)onObjectClick?.({data:{outdoorOwnedId:id},view,clientX:event.clientX,clientY:event.clientY});
       return;
     }
-    const enterThroughDoor=theme.id==='warm'&&view==='estate'&&typeof onEntranceClick==='function'
+    const enterThroughDoor=['warm','toy'].includes(theme.id)&&view==='estate'&&typeof onEntranceClick==='function'
       &&event.button===0&&!event.ctrlKey&&dragging.type==='camera-pan'&&!dragging.moved
       &&dragging.contextData?.estateEntranceDoor===true&&estateHit(event)?.object.userData.estateEntranceDoor===true;
     if (dragging.moved) lastPanAt = performance.now();
@@ -1509,7 +1726,7 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
   });
   renderer.domElement.addEventListener('wheel', event => {
     if(presentationPaused)return;
-    event.preventDefault();stageCamera?.exit({restore:false});onPanStart?.();interruptCameraMotion();
+    event.preventDefault();freezeElevatorSettle();stageCamera?.exit({restore:false});onPanStart?.();interruptCameraMotion();
     if(event.ctrlKey || event.deltaMode!==0) zoom=wheelZoom(zoom,event.deltaY,event.deltaMode,view);
     else {
       const start={clientX:event.clientX,clientY:event.clientY},end={clientX:event.clientX-event.deltaX,clientY:event.clientY-event.deltaY};
@@ -1529,17 +1746,17 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     if(wasActive){renderer.domElement.style.visibility=roamCanvasVisibility;presentationPaused=false;restoreRoamCamera();avatarActor.setPresentationPaused?.(false);onRoamChange?.({active:false,phase:'inactive',previousView:view});requestRender();}return wasActive;
   }
   async function enterRoam(options={}){
-    if(theme.id!=='warm'||disposed||!state)return false;if(roamExperience)return roamExperience;
-    const {enterDoor=false,...experienceOptions}=options;
-    releaseInput();stopCameraMotion();
+    if(!['warm','toy'].includes(theme.id)||disposed||!state)return false;if(roamExperience)return roamExperience;
+    const {enterDoor=false,enterOutdoor=false,...experienceOptions}=options;
+    clearElevatorTransit();releaseInput();stopCameraMotion();
     const epoch=++roamEpoch;roamLoading=true;roamCamera=getCameraSnapshot();roamCanvasVisibility=renderer.domElement.style.visibility;
     presentationPaused=true;lastStageCameraFrame=null;avatarActor.setPresentationPaused?.(true);if(renderFrame)cancelAnimationFrame(renderFrame);renderFrame=0;scheduled=false;
     try{
       const {createHomeRoamExperience}=await import('./home-roam-world.js');if(disposed||epoch!==roamEpoch)return false;
-      const experience=createHomeRoamExperience({container,home:groundHome(),floors:exteriorFloors(),theme,maps,robot:avatarActor.group,robotStorey:activeFloor,
+      const experience=createHomeRoamExperience({container,home:groundHome(),floors:exteriorFloors(),outdoor:outdoorState,theme,maps,robot:avatarActor.group,robotStorey:activeFloor,robotEnvironment:avatarActor.getState?.()?.environment??(view==='estate'?'estate':'interior'),
         lighting:{toneMapping:renderer.toneMapping,exposure:renderer.toneMappingExposure,sky:'#'+hemisphere.color.getHexString(),ground:'#'+hemisphere.groundColor.getHexString(),hemisphere:hemisphere.intensity,sunColor:'#'+sun.color.getHexString(),sun:sun.intensity,fillColor:'#'+fill.color.getHexString(),fill:fill.intensity},
         pixelRatio:renderer.getPixelRatio(),...experienceOptions,onExit:exitRoam,onStateChange:snapshot=>{if(epoch===roamEpoch)onRoamChange?.({...snapshot,previousView:view});}});
-      if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();if(enterDoor)experience.controller.enterDoor();return experience;
+      if(disposed||epoch!==roamEpoch){experience.dispose();return false;}roamExperience=experience;roamLoading=false;renderer.domElement.style.visibility='hidden';experience.start();if(enterDoor)experience.controller.enterDoor();else if(enterOutdoor)experience.visitGarden();return experience;
     }catch(error){if(epoch===roamEpoch)exitRoam();throw error;}
   }
   onRenderSetup?.({scene,renderer,camera,hemisphere,sun,fill,maps,requestRender,markShadowsDirty});
@@ -1548,10 +1765,10 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     setState, setOutdoorState, beginOutdoorPlacement, flashOutdoor,
     setAvatar:value=>avatarActor.setAvatar(value),
     captureRobotActivity:options=>avatarActor.captureActivity?.(options)??null,
-    clearRobotAccountBinding(){stageFacingBound=false;stageCamera?.reset();container.dataset.stageActive='false';stageLighting?.reset();avatarActor.clearAccountBinding?.();},
+    clearRobotAccountBinding(){clearElevatorTransit({releaseStack:true});pendingAvatarArrival=null;stageFacingBound=false;stageCamera?.reset();container.dataset.stageActive='false';stageLighting?.reset();avatarActor.clearAccountBinding?.();},
     getFurnitureModels:()=>[...dynamicItems.entries()].filter(([id])=>id.startsWith('furniture:')).map(([id,record])=>({itemId:id.slice(10),group:record.group})),
     requestObjectRender:requestRender,
-    setObjectContext:commerce=>avatarActor.setObjectContext?.(commerce),
+    setObjectContext:commerce=>{elevatorRuntimeKey=JSON.stringify(commerce?.objectStates??{});avatarActor.setObjectContext?.(commerce);},
     changeAvatarTelevisionChannel:id=>avatarActor.changeTelevisionChannel?.(id)??{ok:false,error:"DisplayText2757."},
     setLifeMode(value){lifeMode=!!value;cancelDrag();avatarActor.stand();updateSelection();syncPointerCursor();},
     walkAvatar:point=>avatarActor.walk(point),
@@ -1565,11 +1782,11 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     getStageCameraState:()=>stageCamera.getState(),
     exitStageCamera:()=>stageCamera.exit(),
     resumeStageCamera:()=>{avatarActor.setDanceFacing?.(angle);return stageCamera.resume();},
-    hideAvatar(){stageFacingBound=false;stageCamera?.reset();pendingAvatarArrival=null;container.dataset.stageActive='false';stageLighting?.reset();avatarActor.setVisible(false);},
+    hideAvatar(){clearElevatorTransit({releaseStack:true});stageFacingBound=false;stageCamera?.reset();pendingAvatarArrival=null;container.dataset.stageActive='false';stageLighting?.reset();avatarActor.setVisible(false);},
     waveAvatar:()=>avatarActor.wave(),
     getAvatarStairs:()=>avatarActor.listStairs?.()??[],
-    useAvatarStairs:id=>avatarActor.useStairs?.(id)??{ok:false,error:"DisplayText2759."},
-    setView(value) { if(!['estate','interior','building'].includes(value))return; if(value!==view){stageFacingBound=false;stageCamera?.reset();clearFurniturePlacement(true);}else stageCamera?.exit({restore:false}); cancelDrag();stopCameraMotion(); clearPulse();feedback.clear();view=value;estateFocus=null;requestedFocus=null;estatePan.set(0,0,0);zoom=1;angle=Math.PI/4;if(view==='building'&&houseMode==='floors')ensureHouseOverview();syncView();fitSunToLayout();markShadowsDirty();frameCamera(); },
+    useAvatarStairs(id,targetFloor=null){const result=avatarActor.useStairs?.(id,targetFloor)??{ok:false,error:"DisplayText2759."};if(result.ok)try{failedElevatorTransitId=null;showElevatorStack(id,targetFloor);}catch(error){failedElevatorTransitId=id;clearElevatorTransit();frameCamera();console.warn('Elevator view preparation unavailable',error);onAvatarStatus?.({message:"DisplayText4907, DisplayText4906."});}return result;},
+    setView(value) { if(!['estate','interior','building'].includes(value))return;if(value==='interior'&&view==='interior'&&elevatorTransit?.arriving)return;clearElevatorTransit();if(value!==view){stageFacingBound=false;stageCamera?.reset();clearFurniturePlacement(true);}else stageCamera?.exit({restore:false}); cancelDrag();stopCameraMotion(); clearPulse();feedback.clear();view=value;estateFocus=null;requestedFocus=null;estatePan.set(0,0,0);zoom=1;angle=Math.PI/4;if(view==='building'&&houseMode==='floors')ensureHouseOverview();syncView();fitSunToLayout();markShadowsDirty();frameCamera(); },
     setHouseMode,
     getHouseMode() { return houseMode; },
     setEstateState(value) {
@@ -1605,13 +1822,14 @@ export function createHomeScene({ container, onSelect, onObjectClick, onEstateSe
     setTool(value) { tool = value; syncPointerCursor(); },
     flashSelection,
     flashEstate,
-    cameraTurn(direction) { stageCamera?.exit({restore:false}); angle += direction * Math.PI / 2; frameCamera(lastCameraBounds); },
-    zoom(direction) { stageCamera?.exit({restore:false});interruptCameraMotion(); zoom = boundedZoom(zoom + direction * .1, view); frameCamera(lastCameraBounds); },
+    cameraTurn(direction) { freezeElevatorSettle();stageCamera?.exit({restore:false}); angle += direction * Math.PI / 2; frameCamera(lastCameraBounds); },
+    zoom(direction) { freezeElevatorSettle();stageCamera?.exit({restore:false});interruptCameraMotion(); zoom = boundedZoom(zoom + direction * .1, view); frameCamera(lastCameraBounds); },
     // Recompute the real viewport fit after a page-layout change, preserving
     // the current view, pan and zoom. Resize never becomes a camera reset.
     refit() { frameCamera(); },
     showCollision(volume) { showWallBlock(volume, true); },
     getStats() { return { ...renderer.info.render, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, surfaceCount: parts.size }; },
-    dispose() { exitRoam();disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose();wallTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
+    getElevatorCameraState:()=>({...elevatorCamera.getState(),fromStorey:elevatorTransit?.fromStorey??null,targetStorey:elevatorTransit?.targetStorey??null,presentation:elevatorTransit?.presentation.getState()??null,residentStack:elevatorStack?.getState()??null,stackVisible:elevatorStackVisible}),
+    dispose() { exitRoam();clearElevatorTransit({restoreCamera:false,releaseStack:true});elevatorCamera.dispose();disposed=true; stageCamera?.dispose(); stageLighting?.dispose(); if(renderFrame)cancelAnimationFrame(renderFrame); avatarActor.dispose(); if(staircase){release(staircase);staircase=null;} outdoorWorld.dispose(); houseOverview?.userData.dispose?.(); houseLabels.remove();elevatorViewExit.remove(); releaseInput(); clearFurniturePlacement(false); document.removeEventListener('keydown', placementKeydown); document.removeEventListener('keydown', startSpacePan); document.removeEventListener('keyup', stopSpacePan); window.removeEventListener('blur', releaseInput); document.removeEventListener('visibilitychange', visibilityChanged); clearPulse(); feedback.dispose(); clearTimeout(wallBlockTimer); wallBlockGuide.material.dispose(); collisionGuide.geometry.dispose(); collisionGuide.material.dispose(); observer.disconnect(); selection.geometry.dispose(); selection.material.dispose(); sun.shadow.dispose(); renderer.dispose(); ownedGeometries.forEach(g => g.dispose()); ownedMaterials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); roomExpansion.dispose();floorTextures?.dispose();wallTextures?.dispose(); estateOutdoor.dispose(); estateManor.dispose();if(theme.id==='warm')container.style.background=originalBackdrop; renderer.domElement.remove(); }
   };
 }

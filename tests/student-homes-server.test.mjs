@@ -42,7 +42,7 @@ async function fixture(t,{fsImpl}={}) {
     async call(path,{method='GET',body,cookie='fixture-session=teacher',originHeader=PUBLIC}={}){
       const response=await fetch(origin+API_PREFIX+path,{method,headers:{...(cookie?{cookie}:{}),...(method!=='GET'?{'content-type':'application/json',origin:originHeader}:{})},body:body===undefined?undefined:JSON.stringify(body)});
       return {status:response.status,body:await response.json(),headers:response.headers};
-    },async root(path='/'){return fetch(origin+path,{redirect:'manual'});}
+    },async root(path='/',options={}){return fetch(origin+path,{...options,redirect:'manual'});}
   };
 }
 const init=(f,id=A,user=USER)=>f.call(`/students/${id}/home/init`,{method:'POST',body:{expectedUserId:user}});
@@ -160,7 +160,7 @@ test('fixed origin validates config, redirects are not followed, upstream failur
   await assert.rejects(timeout.session('fixture=1'),error=>error.status===503);
 });
 test('static service preserves game namespace, default redirects to formal entry and does not expose data',async t=>{
-  const f=await fixture(t);const response=await f.root('/');assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/games/homeworld/student-homes.html');
+  const f=await fixture(t);const response=await f.root('/');assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/games/homeworld/student-homes.html?theme=warm');
   const vendor=await f.root('/games/homeworld/vendor/three.module.js');assert.equal(vendor.status,200);await vendor.arrayBuffer();
   assert.equal((await f.root('/games/homeworld/.env')).status,404);
   assert.equal((await f.root('/games/homeworld/%2e%2e/%2e%2e/package.json')).status,404);
@@ -172,4 +172,28 @@ test('release health identity reads the real release commit, dev is allowed only
   const release={schemaVersion:1,gameId:'homeworld',mode:'student-homes-v1',version:'a'.repeat(40)};
   await fs.writeFile(join(root,'release.json'),JSON.stringify(release));assert.equal(await readReleaseVersion(root,true),release.version);
   await fs.writeFile(join(root,'release.json'),JSON.stringify({...release,mode:'demo'}));await assert.rejects(readReleaseVersion(root,true));
+});
+
+
+test('the lobby URL and existing home bookmarks default to Warm without account requests or writes',async t=>{
+  const f=await fixture(t),entry='/games/homeworld/student-homes.html',before=await fs.readdir(f.directory);
+  for(const path of ['/', '/games/homeworld', '/games/homeworld/', entry]){
+    const response=await f.root(path);assert.equal(response.status,302);assert.equal(response.headers.get('location'),entry+'?theme=warm');assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(await response.text(),'');
+  }
+  const presentation=await f.root(entry+'?view=present&locale=en&student='+A),destination=new URL(presentation.headers.get('location'),'https://fixture.invalid');
+  assert.equal(presentation.status,302);assert.equal(destination.pathname,entry);assert.equal(destination.searchParams.get('theme'),'warm');assert.equal(destination.searchParams.get('view'),'present');assert.equal(destination.searchParams.get('locale'),'en');assert.equal(destination.searchParams.get('student'),A);
+  const head=await f.root(entry,{method:'HEAD'});assert.equal(head.status,302);assert.equal(head.headers.get('location'),entry+'?theme=warm');assert.equal(await head.text(),'');
+  assert.deepEqual(f.control.requests,[],'opening or canonicalizing a document cannot touch platform sessions, students or wallets');
+  assert.deepEqual(await fs.readdir(f.directory),before,'a redirect cannot initialize a student home');
+});
+
+test('explicit Warm, Default and Toy documents remain accessible and static/API routes do not inherit the entry redirect',async t=>{
+  const f=await fixture(t),entry='/games/homeworld/student-homes.html';
+  for(const theme of ['warm','default','toy']){
+    const document=await f.root(entry+'?theme='+theme);assert.equal(document.status,200);assert.equal(document.headers.get('location'),null);assert.match(await document.text(),/js\/student-homes\.js/);
+    const root=await f.root('/games/homeworld/?theme='+theme+'&view=present'),destination=new URL(root.headers.get('location'),'https://fixture.invalid');assert.equal(destination.searchParams.get('theme'),theme);assert.equal(destination.searchParams.get('view'),'present');
+  }
+  const asset=await f.root('/games/homeworld/js/home-theme.js');assert.equal(asset.status,200);assert.equal(asset.headers.get('location'),null);await asset.text();
+  const method=await f.root(entry,{method:'POST'});assert.equal(method.status,405);assert.equal(method.headers.get('location'),null);assert.equal(method.headers.get('allow'),'GET, HEAD');await method.text();
+  const api=await f.root(API_PREFIX+'/session?theme=warm');assert.equal(api.status,422);assert.equal(api.headers.get('location'),null);await api.text();assert.deepEqual(f.control.requests,[]);
 });

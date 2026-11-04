@@ -70,14 +70,15 @@ test('roof, windows, facade body, upper floor and steps do not become entrance h
   }finally{model.dispose();}
 });
 
-test('Default, Toy and the separate Warm roam model keep their existing picking contract',()=>{
+test('Default keeps legacy picking while Toy supports the same ordinary entry target as Warm',()=>{
   const {ground,upper}=homes();
-  for(const theme of [HOME_THEMES.default,HOME_THEMES.toy])for(const roam of [false,true]){
+  for(const theme of [HOME_THEMES.default])for(const roam of [false,true]){
     const model=createEstateManor({floors:[ground,upper],theme,roam});
     try{assert.equal(targets(model).length,0);}finally{model.dispose();}
   }
-  const roam=createEstateManor({floors:[ground],theme:HOME_THEMES.warm,roam:true});
-  try{assert.equal(targets(roam).length,0);assert.ok(roam.getRoamEntry().leaf.userData.roamDoor);}finally{roam.dispose();}
+  const toy=createEstateManor({floors:[ground,upper],theme:HOME_THEMES.toy});try{assert.equal(targets(toy).length,6);assert.ok(targets(toy).every(node=>node.userData.storey===0));}finally{toy.dispose();}
+  for(const theme of [HOME_THEMES.warm,HOME_THEMES.toy]){const roam=createEstateManor({floors:[ground],theme,roam:true});
+  try{assert.equal(targets(roam).length,0);assert.ok(roam.getRoamEntry().leaf.userData.roamDoor);}finally{roam.dispose();}}
 });
 
 test('rebuilds replace the tagged door with the newly selected entrance and retain disposal ownership',()=>{

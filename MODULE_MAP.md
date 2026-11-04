@@ -86,3 +86,20 @@ External learning platform (not supplied)
 - Local model viewers: `scripts/qa/robot-motion-review.mjs` and `robot-dance-review.mjs`.
 
 `FILE_INDEX.json` lists the actual packaged files. It is the authority if a descriptive family pattern above spans multiple modules or a filename differs.
+
+
+## Read-only share viewer and publishing recovery
+
+- `public/js/home-share-page.js`: anonymous snapshot validation and resource lifetime.
+- `public/js/home-share-world.js`: isolated renderer, share-only lighting and navigation raycasting.
+- `public/js/home-share-controller.js`: ORBIT/SPOT/EXPLODED/FOCUS/ROOM/ELEV_IN/ELEV transitions and camera input.
+- `public/js/home-share-model.js`: real per-floor/roof/outdoor/elevator model adaptation and private fade materials.
+- `public/js/home-share-ui.js`: breadcrumbs, floor buttons, projected labels, hotspots and read-only notices.
+- `public/js/student-homes.js`: authenticated share publication; bounded refresh after explicit revision conflicts.
+- `server/student-homes/shares.mjs` and `share-snapshot.mjs`: immutable public snapshot storage and identifier normalization.
+- `scripts/qa/share-view-review.mjs`: dependency-free, loopback, read-only fictional preview.
+
+Read `docs/SHARE_VIEW_HANDOFF.md` before proposing changes. Viewer interaction is presentation only; authenticated publication remains outside the anonymous viewer.
+
+
+Current share clarification (2026-11-04): the standalone viewer is exterior-only (`ORBIT`/`SPOT`/`EXPLODED`/`FOCUS`). Room labels do not enter first person; elevator entry/ride APIs are unavailable. New snapshots freeze only the authorized roster display name in their title. `home-share-copy.js` and server `share-document.mjs` keep the minimal page and WeChat metadata consistent. See `docs/SHARE_VIEW_HANDOFF.md`; earlier room/elevator visit specifications are historical.

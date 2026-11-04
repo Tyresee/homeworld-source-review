@@ -81,8 +81,64 @@ test('walking refuses pool water, occupied targets, house and land exterior',()=
 test('only a currently placed owned pool with a reachable entry offers swimming',()=>{
   const state=fixture(),d=getRobotPoolDescriptor(state,'owned-pool');assert.ok(d);
   state.owned.push({id:'blocker',status:'placed',item:{kind:'outdoor-storage',x:d.approach.x,z:d.approach.z,rotation:0}});
-  assert.deepEqual(listOutdoorRobotInteractions(state,'outdoor:owned-pool'),[]);
+  assert.ok(listOutdoorRobotInteractions(state,'outdoor:owned-pool').some(row=>row.id==='swim'&&row.pool.entryIndex!==d.pool.entryIndex),'a blocked former entrance uses another clear edge');
   state.owned.pop();state.owned[0].status='stored';assert.equal(getRobotPoolDescriptor(state,'owned-pool'),null);
   state.owned[0].status='placed';assert.deepEqual(listOutdoorRobotInteractions(state,'outdoor:not-owned'),[]);
   state.owned[0].item.kind='outdoor-lounger';assert.deepEqual(listOutdoorRobotInteractions(state,'owned-pool'),[]);
+});
+
+for(const level of[1,2,3])test(`pool ${level} chooses the near accessible side rather than routing to a fixed gate`,()=>{
+  const state=fixture(level),item=state.owned[0].item;
+  for(const[dx,dz]of[[0,-5],[5,0],[0,5],[-5,0]]){
+    const from={x:item.x+dx,z:item.z+dz},d=getRobotPoolDescriptor(state,'owned-pool',{from});assert.ok(d);
+    const local=localPoint(d.pool,d.approach);
+    assert.ok(dx===0?local.z*dz>0:local.x*dx>0,'entry stays on the side facing the robot');
+    assertClearPath(state,planOutdoorRobotWalk(state,from,d.approach));
+    const restored=getRobotPoolDescriptor(state,'owned-pool',{entryIndex:d.pool.entryIndex});assert.deepEqual(restored,d,'entry index restores the same contacts without persisting coordinates');
+  }
+});
+test('ring is available on every pool; soaking is measured from the luxury round spa and remains inside it',()=>{
+  for(const level of[1,2,3]){
+    const state=fixture(level,90),choices=listOutdoorRobotInteractions(state,'owned-pool');
+    assert.ok(choices.some(row=>row.id==='swim-ring'&&row.variant==='ring'));
+    const spa=choices.find(row=>row.id==='soak');assert.equal(!!spa,level===3);
+    if(spa){
+      const model=createOutdoorProductModel(state.owned[0].item.kind,state.owned[0].item),water=new THREE.Box3();model.updateMatrixWorld(true);model.traverse(n=>{if(n.name==='pool-spa-water')water.union(new THREE.Box3().setFromObject(n));});
+      for(const t of[0,1,4,8]){const sample=sampleRobotPoolLoop(spa,t),p=localPoint(spa.pool,sample.point);assert.ok(p.x>water.min.x&&p.x<water.max.x&&p.z>water.min.z&&p.z<water.max.z);assert.ok(Math.abs(sample.point.y-water.max.y)<.02);assert.equal(sample.phase,'soaking');}
+      const entry=createRobotPoolEntry(spa);assertFrameSame(sampleRobotPoolMotionStep(entry.at(-1),1),sampleRobotPoolLoop(spa,0));model.dispose();
+    }
+  }
+});
+
+test('every reachable perimeter contact has continuous entry, loop and partial cancellation in all rotations',()=>{
+  let checked=0;
+  for(const level of[1,2,3])for(const rotation of[0,90,180,270])for(let entryIndex=0;entryIndex<12;entryIndex++){
+    const descriptor=getRobotPoolDescriptor(fixture(level,rotation),'owned-pool',{entryIndex});if(!descriptor)continue;checked++;
+    const entry=createRobotPoolEntry(descriptor),loop=sampleRobotPoolLoop(descriptor,0);assertFrameSame(sampleRobotPoolMotionStep(entry.at(-1),1),loop);
+    for(const step of entry){
+      const current=sampleRobotPoolMotionStep(step,.5),exit=createRobotPoolExit(descriptor,current);assertFrameSame(sampleRobotPoolMotionStep(exit[0],0),current);
+      for(let i=1;i<exit.length;i++)assertFrameSame(sampleRobotPoolMotionStep(exit[i-1],1),sampleRobotPoolMotionStep(exit[i],0));
+      assert.ok(pointDistance(sampleRobotPoolMotionStep(exit.at(-1),1).point,descriptor.approach)<1e-7);
+    }
+  }
+  assert.ok(checked>=100,'test all reachable contacts rather than only the legacy ladder');
+});
+
+test('measured pool entry body cannot cross the pool handrails or the other basin outer coping',()=>{
+  const navigation={radius:.4485902240491439,height:1.581010576605681};let checked=0;
+  for(const level of[1,2,3]){
+    const state=fixture(level),item=state.owned[0].item,model=createOutdoorProductModel(item.kind,item),rails=[],basins={main:new THREE.Box3(),spa:new THREE.Box3()};model.updateMatrixWorld(true);
+    model.traverse(mesh=>{if(!mesh.isMesh)return;const b=new THREE.Box3().setFromObject(mesh);if(mesh.name==='pool-handrail')rails.push(b);if(mesh.name==='pool-coping')basins.main.union(b);if(mesh.name==='pool-spa-coping')basins.spa.union(b);});
+    for(const variant of['swim','ring','spa'])for(let entryIndex=0;entryIndex<12;entryIndex++){
+      const d=getRobotPoolDescriptor(state,'owned-pool',{navigation,variant,entryIndex});if(!d)continue;checked++;
+      for(const step of createRobotPoolEntry(d))for(let n=0;n<=40;n++){
+        const f=sampleRobotPoolMotionStep(step,n/40),p={...localPoint(d.pool,f.point),y:f.point.y};
+        const occupied=b=>p.x>b.min.x-navigation.radius&&p.x<b.max.x+navigation.radius&&p.z>b.min.z-navigation.radius&&p.z<b.max.z+navigation.radius;
+        assert.equal(rails.some(b=>occupied(b)&&b.max.y>p.y+.08&&b.min.y<p.y+navigation.height),false,'body crosses a real handrail');
+        const other=basins[variant==='spa'?'main':'spa'];if(!other.isEmpty())assert.equal(occupied(other),false,'body crosses the unselected basin outer wall');
+      }
+    }
+    model.dispose();
+  }
+  assert.ok(checked>30,'covers multiple safe contacts and both luxury basins');
 });

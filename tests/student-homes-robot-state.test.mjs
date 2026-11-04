@@ -5,14 +5,19 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {StudentHomeStore} from '../server/student-homes/store.mjs';
 import {validateStudentHome} from '../server/student-homes/profile.mjs';
-import {prepareRobotActivityCommand,isRobotActivityTargetValid,reconcileRobotActivityDetail} from '../server/student-homes/robot-activity.mjs';
+import {prepareRobotActivityCommand,isRobotActivityTargetValid,reconcileRobotActivityDetail,robotActivityForRecord} from '../server/student-homes/robot-activity.mjs';
 import {normalizeRobotActivity,isRobotActivityShape,sameRobotActivity,robotActivityKey,ROBOT_STATE_LIMITS} from '../public/js/student-home-robot-state.js';
-import {findAvatarSpawn} from '../public/js/home-avatar-navigation.js';
+import {findAvatarSpawn,isAvatarPositionWalkable} from '../public/js/home-avatar-navigation.js';
 import {findOutdoorRobotSpawn,getRobotPoolDescriptor} from '../public/js/student-home-robot-swimming.js';
 import {getHomeStairs} from '../public/js/home-staircase-shape.js';
+import {getFloorHomes} from '../public/js/home-commerce.js';
+import {getElevatorServedFloors} from '../public/js/student-home-robot-elevator.js';
+import {createFurnitureItem} from '../public/js/home-engine.js';
 
 const A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222',TENANT='isolated-robot-state',ACTOR='isolated-state-owner';
 const copy=value=>structuredClone(value),activity=value=>({type:'setRobotActivity',activity:value});
+// Durable validation uses the historical v4 envelope; live rendering measures
+// the fitted body separately before planning or restoring physical motion.
 const nav={radius:.4485902240491439,height:1.50377153758785};
 const stand=(point={x:0,z:1.5},storey=0,environment='interior')=>({kind:'stand',environment,storey,point,rotation:.71});
 const furniture=(itemId,action,extra={})=>({kind:'furniture',action,itemId,storey:0,...extra});
@@ -78,6 +83,23 @@ test('standing point and yaw survive switching student, service restart, and tea
   await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,checkpoint);
   const init=await f.store.initializeHome(TENANT,A,'isolated-other-teacher');assert.deepEqual(init.robotActivity,checkpoint);assert.equal(validateStudentHome(init.home,A),true);
   const record=await f.store.readRecord(TENANT,A);assert.equal(prepareRobotActivityCommand(record,activity(checkpoint)).changed,false);
+});
+
+test('a saved point below a low chandelier and its pending resale stay readable after a visual body-profile change',async t=>{
+  const f=await fixture(t),{home}=await f.place('chandelier-classic'),checkpoint=stand({x:0,z:0});
+  assert.equal(isAvatarPositionWalkable(home.commerce.home,checkpoint.point,nav),true);
+  assert.equal(isAvatarPositionWalkable(home.commerce.home,checkpoint.point,{...nav,height:1.581010576605681}),false,'the live fitted rig has less overhead clearance; it plans a new safe point separately');
+  assert.deepEqual((await f.command(activity(checkpoint))).robotActivity,checkpoint);
+  await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,checkpoint,'history reads do not reinterpret an old semantic checkpoint');
+  const purchase=await f.command({type:'checkout',lines:[{skuId:'plant-classic',quantity:1}]}),id=purchase.home.commerce.owned.at(-1).id;
+  f.bank.getResale=async()=>{throw Object.assign(new Error('isolated missing resale'),{status:404,code:'home_resale_not_found'});};
+  f.bank.creditResale=async()=>{throw Object.assign(new Error('isolated unavailable credit'),{status:503,code:'isolated_credit_unavailable'});};
+  await assert.rejects(f.command({type:'sellItem',id}),error=>error.code==='isolated_credit_unavailable');
+  const path=f.store.fileFor(TENANT,A),bytes=await fs.readFile(path,'utf8'),pending=await f.store.readRecord(TENANT,A);
+  assert.equal(pending.pending.kind,'resale-credit');assert.equal(Object.hasOwn(pending.pending.detail,'robotActivity'),false,'the durable detail was not rewritten just because a newer renderer is taller');
+  assert.deepEqual(robotActivityForRecord(pending),checkpoint);assert.equal(pending.home.commerce.owned.find(row=>row.id===id).status,'stored');
+  await f.restart();const reloaded=await f.store.readRecord(TENANT,A);
+  assert.deepEqual(reloaded.pending,pending.pending,'resale proof and detail hashes survive restart');assert.deepEqual(robotActivityForRecord(reloaded),checkpoint);assert.equal(await fs.readFile(path,'utf8'),bytes,'reading a historical pending transaction does not mutate the save');
 });
 
 test('standing requires a real current floor and clear footprint inside interior or outdoor land',async t=>{
@@ -163,6 +185,31 @@ test('stair and elevator checkpoints require the connected real transport and cl
   assert.equal(isRobotActivityTargetValid(broken,lift),false);assert.equal(reconcileRobotActivityDetail(record,broken).robotActivity,null);
 });
 
+test('express elevator target survives durable restart per student and rejects nonexistent, disconnected or blocked target floors',async t=>{
+  const f=await fixture(t),rect={minX:-2.8,minZ:-3.8,width:5.6,depth:7.8};
+  for(const storey of[0,1])await f.command({type:'constructFloor',selection:{storey,rects:[rect]}});
+  let home=await f.store.get(TENANT,A);const id=getHomeStairs(home.commerce.home)[0].id;
+  await f.command({type:'upgradeStaircase',id,storey:0});
+  for(const storey of[2,3])home=(await f.command({type:'constructFloor',selection:{storey,rects:[rect]}})).home;
+  assert.deepEqual(getElevatorServedFloors(getFloorHomes(home.commerce),id,0).served,[0,1,2,3]);
+  const checkpoint={kind:'elevator',itemId:id,storey:0,targetStorey:3,step:5,progress:.42,rotation:.3,time:7.1,originTime:1};
+  const reserves=f.bank.control.reserves,balance=f.bank.control.balance;
+  const saved=await f.command(activity(checkpoint));assert.deepEqual(saved.robotActivity,checkpoint);assert.equal(saved.receipt.amount,0);
+  await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,checkpoint);
+  assert.equal((await f.store.getSnapshot(TENANT,B)).robotActivity,null);
+  await assert.rejects(f.command(activity(checkpoint),{student:B}),e=>e.status===422);
+  for(const targetStorey of[4,99,1,-1,3.5])await assert.rejects(f.command(activity({...checkpoint,targetStorey})),e=>e.status===422);
+  assert.equal(f.bank.control.reserves,reserves);assert.equal(f.bank.control.balance,balance);
+  const record=await f.store.readRecord(TENANT,A),broken=copy(home),link=getHomeStairs(broken.commerce.upperFloors[1]).find(row=>row.direction==='up');
+  link.x+=.2;assert.equal(isRobotActivityTargetValid(broken,checkpoint),false);assert.equal(reconcileRobotActivityDetail(record,broken).robotActivity,null);
+  const blocked=copy(home),last=blocked.commerce.upperFloors[2],peer=getHomeStairs(last).find(row=>row.direction==='down');
+  const angle=peer.rotation*Math.PI/180;
+  last.furniture.push(createFurnitureItem({id:'invalid-express-exit-obstruction',kind:'cabinet',x:peer.x+Math.sin(angle)*2.2,z:peer.z+Math.cos(angle)*2.2,rotation:peer.rotation}));
+  assert.equal(isRobotActivityTargetValid(blocked,checkpoint),false,'the final landing clearance is checked rather than the first adjacent landing alone');
+  const down={...checkpoint,itemId:peer.id,storey:3,targetStorey:0};assert.deepEqual((await f.command(activity(down))).robotActivity,down);
+  await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,down,'zero-based ground-floor destination must not be lost by normalization');
+});
+
 test('an edit which builds onto the standing footprint clears that checkpoint and cannot revive it',async t=>{
   const f=await fixture(t),checkpoint=stand({x:0,z:0});await f.command(activity(checkpoint));
   const purchased=await f.command({type:'checkout',lines:[{skuId:'bed-classic',quantity:1}]}),id=purchased.home.commerce.owned.at(-1).id;
@@ -190,4 +237,24 @@ test('football target and period survive service restart and invalid ownership n
   await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,a);await assert.rejects(()=>f.command(activity(a),{student:B}),/DisplayText4656|DisplayText4657/);
   assert.equal(isRobotActivityShape({...a,time:15.01}),false);assert.equal(isRobotActivityShape({...a,storey:1}),false);assert.equal(isRobotActivityShape({...a,exitRequested:false}),false);
   const stored=await f.command({type:'storeOutdoor',id:placed.id});assert.equal(stored.robotActivity,null);
+});
+
+test('pool variant and perimeter checkpoints are white-listed rather than accepting arbitrary equipment or coordinates',()=>{
+  const valid={kind:'swim',itemId:'pool',storey:0,phase:'loop',variant:'ring',entryIndex:11,time:4,loopTime:2};
+  assert.equal(isRobotActivityShape(valid),true);assert.deepEqual(normalizeRobotActivity(valid),{kind:'swim',itemId:'pool',storey:0,variant:'ring',entryIndex:11,phase:'loop',time:4,loopTime:2});
+  for(const patch of[{variant:'hovercraft'},{entryIndex:12},{entryIndex:-1},{entryIndex:1.1},{variant:{color:'#fff'}},{equipment:'freeform'}])assert.equal(isRobotActivityShape({...valid,...patch}),false);
+  const football={kind:'football',itemId:'field',storey:0,time:2,originRotation:0,entryIndex:11};assert.equal(isRobotActivityShape(football),true);
+  assert.equal(isRobotActivityShape({...football,entryIndex:12}),false);
+});
+test('ring and round spa checkpoints survive restart per student without wallet activity; basic pools cannot claim a spa',async t=>{
+  const f=await fixture(t),{id,home}=await f.place('outdoor-pool-3',{pose:{x:10,z:5,rotation:90}}),reserves=f.bank.control.reserves;
+  for(const variant of['ring','spa']){
+    const d=getRobotPoolDescriptor(home.commerce,id,{navigation:nav,variant});assert.ok(d);
+    const value={kind:'swim',itemId:id,storey:0,phase:'loop',variant,entryIndex:d.pool.entryIndex,time:2.5,loopTime:1.5};
+    assert.deepEqual((await f.command(activity(value))).robotActivity,value);await f.restart();assert.deepEqual((await f.store.getSnapshot(TENANT,A)).robotActivity,value);
+    assert.equal((await f.store.getSnapshot(TENANT,B)).robotActivity,null);assert.equal(f.bank.control.reserves,reserves);
+  }
+  await assert.rejects(f.command(activity({kind:'swim',itemId:id,storey:0,variant:'spa',entryIndex:12})),e=>e.status===422);
+  const basic=await f.place('outdoor-pool-1',{student:B,pose:{x:10,z:5,rotation:0}});
+  await assert.rejects(f.command(activity({kind:'swim',itemId:basic.id,storey:0,variant:'spa'}),{student:B}),e=>e.status===422);
 });

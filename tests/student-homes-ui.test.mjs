@@ -34,8 +34,8 @@ function tabStorage(value,unavailableMethod){
 }
 const savedSelection=(student=A,actorId=ACTOR)=>JSON.stringify({actorId,studentId:student.id});
 
-// Run the production controller, not a reimplementation. Only its renderer is
-// stubbed; fetch promises are completed explicitly in each test to reproduce
+// Run the production controller, not a reimplementation. Renderer and isolated
+// UI components are stubbed; fetch promises are completed explicitly to reproduce
 // out-of-order responses without timers or real student data. Passing the same
 // storage to two fresh VM contexts reproduces a tab reload without retaining JS state.
 function fixture({loadScene,storage=tabStorage(),themeSearch='',warm=false}={}) {
@@ -74,8 +74,8 @@ function fixture({loadScene,storage=tabStorage(),themeSearch='',warm=false}={}) 
     clear(){sceneCalls.clear++;},wave(){},reset(){},dispose(){},
     getView:()=>view,setView(value){view=value;sceneCalls.views.push(value);sceneOptions.onViewChange(value);},
   };
-  let warmOptions;const warmCalls={balance:[],notices:[],refresh:0,disposed:0};
-  const context={document,CATALOG_VERSION,applyHomeTheme:warm?()=>({id:'warm'}):applyHomeTheme,window:{},createStudentHomeWarmUI(options){warmOptions=options;return{refresh(){warmCalls.refresh++;},notify(value){warmCalls.notices.push(clone(value));},setBalance(value,scope){warmCalls.balance.push({value,scope});$('balance').textContent=value.toLocaleString('en');},clearBalance(){warmCalls.balance.push({value:null});$('balance').textContent='—';},dispose(){warmCalls.disposed++;}};},preserveHomeTheme:value=>preserveHomeTheme(value,themeSearch),location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
+  let warmOptions,shareOptions,shareSerial=0;const warmCalls={balance:[],notices:[],refresh:0,disposed:0},shareCalls={refresh:0,disposed:0};
+  const context={document,CATALOG_VERSION,applyHomeTheme:warm?()=>({id:'warm'}):applyHomeTheme,window:{},crypto:{randomUUID:()=>`aaaaaaaa-aaaa-4aaa-8aaa-${String(++shareSerial).padStart(12,'0')}`},createStudentHomeShareDialog(options){shareOptions=options;return{refresh(){shareCalls.refresh++;},dispose(){shareCalls.disposed++;}};},createStudentHomeWarmUI(options){warmOptions=options;return{refresh(){warmCalls.refresh++;},notify(value){warmCalls.notices.push(clone(value));},setBalance(value,scope){warmCalls.balance.push({value,scope});$('balance').textContent=value.toLocaleString('en');},clearBalance(){warmCalls.balance.push({value:null});$('balance').textContent='—';},dispose(){warmCalls.disposed++;}};},preserveHomeTheme:value=>preserveHomeTheme(value,themeSearch),location:{reload(){sceneCalls.reloads++;}},addEventListener(name,callback){events[name]=callback;},createStudentHomeContextMenu:()=>({open(){},close(){},dispose(){}}),loadStudentHomeScene:async()=>{sceneCalls.loads++;if(loadScene)await loadScene();return (_container,options)=>{sceneOptions=options;return scene;};},
     ...(storage?{sessionStorage:storage}:{}),
     fetch(url,options){
       return new Promise((resolve,reject)=>calls.push({url,options,taken:false,
@@ -91,7 +91,7 @@ function fixture({loadScene,storage=tabStorage(),themeSearch='',warm=false}={}) 
     globalThis.app={boot,selectStudent,claim,changeColor,refreshWallet,reloadIdentity,executeCommand,
       snapshot:()=>({session,students,selected,home,writing,selection}),retry:()=>retryAction?.()};
   `,context,{filename:'student-homes.js'});
-  return {app:context.app,$,calls,events,sceneCalls,scene,storage,warmCalls,get warmOptions(){return warmOptions;},
+  return {app:context.app,$,calls,events,sceneCalls,scene,storage,warmCalls,shareCalls,get warmOptions(){return warmOptions;},get shareOptions(){return shareOptions;},
     snapshot:()=>clone(context.app.snapshot()),
     async next(path,method=path.endsWith('/wallet/starter-grant')?'POST':'GET'){
       await flush();const call=calls.find(item=>!item.taken);assert.ok(call,`Expected ${method} ${path}`);
@@ -210,6 +210,32 @@ test('a failed initial home read cannot display the free-claim affordance or cre
   assert.equal(f.$('welcome').hidden,true);assert.equal(f.$('home-tools').hidden,true);
   assert.equal(f.snapshot().home,null);assert.equal(f.calls.every(call=>call.options.method==='GET'||call.url.endsWith('/wallet/starter-grant')),true);
   assert.match(f.$('scene-message').textContent,/DisplayText4671/);assert.equal(f.$('retry').hidden,false);
+});
+
+test('switching to a home that cannot be read clears the previous caption and controls, and only offers a non-destructive retry',async()=>{
+  const f=fixture({warm:true});await f.boot();await f.open(A);
+  f.$('home-caption').textContent="2 DisplayText4228 · 14 DisplayText4229 · DisplayText0006";
+  f.$('stage-camera-toggle').hidden=false;f.$('stage-toggle').setAttribute('aria-pressed','true');
+  const opening=f.app.selectStudent(B),read=await f.next(`/students/${B.id}/home`);
+  assert.equal(f.$('home-title').textContent,`${B.displayName}DisplayText4252`);assert.equal(f.$('home-caption').textContent,"DisplayText5031…");
+  assert.equal(f.$('home-tools').hidden,true);assert.equal(f.$('welcome').hidden,true);assert.equal(f.$('palette').hidden,true);assert.equal(f.$('scene-hint').hidden,true);assert.equal(f.$('stage-camera-toggle').hidden,true);assert.equal(f.$('stage-toggle').getAttribute('aria-pressed'),'false');
+  assert.equal(f.warmOptions.getState().ready,false);assert.equal(f.shareOptions.getState().ready,false);
+  read.reply(failure('storage_unavailable','Private storage detail must not reach the classroom UI'),503);
+  (await f.next(`/students/${B.id}/wallet/starter-grant`)).reply(wallet(B,356));await opening;
+  assert.equal(f.snapshot().home,null);assert.equal(f.$('home-caption').textContent,"DisplayText5032");assert.match(f.$('scene-message').textContent,/DisplayText5057.*DisplayText5058/);
+  assert.match(f.$('status').textContent,/DisplayText5034.*DisplayText5036.*DisplayText5059/);assert.doesNotMatch(f.$('status').textContent,/Private storage|DisplayText5060|DisplayText5061|DisplayText5062/);assert.equal(f.$('retry').textContent,"DisplayText5036");assert.equal(f.$('retry').hidden,false);
+  assert.equal(f.$('welcome').hidden,true);assert.equal(f.$('home-tools').hidden,true);assert.equal(f.warmOptions.getState().ready,false);assert.equal(f.shareOptions.getState().ready,false);assert.equal(f.$('balance').textContent,'356');
+  const retry=f.app.retry();await f.finishOpen(B,savedHome(B),356);await retry;
+  assert.equal(f.snapshot().home.studentId,B.id);assert.equal(f.$('home-caption').textContent,"1 DisplayText4228 · 0 DisplayText4229 · DisplayText0006");assert.equal(f.$('home-tools').hidden,false);assert.equal(f.$('scene-message').hidden,true);
+  assert.equal(f.calls.some(call=>/\/home\/init$/.test(call.url)),false);assert.deepEqual(f.sceneCalls.show.map(home=>home.studentId),[A.id,B.id]);
+});
+
+test('changing login identity clears the previous student caption while loading the new roster',async()=>{
+  const f=fixture();await f.boot();await f.open(A);f.$('home-caption').textContent="2 DisplayText4228 · 14 DisplayText4229 · DisplayText0006";
+  const reloading=f.app.reloadIdentity(),sessionRead=await f.next('/session');
+  assert.equal(f.$('home-caption').textContent,"DisplayText4349");assert.equal(f.$('home-tools').hidden,true);assert.equal(f.$('stage-camera-toggle').hidden,true);
+  sessionRead.reply(identity(OTHER_ACTOR));(await f.next('/students')).reply({students:[C,D]});await reloading;
+  assert.equal(f.$('home-caption').textContent,"DisplayText4349");assert.equal(f.snapshot().selected,null);
 });
 
 test('HTTP 200 with authenticated false does not fetch students or allow a claim',async()=>{
@@ -516,4 +542,111 @@ test('Warm viewing routes through the existing scene and prevents manual account
   const clear=f.scene.clear;f.scene.clear=()=>{f.scene.setView('interior');clear();};
   const opening=f.warmOptions.onSelectStudent(B.id);const read=await f.next(`/students/${B.id}/home`);assert.equal(f.scene.isRoaming(),false);const views=f.sceneCalls.views.length;f.warmOptions.onView('roam');assert.equal(f.sceneCalls.views.length,views,'No entry while the new student home is not loaded');
   read.reply({home:savedHome(B)});(await f.next(`/students/${B.id}/wallet/starter-grant`)).reply(wallet(B,27));await opening;assert.equal(f.snapshot().home.studentId,B.id);assert.equal(f.calls.some(call=>call.url.endsWith('/commands')||call.url.endsWith('/home/avatar')),false);
+});
+
+test('mounting and opening a selected home never publish; sharing binds actor, student and the latest acknowledged home revision',async()=>{
+  const f=fixture({warm:true});assert.equal(f.shareOptions.getState().ready,false);assert.equal(f.calls.length,0);await f.boot();await f.open(A,savedHome(A),900);
+  assert.equal(f.shareOptions.getState().ready,true);const scope=f.shareOptions.getState().scope;assert.equal(scope,ACTOR+':'+A.id);assert.equal(f.calls.some(call=>call.url.endsWith('/shares')),false);
+  const before=f.snapshot(),leaves=[];f.scene.prepareLeave=async options=>{leaves.push(clone(options));return{ok:true};};
+  const publishing=f.shareOptions.onCreate({scope}),fresh=savedHome(A,{revision:7});(await f.next(`/students/${A.id}/home`)).reply({home:fresh});
+  const post=await f.next(`/students/${A.id}/shares`,'POST'),body=JSON.parse(post.options.body);assert.equal(body.expectedUserId,ACTOR);assert.equal(body.expectedRevision,7,'publish the server read rather than stale localrevision0');assert.match(body.commandId,/^[a-f\d]{8}-[a-f\d]{4}-4[a-f\d]{3}-8[a-f\d]{3}-[a-f\d]{12}$/);assert.deepEqual(Object.keys(body).sort(),['commandId','expectedRevision','expectedUserId']);
+  const result={share:{id:'A'.repeat(43),url:'https://classroom.invalid/games/homeworld/home-share.html?share='+ 'A'.repeat(43),status:'active'},duplicate:false};post.reply(result,201);assert.deepEqual(clone(await publishing),result);assert.deepEqual(leaves,[{capture:false}]);assert.deepEqual(f.snapshot(),before,'sharing does not replace saved state or alter wallet/avatar');
+});
+
+test('a same-tab robot checkpoint racing publication is reread automatically, and the next explicit share still succeeds',async()=>{
+  const f=fixture({warm:true});await f.boot();await f.open(A,savedHome(A),900);
+  const scope=f.shareOptions.getState().scope,leaves=[];f.scene.prepareLeave=async options=>{leaves.push(clone(options));return{ok:true,pending:false};};
+  const beforeCalls=f.calls.length,publishing=f.shareOptions.onCreate({scope});
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:7})});
+  // Execute the production controller's ordinary background write while the
+  // server revision read by publication is already stale. Sharing must not
+  // manufacture a home edit to recover from this definite CAS rejection.
+  const activity={kind:'stand',environment:'interior',storey:0,point:{x:1,z:0},rotation:0};
+  const checkpoint=f.app.executeCommand({type:'setRobotActivity',activity},'share-race-checkpoint-1',{actorId:ACTOR,studentId:A.id,expectedRevision:7});
+  (await f.next(`/students/${A.id}/home/commands`,'POST')).reply({home:savedHome(A,{revision:8}),robotActivity:activity});await checkpoint;
+  const first=await f.next(`/students/${A.id}/shares`,'POST'),firstBody=JSON.parse(first.options.body);assert.equal(firstBody.expectedRevision,7);
+  first.reply(failure('revision_conflict',"DisplayText4567, DisplayText5044."),409);
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:8})});
+  const retry=await f.next(`/students/${A.id}/shares`,'POST'),retryBody=JSON.parse(retry.options.body);assert.equal(retryBody.expectedRevision,8);assert.notEqual(retryBody.commandId,firstBody.commandId);
+  const result={share:{id:'A'.repeat(43),status:'active'},duplicate:false};retry.reply(result,201);assert.deepEqual(clone(await publishing),result);
+  const acknowledged=f.snapshot(),second=f.shareOptions.onCreate({scope});
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:9})});
+  const next=await f.next(`/students/${A.id}/shares`,'POST'),nextBody=JSON.parse(next.options.body);assert.equal(nextBody.expectedRevision,9);assert.notEqual(nextBody.commandId,retryBody.commandId);
+  const later={share:{id:'B'.repeat(43),status:'active'},duplicate:false};next.reply(later,201);assert.deepEqual(clone(await second),later);assert.equal(result.share.id,'A'.repeat(43),'the first successful share result is preserved');
+  assert.deepEqual(f.snapshot(),acknowledged,'publication reads never replace the acknowledged local home, wallet or identity');
+  assert.deepEqual(leaves,[{capture:false},{capture:false}]);
+  const operations=f.calls.slice(beforeCalls);assert.equal(operations.filter(call=>call.url.endsWith('/home/commands')).length,1,'the only home write is the explicitly injected background checkpoint');
+  assert.equal(operations.filter(call=>call.url.endsWith('/shares')).length,3);assert.ok(operations.every(call=>call.url.includes(`/students/${A.id}/`)));
+});
+
+test('publication stops after three definite revision rejections without changing the home or refreshing the whole page',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A),123);const scope=f.shareOptions.getState().scope,before=f.snapshot(),start=f.calls.length,ids=[];
+  const publishing=f.shareOptions.onCreate({scope}),rejected=assert.rejects(publishing,error=>error.status===409&&error.code==='revision_conflict');
+  for(let attempt=0;attempt<3;attempt++){
+    (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:20+attempt})});
+    const post=await f.next(`/students/${A.id}/shares`,'POST'),body=JSON.parse(post.options.body);assert.equal(body.expectedRevision,20+attempt);ids.push(body.commandId);
+    post.reply(failure('revision_conflict','Concurrent checkpoint'),409);
+  }
+  await rejected;await flush();assert.equal(f.calls.length-start,6,'three reads and three definite failed publications are the complete bounded retry');assert.equal(new Set(ids).size,3);
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.sceneCalls.reloads,0);assert.equal(f.calls.slice(start).some(call=>call.url.endsWith('/home/commands')||call.url.endsWith('/home/avatar')),false);
+});
+
+test('changing students during a revision retry cannot publish the old student after the retry read finishes',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const scope=f.shareOptions.getState().scope;
+  const publishing=f.shareOptions.onCreate({scope}),rejected=assert.rejects(publishing,/DisplayText5025/);
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:7})});
+  (await f.next(`/students/${A.id}/shares`,'POST')).reply(failure('revision_conflict'),409);
+  const retryRead=await f.next(`/students/${A.id}/home`);await f.open(B,savedHome(B),17);const before=f.snapshot();
+  retryRead.reply({home:savedHome(A,{revision:8})});await rejected;await flush();
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.calls.filter(call=>call.url===API+`/students/${A.id}/shares`).length,1,'the failed old-owner attempt is never followed by another publication');
+});
+
+test('changing teachers while the rejected POST is pending stops retries before another snapshot is read',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const scope=f.shareOptions.getState().scope,start=f.calls.length;
+  const publishing=f.shareOptions.onCreate({scope}),rejected=assert.rejects(publishing,/DisplayText5025/);
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:7})});const post=await f.next(`/students/${A.id}/shares`,'POST');
+  const reloading=f.app.reloadIdentity();(await f.next('/session')).reply(identity(OTHER_ACTOR));(await f.next('/students')).reply({students:[A,B]});await reloading;const before=f.snapshot();
+  post.reply(failure('revision_conflict'),409);await rejected;await flush();assert.deepEqual(f.snapshot(),before);
+  assert.equal(f.calls.slice(start).filter(call=>call.url===API+`/students/${A.id}/home`).length,1);assert.equal(f.calls.slice(start).filter(call=>call.url.endsWith('/shares')).length,1);
+});
+
+for(const scenario of[
+  {name:'expired login',status:401,code:'unauthenticated'},
+  {name:'identity rejection',status:409,code:'identity_changed'},
+  {name:'idempotency conflict',status:409,code:'idempotency_conflict'},
+  {name:'another conflict kind',status:409,code:'catalog_changed'},
+  {name:'server failure with a revision-like code',status:503,code:'revision_conflict'},
+  {name:'unknown network outcome',disconnect:true},
+])test(`publication never retries ${scenario.name}`,async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const scope=f.shareOptions.getState().scope,start=f.calls.length,before=f.snapshot();
+  const publishing=f.shareOptions.onCreate({scope}),rejected=assert.rejects(publishing,error=>scenario.disconnect?/DisplayText4212/.test(error.message):error.status===scenario.status&&(scenario.status===401||error.code===scenario.code));
+  (await f.next(`/students/${A.id}/home`)).reply({home:savedHome(A,{revision:7})});const post=await f.next(`/students/${A.id}/shares`,'POST');
+  if(scenario.disconnect)post.disconnect();else post.reply(failure(scenario.code),scenario.status);
+  await rejected;await flush();assert.equal(f.calls.length-start,2,'a failed or ambiguous publish is not repeated under a new command ID');assert.deepEqual(f.snapshot(),before);
+});
+
+test('teacher share list and revoke callbacks use the selected ownership scope without issuing home commands',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const scope=f.shareOptions.getState().scope,before=f.snapshot(),id='A'.repeat(43);
+  const listing=f.shareOptions.onList({scope});(await f.next(`/students/${A.id}/shares`)).reply({shares:[{id,status:'active'}]});assert.equal((await listing).shares[0].id,id);
+  const revoking=f.shareOptions.onRevoke({scope,share:{id}}),post=await f.next(`/students/${A.id}/shares/${id}/revoke`,'POST');assert.deepEqual(JSON.parse(post.options.body),{expectedUserId:ACTOR});post.reply({share:{id,status:'revoked'}});assert.equal((await revoking).share.status,'revoked');
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.calls.some(call=>call.url.endsWith('/commands')||call.url.endsWith('/home/avatar')),false);
+  f.events.pagehide({persisted:false});assert.equal(f.shareCalls.disposed,1,'page teardown owns the share UI lifecycle');
+});
+
+test('a pending teacher snapshot read cannot publish after the selected student changes',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const oldScope=f.shareOptions.getState().scope,publishing=f.shareOptions.onCreate({scope:oldScope}),rejected=assert.rejects(publishing,/DisplayText5025/),oldRead=await f.next(`/students/${A.id}/home`);
+  await f.open(B,savedHome(B),17);const before=f.snapshot();oldRead.reply({home:savedHome(A,{revision:9})});await rejected;
+  assert.equal(f.calls.some(call=>call.url.endsWith('/shares')),false,'the old selection must not send its publish write');assert.deepEqual(f.snapshot(),before);assert.equal(f.shareOptions.getState().scope,ACTOR+':'+B.id);
+  await assert.rejects(f.shareOptions.onList({scope:oldScope}),/DisplayText5025/);assert.equal(f.calls.filter(call=>call.url.endsWith('/shares')).length,0);
+});
+
+test('a pending share list completion cannot cross student selection and a pending home sync blocks publication',async()=>{
+  const f=fixture();await f.boot();await f.open(A,savedHome(A));const scope=f.shareOptions.getState().scope,pending=f.shareOptions.onList({scope}),rejected=assert.rejects(pending,/DisplayText5025/),list=await f.next(`/students/${A.id}/shares`);
+  await f.open(B,savedHome(B));list.reply({shares:[{id:'A'.repeat(43),status:'active'}]});await rejected;
+  f.scene.prepareLeave=async()=>({ok:false,pending:true});const count=f.calls.length;await assert.rejects(f.shareOptions.onCreate({scope:f.shareOptions.getState().scope}),/DisplayText5063/);assert.equal(f.calls.length,count,'neither snapshot read nor publication can bypass pending sync');
+});
+
+test('a sharing401 clears its teacher scope and displays the existing platform login path',async()=>{
+  const f=fixture({warm:true});await f.boot();await f.open(A,savedHome(A));assert.ok(f.shareOptions.getState().scope);const refreshes=f.shareCalls.refresh,error=new Error("DisplayText4215");error.status=401;f.shareOptions.onError(error);
+  assert.equal(f.snapshot().session,null);assert.equal(f.shareOptions.getState().scope,'');assert.ok(f.shareCalls.refresh>refreshes);assert.equal(f.$('login').hidden,false);assert.match(f.$('login').href,/^\/login\/\?next=/);
 });

@@ -2,6 +2,23 @@
 
 Start here. This is an identity-normalized source-reading package for a browser-based AI collaborator. It contains the real account game's frontend, server, model builders, interaction logic and isolated tests, plus local animation, finish, interface and free-visit review tools. It is not a production deployment archive.
 
+## Current snapshot: read-only sharing (2026-11-04)
+
+The source now includes the implemented read-only share viewer and the concurrent-publish revision recovery fix. Start with [SHARE_VIEW_HANDOFF.md](docs/SHARE_VIEW_HANDOFF.md): it maps the four exterior orbit states, real floor/roof/wall adaptation, passive room labels, trusted display names, sharing boundaries and remaining device checks.
+
+```sh
+node scripts/qa/share-view-review.mjs
+# Open the printed loopback URL; no npm installation or platform account is needed.
+```
+
+This standalone preview serves only the bundled fictional snapshot and licensed Three.js files. Navigation controls are English; catalog-derived room and product names can retain stable `DisplayText` identifiers. It has no account, wallet, save, publish or other write API. The authenticated share publisher is included separately in the source for review: explicit revision conflicts trigger a bounded re-read/retry, while ambiguous network outcomes and identity errors do not.
+
+Run `npm run test:share` for the dedicated share checks and `npm run test:share:publisher` for the ten publisher retry regressions after installing the locked test dependencies. See `REVIEW_TEST_LIMITS.md` for the current core and historical full-suite limits.
+
+The public viewer never enters first person. Clicking rooms stays in the exterior floor view; elevator entry and rides are unavailable here. New links include the selected learner display name in the frozen title, and raw HTML/WeChat descriptions use the same copy helper. Old frozen links need to be regenerated to include a name.
+
+The formal account/shared-model dependency closure is refreshed together, so the viewer uses the current home geometry interfaces. Earlier handoffs and original approved references below are retained as historical evidence; they do not override this current handoff.
+
 ## Warm free visit candidate
 
 Free visit now builds all purchased floors with their own plans and furnishings, real stairs/elevators, upstairs travel and working TV/remote interactions. Bottom controls remain within the viewport. Start with [the latest multi-floor handoff](docs/MULTIFLOOR_ROAM_HANDOFF.md) for the current behavior, tests, limits and synthetic browser fixture. The earlier [free-visit handoff](docs/ROAM_HANDOFF.md) records the original single-floor review tool. This repository contains no production deployment configuration.

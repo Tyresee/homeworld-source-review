@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {Script,createContext} from 'node:vm';
 import * as THREE from 'three';
 import {createRoom,roomRect} from '../public/js/home-layout.js';
+import {getHomeRoamDisplayFloor} from '../public/js/home-roam-view-only.js';
 
 const worldSource=await readFile(new URL('../public/js/home-roam-world.js',import.meta.url),'utf8');
 const sceneSource=await readFile(new URL('../public/js/home-scene.js',import.meta.url),'utf8');
@@ -16,15 +17,31 @@ const applySource=worldSource.slice(start,end);
 function harness() {
   const sun=new THREE.DirectionalLight('#fff0d8',3.4),fill=new THREE.DirectionalLight('#dde7f2',.9),hemisphere=new THREE.HemisphereLight('#fff6ea','#e2dbcf',1.7),master=new THREE.PointLight('#ffe1b8',0,11,2);master.castShadow=true;master.shadow.autoUpdate=false;
   const descriptor={id:'ceiling:living',roomId:'living',enabled:true,disc:{visible:false,material:{emissiveIntensity:.8}},light:new THREE.PointLight('#ffe1b8',0,11,2)};descriptor.light.position.set(0,2.6,0);
-  const renderer={toneMappingExposure:1.03,shadowMap:{autoUpdate:false,needsUpdate:false}},model={daylight:{setVisible(value){this.visible=value;}},manor:{visible:true},doorway:new THREE.Group(),interior:{visible:false},ceilings:[{visible:false}],ceilingLights:[descriptor],entrance:{roomId:'living'},setOrbitCut:()=>false};
-  const context=createContext({outdoorPresentation:true,THREE,model,renderer,sun,fill,hemisphere,master,home:{rooms:[createRoom('living')]},roomRect,baseline:{sun:3.4,fill:.9,hemi:1.7,exposure:1.03},controller:{camera:{position:new THREE.Vector3(0,1.45,0)},controls:{target:new THREE.Vector3()}}});
+  const renderer={toneMappingExposure:1.03,shadowMap:{autoUpdate:false,needsUpdate:false}},model={daylight:{setVisible(value){this.visible=value;}},manor:{visible:true},doorway:new THREE.Group(),interior:{visible:false},ceilings:[{visible:false}],ceilingLights:[descriptor],entrance:{roomId:'living'},setFloorSlabMode(mode){this.slabMode=mode;},setOrbitCut:()=>false};
+  const context=createContext({outdoorPresentation:true,THREE,model,renderer,sun,fill,hemisphere,master,home:{rooms:[createRoom('living')]},roomRect,baseline:{sun:3.4,fill:.9,hemi:1.7,exposure:1.03},controller:{camera:{position:new THREE.Vector3(0,1.45,0)},controls:{target:new THREE.Vector3()}},currentFloor:()=>getHomeRoamDisplayFloor(model,{cameraY:context.controller.camera.position.y,selectedStorey:context.selectedStorey??null})});
   new Script(`let lastMode='',lastLight='';${applySource}\nglobalThis.apply=applyLighting;globalThis.refreshLighting=()=>{lastLight='';};`,{filename:'home-roam-world.js:applyLighting'}).runInContext(context);
-  return {sun,fill,hemisphere,master,descriptor,renderer,model,camera:context.controller.camera,apply:mode=>context.apply({sceneMode:mode}),refresh:()=>context.refreshLighting()};
+  return {sun,fill,hemisphere,master,descriptor,renderer,model,camera:context.controller.camera,selectStorey:index=>{context.selectedStorey=index;},apply:mode=>context.apply({sceneMode:mode}),refresh:()=>context.refreshLighting()};
 }
 
 test('first exterior lighting bootstraps the zero-intensity point shadow map before sampler reuse',()=>{
   const h=harness();assert.equal(h.master.shadow.map,null);h.apply('ext');
   assert.equal(h.master.intensity,0);assert.equal(h.master.shadow.autoUpdate,false);assert.equal(h.master.shadow.needsUpdate,true,'a null point-shadow map must be allocated even outside');assert.equal(h.renderer.shadowMap.needsUpdate,true);
+});
+
+test('real display transitions select slab ownership together with exterior and interior visibility',()=>{
+  const h=harness();
+  for(const mode of ['ext','ext+in','in','orbit-in','ext+in','ext']){
+    h.apply(mode);
+    assert.equal(h.model.slabMode,mode);
+    assert.equal(h.model.manor.visible,mode==='ext'||mode==='ext+in');
+    assert.equal(h.model.interior.visible,mode!=='ext');
+  }
+});
+
+test('actual cutaway lighting and group visibility follow the selected floor even when its orbit camera is above the second floor',()=>{
+  const h=harness();h.model.floorModels=[{storey:0,baseY:0,home:{rooms:[createRoom('living')]},group:new THREE.Group()},{storey:1,baseY:3.15,home:{rooms:[createRoom('bedroom')]},group:new THREE.Group()}];
+  h.camera.position.y=20;h.selectStorey(0);h.apply('orbit-in');assert.equal(h.model.floorModels[0].group.visible,true);assert.equal(h.model.floorModels[1].group.visible,false);
+  h.selectStorey(1);h.apply('orbit-in');assert.equal(h.model.floorModels[0].group.visible,false);assert.equal(h.model.floorModels[1].group.visible,true);
 });
 
 test('an allocated point shadow is not refreshed outside, but indoor lighting owns its ongoing updates',()=>{

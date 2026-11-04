@@ -2,11 +2,11 @@ import {getObjectCapabilities,TELEVISION_CHANNELS} from './home-object-state.js'
 
 /** This menu only describes executable controller/object capabilities. It is
  * not a second catalogue of hoped-for animations. Recheck on every activation. */
-const icons={sit:'sit',lie:'sleep',watch:'watch',tidy:'tidy',wipe:'wipe',read:'read',cook:'cook',wash:'wash',dishwash:'dishwash',swim:'swim',football:'football',admire:'admire'};
+const icons={sit:'sit',lie:'sleep',watch:'watch',tidy:'tidy',wipe:'wipe',read:'read',cook:'cook',wash:'wash',dishwash:'dishwash',swim:'swim','swim-ring':'swim',soak:'swim',football:'football',admire:'admire'};
 const labels={lie:"DisplayText3930",watch:"DisplayText3931",tidy:"DisplayText3932",wipe:"DisplayText3933",swim:"DisplayText3934",football:"DisplayText3935"};
 export function getObjectQuickActions({robotActions=[],kind,objectState=null,watching=false}={}){
   const rows=robotActions.filter(row=>row&&typeof row.id==='string').map(row=>({
-    id:`robot:${row.id}`,label:labels[row.kind]??row.label,icon:row.kind==='sit'?(kind?.toLowerCase().includes('sofa')?'sofa-sit':['compactToilet','bdSplitToilet','bdMonoblocToilet','bdSmartToilet'].includes(kind)?'toilet':'sit'):icons[row.kind]??'robot',
+    id:`robot:${row.id}`,label:['swim-ring','soak'].includes(row.id)?row.label:labels[row.kind]??row.label,icon:row.kind==='sit'?(kind?.toLowerCase().includes('sofa')?'sofa-sit':['compactToilet','bdSplitToilet','bdMonoblocToilet','bdSmartToilet'].includes(kind)?'toilet':'sit'):icons[row.id]??icons[row.kind]??'robot',
     disabled:row.disabled===true,reason:row.reason??row.error??'',detail:row.detail??'',
     command:{type:'robot',actionId:row.id},
   }));
@@ -27,6 +27,7 @@ export function getObjectQuickActions({robotActions=[],kind,objectState=null,wat
     {id:'object:power',label:objectState.power?"DisplayText3920":"DisplayText3921",icon:'watch',command:{type:'patch',patch:{power:!objectState.power}}},
     {id:'object:channel',label:watching?"DisplayText3943":"DisplayText3944",icon:'watch',detail:`DisplayText3296: ${TELEVISION_CHANNELS[objectState.channel]}`,command:watching?{type:'robot-channel'}:{type:'patch',patch:{power:true,channel:(objectState.channel+1)%TELEVISION_CHANNELS.length}}},
   );
+  if(objectState&&type==='computer')rows.push({id:'object:power',label:objectState.power?"DisplayText4915":"DisplayText4916",icon:'watch',detail:objectState.power?"DisplayText4918":"DisplayText4919",command:{type:'patch',patch:{power:!objectState.power}}});
   return rows;
 }
 

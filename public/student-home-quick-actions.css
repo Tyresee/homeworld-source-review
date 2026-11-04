@@ -56,3 +56,30 @@
 .home:has(#stage[data-stage-active="true"]) .scene-hint,
 .home:has(#stage[data-stage-active="true"]) .feedback{color:#c8caba}
 #stage-toggle[aria-pressed="true"]{background:#33455b;color:#fff5db;border-color:#82999e}
+
+/* ELEV-1: the approved A keypad lives inside the existing remote shell. */
+.home-quick-remote[data-keypad=true] .home-quick-actions{display:block;overflow:auto;padding:6px 4px 24px;flex:1 1 auto;min-height:82px}
+.home-quick-remote[data-keypad=true] .home-quick-actions[data-scroll=true]{max-height:330px;mask-image:linear-gradient(transparent,#000 14px,#000 calc(100% - 14px),transparent)}
+.home-elevator-keys{display:grid;column-gap:12px;row-gap:24px;justify-content:center;padding:6px 0}
+.home-elevator-key{position:relative;width:64px;height:64px;border-radius:50%;border:3px solid #d4b27a;background:radial-gradient(circle at 40% 30%,#fffdf8,#f1e8da)!important;font:inherit;font-size:22px;font-weight:700;color:#3a3029;cursor:pointer;box-shadow:0 3px 0 #d9ccb8;transition:transform .08s;padding:0!important;flex:none}
+.home-elevator-key:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #d9ccb8}
+.home-elevator-key.here{background:#3d6b57!important;border-color:#3d6b57;color:#fff;cursor:default;box-shadow:none}
+.home-elevator-key.here:after{content:attr(data-here-label);position:absolute;left:50%;bottom:-19px;transform:translateX(-50%);font-size:11px;font-weight:600;color:#3d6b57;white-space:nowrap}
+.home-elevator-key.lit{border-color:#ffc93a;background:radial-gradient(circle,#fff3c4,#ffd96b)!important;box-shadow:0 0 0 5px rgba(255,201,58,.35)}
+.home-elevator-key.off{border-style:dashed;border-color:#d8cfc2;color:#c3b8aa;background:#f4efe7!important;box-shadow:none;cursor:not-allowed}
+.home-elevator-key:disabled:not(.here):not(.off):not(.lit){opacity:.55;cursor:not-allowed}
+.home-elevator-key-gap{width:64px;height:64px}
+:root .home-quick-remote[data-keypad=true] .home-quick-screen{height:150px;border-radius:30px;background:radial-gradient(120% 90% at 50% 20%,#4a4540,#2a2622);border:5px solid #efe4cf;display:flex;align-items:center;justify-content:center;gap:16px;color:#f1e2c4;overflow:hidden;position:relative}
+.home-elevator-screen-arrow{font-size:40px;line-height:1;opacity:.95;width:34px;text-align:center}
+.home-elevator-screen-number{font-size:64px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1}
+.home-elevator-screen-number small{font-size:30px;margin-left:2px}
+.home-elevator-screen-caption{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:13px;color:#cbb994;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.home-quick-screen.home-elevator-arrived{animation:home-elevator-arrival .9s ease}
+@keyframes home-elevator-arrival{0%{box-shadow:inset 0 0 0 0 rgba(255,201,58,0)}40%{box-shadow:inset 0 0 40px 6px rgba(255,201,58,.45)}100%{box-shadow:inset 0 0 0 0 rgba(255,201,58,0)}}
+:root .home-quick-remote[data-keypad=true][data-keypad-columns="4"]{width:340px}
+@media(max-width:480px){:root .home-quick-remote[data-keypad=true][data-keypad-columns="4"]{right:max(12px,env(safe-area-inset-right));max-width:calc(100vw - 24px);padding-left:12px;padding-right:12px}}
+@media(max-height:760px){:root .home-quick-remote[data-keypad=true] .home-quick-screen{height:110px}.home-elevator-screen-number{font-size:54px}}
+@media(max-height:540px){:root .home-quick-remote[data-keypad=true] .home-quick-screen{height:88px;min-height:88px}.home-elevator-screen-number{font-size:44px}.home-elevator-screen-arrow{font-size:32px}.home-elevator-screen-caption{font-size:10px;bottom:6px}.home-quick-remote[data-keypad=true] .home-quick-status{font-size:10px;max-height:3.1em}}
+@media(prefers-reduced-motion:reduce){.home-quick-screen.home-elevator-arrived{animation:none}.home-elevator-key{transition:none}}
+.home-elevator-key.here:disabled,.home-elevator-key.off:disabled,.home-elevator-key.lit:disabled{opacity:1}
+.home-elevator-key.here:disabled{cursor:default}.home-elevator-key.off:disabled{cursor:not-allowed}.home-elevator-key.lit:disabled{cursor:wait}

@@ -63,13 +63,15 @@ function triangleGeometry(source, start, count, matrix) {
 /**
  * Freeze the visible interior exactly as it is rendered, before its live floor
  * is rebuilt. Geometry and materials belong solely to the returned snapshot;
- * maps stay shared with the persistent scene texture cache and are not disposed.
+ * Persistent maps stay shared with the scene texture cache. Explicitly marked
+ * runtime maps (such as a temporary TV screen) receive snapshot-owned texture
+ * clones so retiring the live model cannot retire a later-rendered snapshot.
  */
 export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floorIndex + 1}DisplayText0931`, home = {} } = {}) {
   const group = new THREE.Group();
   group.name = `house-overview-floor-${floorIndex}`;
   const roots = (Array.isArray(sourceRoots) ? sourceRoots : [sourceRoots]).filter(Boolean);
-  const buckets = new Map(), materialKeys = new WeakMap(), visited = new Set(), floorMaps = new Set(),wallMaps=new Set();
+  const buckets = new Map(), materialKeys = new WeakMap(), visited = new Set(), floorMaps = new Set(),wallMaps=new Set(),runtimeMaps=new Map();
   let meshCount = 0, partCount = 0;
   const instance = new THREE.Matrix4(), transform = new THREE.Matrix4(), tint = new THREE.Color();
 
@@ -105,6 +107,12 @@ export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floor
           let bucket = buckets.get(key);
           if (!bucket) {
             const clonedMaterial = material.clone();
+            for(const key of Object.keys(clonedMaterial)){
+              const texture=clonedMaterial[key];
+              if(!texture?.isTexture||texture.userData.homeRuntimeTransient!==true)continue;
+              if(!runtimeMaps.has(texture)){const owned=texture.clone();owned.needsUpdate=true;runtimeMaps.set(texture,owned);}
+              clonedMaterial[key]=runtimeMaps.get(texture);
+            }
             if(clonedMaterial.map&&!floorMaps.has(clonedMaterial.map)&&retainHomeFloorTexture(clonedMaterial.map))floorMaps.add(clonedMaterial.map);
             if(clonedMaterial.map&&!wallMaps.has(clonedMaterial.map)&&retainHomeWallTexture(clonedMaterial.map))wallMaps.add(clonedMaterial.map);
             if (tintKey && clonedMaterial.color) clonedMaterial.color.multiply(tint);
@@ -145,7 +153,7 @@ export function captureHomeFloor(sourceRoots, { floorIndex = 0, label = `${floor
     if (disposed) return;
     disposed = true;
     for (const mesh of group.children) { mesh.geometry.dispose(); mesh.material.dispose(); }
-    floorMaps.forEach(releaseHomeFloorTexture);floorMaps.clear();wallMaps.forEach(releaseHomeWallTexture);wallMaps.clear();
+    floorMaps.forEach(releaseHomeFloorTexture);floorMaps.clear();wallMaps.forEach(releaseHomeWallTexture);wallMaps.clear();runtimeMaps.forEach(texture=>texture.dispose());runtimeMaps.clear();
     group.clear(); group.removeFromParent();
   };
   return group;

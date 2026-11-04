@@ -1,3 +1,4 @@
+import {ELEVATOR_KEYPAD_COPY} from './home-elevator-keypad.js';
 const ART_BASE=new URL('../assets/quick-actions/',import.meta.url);
 const actionArt={'sofa-sit':'sit.webp',watch:'watch.webp','watch-sofa':'watch.webp',tidy:'tidy.webp','tidy-cushion':'tidy.webp'};
 const iconPaths={
@@ -48,7 +49,8 @@ export function createStudentHomeQuickActions({onAction=()=>{},onStop=()=>{},onC
   const footer=el('div','home-quick-footer'),stopButton=el('button','home-quick-stop'),stopIcon=el('span','home-quick-stop-icon'),stopText=el('span','',"DisplayText3775");stopButton.type='button';stopIcon.setAttribute('aria-hidden','true');
   stopIcon.innerHTML=svgIcon('stand');stopButton.append(stopIcon,stopText);footer.append(stopButton,el('span','home-quick-speaker'));
   root.append(antenna,closeButton,screen,heading,actions,status,footer);doc.body.append(root);
-  let current=null,signature=null,rows=[],serial=0,pending=false,disposed=false;
+  let current=null,signature=null,rows=[],serial=0,pending=false,disposed=false,lastArrivalToken=null;
+  let keypadGrid=null,screenNumber=null,screenCaption=null,screenArrow=null;
   const isolate=event=>event.stopPropagation();
   for(const type of['pointerdown','pointerup','dblclick','contextmenu','wheel'])root.addEventListener(type,isolate,{passive:true});
   function svgIcon(key){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${iconPaths[key]??iconPaths.admire}"/></svg>`;}
@@ -64,9 +66,52 @@ export function createStudentHomeQuickActions({onAction=()=>{},onStop=()=>{},onC
     }catch(error){if(!disposed&&token===serial)updateStatus(error?.message??"DisplayText3949, DisplayText0717.",{error:true});}
     finally{if(token===serial&&!disposed){pending=false;setBusy();}}
   }
-  function close({notify=false}={}){if(disposed||root.hidden)return;serial++;pending=false;current=null;signature=null;root.hidden=true;if(notify)onClose();}
+  function close({notify=false}={}){if(disposed||root.hidden)return;serial++;pending=false;current=null;signature=null;lastArrivalToken=null;root.hidden=true;if(notify)onClose();}
   closeButton.addEventListener('click',()=>close({notify:true}));stopButton.addEventListener('click',()=>{void run('__stop');});
   root.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close({notify:true});}else if(event.key===' '||event.key==='Spacebar')event.stopPropagation();});
+  function keypadKeydown(event){
+    if(disposed||root.hidden||!current?.keypad||event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.repeat||!/^[1-9]$/.test(event.key))return;
+    const target=event.target;
+    const modalOpen=[...(doc.querySelectorAll?.('dialog[open], [role="dialog"][aria-modal="true"]:not([hidden]), #palette:not([hidden])')??[])].some(node=>node.getClientRects?.().length>0);
+    if(target?.isContentEditable||target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"][aria-modal="true"]')
+      ||modalOpen)return;
+    // The open keypad owns digits even for a disabled/missing floor. Capture
+    // before Warm's global1–4 view shortcuts, which may be registered first.
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation?.();
+    const row=rows.find(row=>row.cell?.number===Number(event.key));if(!row||row.button.disabled)return;
+    void run(row.action.id);
+  }
+  doc.addEventListener?.('keydown',keypadKeydown,true);
+  function renderKeypad(value,nextActions){
+    const keypad=value.keypad,cells=keypad.rows.flat(),shape=JSON.stringify([value.targetId,'keypad',keypad.columns,cells.map(cell=>cell?.floor??null)]);
+    root.dataset.keypad='true';root.dataset.keypadColumns=String(keypad.columns);actions.dataset.keypad='true';actions.dataset.scroll=String(keypad.scroll===true);
+    if(signature!==shape){
+      signature=shape;rows=[];keypadGrid=el('div','home-elevator-keys');keypadGrid.style.gridTemplateColumns=`repeat(${keypad.columns},64px)`;
+      for(const cell of cells){
+        if(!cell){const gap=el('span','home-elevator-key-gap');gap.setAttribute('aria-hidden','true');keypadGrid.append(gap);continue;}
+        const button=el('button','home-elevator-key');button.type='button';button.dataset.floor=String(cell.floor);button.dataset.actionId=`elevator-floor:${cell.floor}`;
+        button.addEventListener('click',()=>{void run(`elevator-floor:${cell.floor}`);});keypadGrid.append(button);rows.push({cell,button,action:{id:`elevator-floor:${cell.floor}`}});
+      }
+      actions.replaceChildren(keypadGrid);
+      screenArrow=el('span','home-elevator-screen-arrow');screenNumber=el('span','home-elevator-screen-number');screenCaption=el('span','home-elevator-screen-caption');screen.replaceChildren(screenArrow,screenNumber,screenCaption);
+    }
+    const byFloor=new Map(cells.filter(Boolean).map(cell=>[cell.floor,cell]));
+    for(const row of rows){
+      row.cell=byFloor.get(row.cell.floor);const action=nextActions.find(action=>action.id===row.action.id);row.action={...action,id:row.action.id,disabled:row.cell.disabled||action?.disabled===true};
+      row.button.className=`home-elevator-key ${row.cell.state}${row.cell.lit?' lit':''}`;row.button.textContent=String(row.cell.number);row.button.title=row.cell.title;row.button.setAttribute('aria-label',row.cell.ariaLabel);row.button.setAttribute('data-here-label',ELEVATOR_KEYPAD_COPY.here);
+      row.button.setAttribute('aria-current',row.cell.state==='here'?'location':'false');
+    }
+    const here=cells.find(cell=>cell?.state==='here'),number=keypad.screenFloor??here?.number??1;
+    screen.setAttribute('aria-hidden','false');screen.setAttribute('role','status');screen.setAttribute('aria-live','polite');
+    const arrow=keypad.riding?(keypad.direction==='down'?'▼':'▲'):'';if(screenArrow.textContent!==arrow)screenArrow.textContent=arrow;screenArrow.hidden=!arrow;
+    // Keep the same screen nodes while polling, so buttons and scroll position
+    // remain stable and screen readers receive only changed floor values.
+    if(screenNumber.dataset.number!==String(number)){screenNumber.dataset.number=String(number);screenNumber.replaceChildren(el('span','',String(number)),el('small','','F'));}
+    const caption=keypad.riding?ELEVATOR_KEYPAD_COPY.screenRiding(keypad.targetFloor+1):ELEVATOR_KEYPAD_COPY.screenIdle(number,keypad.screenLabel);if(screenCaption.textContent!==caption)screenCaption.textContent=caption;
+    const arrival=keypad.arrivalToken??null;
+    if(arrival!==null&&arrival!==lastArrivalToken){screen.className='home-quick-screen';void screen.offsetWidth;screen.className='home-quick-screen home-elevator-arrived';}
+    lastArrivalToken=arrival;
+  }
   function show(value){
     if(disposed)return;
     if(!value?.targetId){close();return;}
@@ -75,6 +120,8 @@ export function createStudentHomeQuickActions({onAction=()=>{},onStop=()=>{},onC
     if(changed){serial++;pending=false;updateStatus('');actions.scrollTop=0;}
     current={...value,actions:nextActions};root.hidden=false;root.dataset.targetId=value.targetId;title.textContent=value.title??"DisplayText3950";
     if(value.image&&typeof value.image==='string'){thumbnail.src=value.image;thumbnail.hidden=false;}else thumbnail.hidden=true;
+    if(value.keypad){renderKeypad(value,nextActions);if(Object.hasOwn(value,'status'))updateStatus(value.status);stopText.textContent=value.stopLabel??"DisplayText3775";setBusy();return;}
+    if(root.dataset.keypad==='true'){delete root.dataset.keypad;delete root.dataset.keypadColumns;delete actions.dataset.keypad;delete actions.dataset.scroll;screen.className='home-quick-screen';screen.setAttribute('aria-hidden','true');screen.removeAttribute?.('role');screen.removeAttribute?.('aria-live');screen.replaceChildren(face);lastArrivalToken=null;}
     const shape=JSON.stringify([value.targetId,nextActions.map(action=>[action.id,action.icon??action.kind??action.id])]);
     if(signature!==shape){signature=shape;rows=nextActions.map(action=>{
       const button=el('button','home-quick-action');button.type='button';button.dataset.actionId=action.id;
@@ -88,5 +135,5 @@ export function createStudentHomeQuickActions({onAction=()=>{},onStop=()=>{},onC
     if(Object.hasOwn(value,'status'))updateStatus(value.status);
     stopText.textContent=value.stopLabel??"DisplayText3775";setBusy();
   }
-  return {show,updateStatus,close,get isOpen(){return !root.hidden;},get targetId(){return current?.targetId??null;},dispose(){if(disposed)return;close();disposed=true;serial++;root.remove();}};
+  return {show,updateStatus,close,get isOpen(){return !root.hidden;},get targetId(){return current?.targetId??null;},dispose(){if(disposed)return;close();disposed=true;serial++;doc.removeEventListener?.('keydown',keypadKeydown,true);root.remove();}};
 }

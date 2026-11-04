@@ -1,4 +1,5 @@
 import { exactKeys, invalid, isStudentId } from './errors.mjs';
+import {migrateExteriorElevators} from '../../public/js/home-commerce.js';
 import {createAccountCommerce,validateAccountCommerce,houseFromCommerce} from './commerce.mjs';
 
 export const PROFILE_SCHEMA_VERSION = 2;
@@ -33,9 +34,14 @@ export function validateStudentHome(home, studentId) {
     return JSON.stringify(home.avatar.colors) === JSON.stringify(normalizeColors(home.avatar.colors));
   } catch { return false; }
 }
-export function migrateStudentHome(home){
+export function migrateStudentHome(home,{exterior=true}={}){
   if(!validateStudentHome(home,home?.studentId))throw invalid("DisplayText4544, DisplayText0516.");
-  if(home.schemaVersion===2)return structuredClone(home);
+  if(home.schemaVersion===2){
+    if(!exterior)return structuredClone(home);
+    const result=migrateExteriorElevators(home.commerce);
+    if(!result.ok)throw invalid(result.error);
+    return result.migrated?{...structuredClone(home),commerce:result.state,house:houseFromCommerce(result.state)}:structuredClone(home);
+  }
   const commerce=createAccountCommerce();
   return {...structuredClone(home),schemaVersion:2,commerce,house:houseFromCommerce(commerce)};
 }

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="warm">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta id="share-meta-description" name="description" content="A home built in English class. Take a look.">
+  <meta id="share-meta-title" property="og:title" content="My Home">
+  <meta id="share-meta-summary" property="og:description" content="A home built in English class. Take a look.">
+  <meta property="og:type" content="website">
+  <meta id="share-meta-url" property="og:url" content="https://platform.example.invalid/games/homeworld/home-share.html">
+  <link id="share-canonical" rel="canonical" href="https://platform.example.invalid/games/homeworld/home-share.html">
+  <meta property="og:image" content="https://platform.example.invalid/games/homeworld/assets/home-share/share-bunny-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="600">
+  <meta name="twitter:card" content="summary">
+  <meta id="share-twitter-title" name="twitter:title" content="My Home">
+  <meta id="share-twitter-description" name="twitter:description" content="A home built in English class. Take a look.">
+  <meta name="twitter:image" content="https://platform.example.invalid/games/homeworld/assets/home-share/share-bunny-v2.jpg">
+  <link rel="image_src" href="https://platform.example.invalid/games/homeworld/assets/home-share/share-bunny-v2.jpg">
+  <title>My Home</title>
+  <link rel="stylesheet" href="./home-share.css">
+  <link rel="stylesheet" href="./home-share-view.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+</head>
+<body data-home-share>
+  <main class="share-shell">
+    <header class="share-heading">
+      <h1 id="share-title">My Home</h1>
+      <span id="share-kind" class="share-example" hidden>fictional sample</span>
+    </header>
+    <section class="share-model" aria-label="3D home showcase">
+      <div id="share-stage" tabindex="0" aria-label="3D home viewing area; drag to rotate and zoom"></div>
+      <div id="share-loading" class="share-overlay" role="status" aria-live="polite">
+        <div class="share-loading-art" aria-hidden="true"><span>⌂</span><i></i><i></i><i></i></div>
+        <h2 id="share-loading-label">Loading…</h2>
+      </div>
+      <div id="share-error" class="share-overlay share-error" role="alert" hidden>
+        <h2 id="share-error-title">This home could not be opened</h2>
+        <p id="share-error-detail"></p>
+        <button id="share-retry" type="button">Retry</button>
+      </div>
+    </section>
+    <footer class="share-footnote"><time id="share-published" hidden></time></footer>
+  </main>
+  <script type="module" src="./js/home-share-page.js"></script>
+</body>
+</html>

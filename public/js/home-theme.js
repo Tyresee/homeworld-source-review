@@ -17,7 +17,7 @@ const light=(sunIntensity)=>({
   toneMapping:'neutral',exposure:1,
   hemisphere:{sky:'#eaf6ff',ground:'#c98f5a',intensity:1.2},
   sun:{color:'#fff1d6',intensity:sunIntensity},
-  fill:{color:'#bcd8ff',intensity:.6},shadowRadius:2,contactShadow:'#1d2b5c',
+  fill:{color:'#bcd8ff',intensity:.6},shadowRadius:4,contactShadow:'#1d2b5c',
 });
 
 export const HOME_THEMES=freeze({
@@ -28,19 +28,19 @@ export const HOME_THEMES=freeze({
   toy:{
     id:'toy',backdrop:{inner:'#bfe6f5',outer:'#7cc3e6'},
     rooms:{
-      living:room('#f6f1e6','#d58b48','#2d63b8'),
-      bedroom:room('#eef3fb','#c7814f','#3b5bd6'),
-      study:room('#f4f0e2','#a86a3c','#15864a'),
-      kitchen:room('#f7f5ee','#c8a06e','#e5483d'),
-      playroom:room('#fff4d6','#5fb3e0','#ff8a3d'),
-      bathroom:room('#eef8fb','#6fb6c9','#2d63b8'),
-      gallery:room('#f8f6f1','#9c6b45','#1d2b53'),
-      sunroom:room('#f2f8ea','#c49a62','#2d9c46'),
-      hallway:room('#f4efe4','#b9773f','#a85f2a'),
+      living:room('#f6f1e6','#c2ac8b','#ffffff'),
+      bedroom:room('#eef3fb','#beaa93','#ffffff'),
+      study:room('#f4f0e2','#aa967e','#ffffff'),
+      kitchen:room('#f7f5ee','#c3b295','#ffffff'),
+      playroom:room('#fff4d6','#5fb3e0','#ffffff'),
+      bathroom:room('#eef8fb','#6fb6c9','#ffffff'),
+      gallery:room('#f8f6f1','#ab9881','#ffffff'),
+      sunroom:room('#f2f8ea','#c3b08f','#ffffff'),
+      hallway:room('#f4efe4','#baa389','#ffffff'),
     },
     surfaceRemap:{
       'wall.inner':surface('#f7ead7','#f6f1e6'),'wall.outer':surface('#f7ead7','#f6f1e6'),
-      'wall.side':surface('#d0dcca','#f6f1e6'),'floor.main':surface('#e7cfaa','#d58b48'),
+      'wall.side':surface('#d0dcca','#f6f1e6'),'floor.main':surface('#e7cfaa','#c2ac8b'),
       'window.frame':surface('#faf0d7','#ffffff'),
       'table.top':surface('#c99362','#a85f2a'),'table.edge':surface('#c99362','#a85f2a'),
       'table.legs':surface('#c99362','#a85f2a'),'shelf.main':surface('#cda67c','#a85f2a'),
@@ -49,7 +49,7 @@ export const HOME_THEMES=freeze({
     },
     shell:{trim:'#ffffff',plinth:'#6b4129',frame:'#ffffff',glass:'#74c4ee',wallCap:'#ffffff'},
     manor:{wall:'#f4efe4',trim:'#ffffff',base:'#6b4129',wood:'#a85f2a',glass:'#74c4ee',leaf:'#2d9c46',flower:'#e5483d',gold:'#ffc93a'},
-    lighting:{editor:light(3.8),student:light(2.9)},
+    lighting:{editor:light(3.8),student:light(2.9),interior:{sun:1.8,hemisphere:1.2,master:9,exposure:1,contactAO:true}},
     swatches:[
       {id:'cream',label:"DisplayText4695",color:'#f6f1e6'}, {id:'oak',label:"DisplayText1901",color:'#d58b48'},
       {id:'red',label:"DisplayText4696",color:'#e5483d'}, {id:'green',label:"DisplayText4697",color:'#15864a'},
@@ -93,7 +93,7 @@ export function getRoomTheme(kind,roomState,theme=getHomeTheme()) {
   const wallFinish=theme.id==='warm'?resolveHomeWallFinish(definition,roomState?.wall??{color:definition.wall,material:'ceramic'},{themeId:theme.id}):null;
   return {...definition,
     floor:color('floor'),wall:wallFinish?.color??color('wall'),
-    trim:skin.trim??theme.shell.trim,
+    trim:theme.id==='toy'?'#ffffff':skin.trim??theme.shell.trim,
     ...(theme.id==='warm'?{wallMaterial:(!roomState?.wall?.material||roomState.wall.material==='ceramic')?(skin.wallMaterial??roomState?.wall?.material):roomState.wall.material}:{}),
   };
 }

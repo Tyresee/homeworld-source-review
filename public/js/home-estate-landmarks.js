@@ -103,15 +103,20 @@ export function createEstateLandmark(kind, { level = 3 } = {}) {
     }
     box(root, [width - .12, wall - .20, .028], 'glass', [0, wall / 2 + .20, -depth / 2], .006, glass).castShadow = false;
     box(root, [width + .08, .11, .13], 'roofEdge', [0, wall + .18, -depth / 2], .03);
-    for (const x of [-.38, .38]) box(root, [.11, wall, .12], 'cream', [x, wall / 2 + .18, depth / 2], .024);
+    for (const x of [-.38, .38]) box(root, [.11, wall, .12], 'cream', [x, wall / 2 + .18, depth / 2], .024).name = `greenhouse-door-frame-${x < 0 ? 'left' : 'right'}`;
     for (const x of [-(width / 2 + .38) / 2, (width / 2 + .38) / 2]) {
       box(root, [width / 2 - .43, wall - .22, .028], 'glass', [x, wall / 2 + .20, depth / 2], .006, glass).castShadow = false;
       box(root, [width / 2 - .38, .06, .06], 'cream', [x, .94, depth / 2], .015);
     }
-    box(root, [.66, 1.04, .055], 'glass', [0, .76, depth / 2 + .025], .015, glass).castShadow = false;
-    box(root, [.08, .95, .08], 'roofEdge', [0, .75, depth / 2 + .075], .02);
-    box(root, [.83, .12, .14], 'cream', [0, 1.31, depth / 2 + .05], .04);
-    cylinder(root, .043, .043, .05, 'gold', [.12, .78, depth / 2 + .105]).rotation.x = Math.PI / 2;
+    const doorHinge = new THREE.Group(); doorHinge.name = 'greenhouse-door-hinge';
+    doorHinge.position.set(-.33, 0, depth / 2 + .025); doorHinge.userData.landmarkDoor = 'greenhouse'; root.add(doorHinge);
+    const doorPanel = box(doorHinge, [.66, 1.04, .055], 'glass', [.33, .76, 0], .015, glass); doorPanel.castShadow = false;
+    const doorStile = box(doorHinge, [.08, .95, .08], 'roofEdge', [.33, .75, .05], .02);
+    box(root, [.83, .12, .14], 'cream', [0, 1.31, depth / 2 + .05], .04).name = 'greenhouse-door-frame-header';
+    const doorHandle = cylinder(doorHinge, .043, .043, .05, 'gold', [.45, .78, .08]); doorHandle.rotation.x = Math.PI / 2;
+    for (const [part, name] of [[doorPanel, 'panel'], [doorStile, 'stile'], [doorHandle, 'handle']]) {
+      part.name = `greenhouse-door-${name}`; part.userData.landmarkDoorPart = true;
+    }
     box(root, [.95, .11, .37], 'stone', [0, .095, depth / 2 + .18], .05);
     const roof = new THREE.Group(); root.add(roof); roof.position.y = .18;
     gable(roof, width + .26, depth + .30, wall, peak);

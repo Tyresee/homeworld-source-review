@@ -153,14 +153,14 @@ export function createFloorPlanner({getFloors,getBalance,quote,purchase,onBuilt,
     summaryTitle.textContent=storey===floors().length?`DisplayText0952 ${storey+1} DisplayText0931`:`DisplayText0953 ${storey+1} DisplayText0931`;
     const rows=[["DisplayText0954",`${number(before)} sqm`]];
     if(storey>0)rows.push(["DisplayText0955",`${number(getUnionArea(support()))} sqm`]);
-    rows.push(["DisplayText0956",`${number(selectedArea)} sqm`],["DisplayText0957",`− ${number(deductedArea)} sqm`],["DisplayText0958",`${number(addedArea)} sqm`],["DisplayText0959",`${number(before+addedArea)} sqm`],["DisplayText0960",`${number(q?.areaCost??Math.round(addedArea*unitPrice))} DisplayText0920`],["DisplayText0961",`${number(q?.stairCost??(addedArea>0&&storey===floors().length?stairPrice:0))} DisplayText0920`],["DisplayText0962",`${number(getBalance())} DisplayText0920`]);
+    rows.push(["DisplayText0956",`${number(selectedArea)} sqm`],["DisplayText0957",`− ${number(deductedArea)} sqm`],["DisplayText0958",`${number(addedArea)} sqm`],["DisplayText0959",`${number(before+addedArea)} sqm`],["DisplayText0960",`${number(q?.areaCost??Math.round(addedArea*unitPrice))} DisplayText0920`],[q?.stairConnection?.lower?.type==='elevator'?"DisplayText4865":"DisplayText0961",`${number(q?.stairCost??(addedArea>0&&storey===floors().length?stairPrice:0))} DisplayText0920`],["DisplayText0962",`${number(getBalance())} DisplayText0920`]);
     metrics.replaceChildren();for(const[label,value]of rows)metrics.append(element('dt','',label),element('dd','',value));
   }
   function refresh(){
     paintCells();const measured=measuredSelection();drawPreview(measured.addedRects);
     currentQuote=measured.addedRects.length?quote({storey,rects:measured.addedRects}):null;const q=currentQuote?.quote;renderMetrics(measured,q);
     const hasNewArea=Boolean(currentQuote?.ok&&q?.changed);
-    report.textContent=!measured.rects.length?"DisplayText0963, DisplayText0889.":!measured.addedArea?"DisplayText0964, DisplayText0949 0 sqm, DisplayText0965.":currentQuote.ok?`DisplayText0966 ${number(measured.deductedArea)} sqmDisplayText0967, DisplayText0968 ${number(measured.addedArea)} sqmDisplayText0969.`:currentQuote.error;
+    report.textContent=!measured.rects.length?"DisplayText0963, DisplayText0889.":!measured.addedArea?"DisplayText0964, DisplayText0949 0 sqm, DisplayText0965.":currentQuote.ok?`DisplayText0966 ${number(measured.deductedArea)} sqmDisplayText0967, DisplayText0968 ${number(measured.addedArea)} sqmDisplayText0969.${q?.stairConnection?.lower?.type==='elevator'?"DisplayText4866, DisplayText4867.":''}`:currentQuote.error;
     report.classList.toggle('is-error',Boolean(currentQuote&&!currentQuote.ok));buy.disabled=!hasNewArea||submitting;buy.textContent=hasNewArea?`DisplayText0970 ${number(q.total)} DisplayText0971`:"DisplayText0972";
   }
   async function buySelection(){

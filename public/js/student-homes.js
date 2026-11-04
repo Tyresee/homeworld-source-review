@@ -3,6 +3,7 @@ import {createStudentHomeContextMenu} from './student-home-context-menu.js';
 import {CATALOG_VERSION} from './home-catalog-version.js';
 import {applyHomeTheme,preserveHomeTheme} from './home-theme.js';
 import {createStudentHomeWarmUI} from './student-home-warm-ui.js';
+import {createStudentHomeShareDialog} from './student-home-share-dialog.js';
 
 const homeTheme=applyHomeTheme(document);
 
@@ -11,6 +12,7 @@ const selectedStudentKey='homeworld:student-homes:selected-student:v1';
 const shellColors=[["DisplayText0753",'#e9dfc9'],["DisplayText0757",'#a7c7cf'],["DisplayText4205",'#e6b7aa'],["DisplayText4206",'#d4c5dd']];
 const accentColors=[["DisplayText4207",'#869779'],["DisplayText4208",'#608ea6'],["DisplayText4209",'#bd7c54'],["DisplayText4210",'#906e82']];
 const views=['interior','estate','building'];
+if(homeTheme.id==='toy'){const button=document.createElement('button');button.id='view-roam';button.type='button';button.textContent="Visit";button.setAttribute('aria-pressed','false');$('view-building').after(button);views.push('roam');}
 let latestWallet=null,robotActivity=null;
 let stageCameraState={active:false,returning:false,available:false,suppressed:false};
 let session,students=[],selected=null,home=null,scene,selection=0,writing=false,retryAction=null,walletRequest=0,changingStudent=false;
@@ -24,6 +26,25 @@ const warmUI=homeTheme.id==='warm'?createStudentHomeWarmUI({document,window,them
   onView:view=>{if(view==='roam'){if(!home||writing||changingStudent)return;$('palette').hidden=true;contextMenu.close();void scene?.setView('roam');}else $('view-'+view).click();},onStage:()=>$('stage-toggle').click(),onStageCamera:()=>$('stage-camera-toggle').click(),
   onZoom:direction=>scene?.zoom?.(direction),onReset:()=>scene?.reset(),onRefit:()=>scene?.refit?.(),onSelectStudent:id=>selectStudent(students.find(student=>student.id===id)),onError:error=>errorStatus(error),
 }):null;
+const shareScope=()=>session?.authenticated===true&&selected?.id?`${session.actor.id}:${selected.id}`:'';
+function shareOwner(scope){if(scope!==shareScope()||!home||writing||changingStudent)throw new Error("DisplayText5025, DisplayText5026.");return{scope,actorId:session.actor.id,studentId:selected.id,selection};}
+function checkShareOwner(owner){if(owner.scope!==shareScope()||owner.selection!==selection)throw new Error("DisplayText5025, DisplayText5026.");}
+const shareDialog=createStudentHomeShareDialog({document,window,getState:()=>({ready:!!home&&!$('home-tools').hidden,scope:shareScope(),busy:writing||changingStudent||scene?.getRoamState?.()?.transition===true}),
+  async onCreate({scope}){const owner=shareOwner(scope),flushed=await scene?.prepareLeave?.({capture:false});checkShareOwner(owner);if(flushed?.pending||flushed?.ok===false)throw new Error("DisplayText5027, DisplayText5028.");
+    // A robot checkpoint can advance this same home's revision between the
+    // read and publish requests. Re-read on an explicit CAS rejection only;
+    // that rejection created no share, so a fresh command ID is safe. Unknown
+    // network outcomes and identity/idempotency errors are never retried.
+    for(let attempt=0;attempt<3;attempt++){
+      const fresh=await request(`/students/${owner.studentId}/home`);checkShareOwner(owner);if(!fresh.home)throw new Error("DisplayText5029, DisplayText5030.");
+      try{const result=await request(`/students/${owner.studentId}/shares`,{expectedUserId:owner.actorId,expectedRevision:fresh.home.revision,commandId:crypto.randomUUID()},'POST');checkShareOwner(owner);return result;}
+      catch(error){checkShareOwner(owner);if(error.status!==409||error.code!=='revision_conflict'||attempt===2)throw error;}
+    }},
+  async onList({scope}){const owner=shareOwner(scope),result=await request(`/students/${owner.studentId}/shares`);checkShareOwner(owner);return result;},
+  async onRevoke({share,scope}){const owner=shareOwner(scope),result=await request(`/students/${owner.studentId}/shares/${share.id}/revoke`,{expectedUserId:owner.actorId},'POST');checkShareOwner(owner);return result;},
+  onError:error=>{if(error?.code==='identity_changed')void reloadIdentity();else if(error?.status===401){session=null;shareDialog?.refresh();errorStatus(error);}},
+});
+function refreshChrome(){warmUI?.refresh();shareDialog?.refresh();}
 function showBalance(value){if(warmUI)warmUI.setBalance(value,session?.actor?.id+':'+selected?.id);else $('balance').textContent=value.toLocaleString('en');}
 function clearBalance(){if(warmUI)warmUI.clearBalance();else $('balance').textContent='—';}
 function openContextMenu(context){if(!home||writing||scene?.isRoaming?.())return;$('palette').hidden=true;contextMenu.open(context);}
@@ -50,32 +71,32 @@ async function request(path,body,method='GET',options={}){
   if(!response.ok){const error=new Error(data.error?.message||"DisplayText0716, DisplayText0974.");error.status=response.status;error.code=data.error?.code;throw error;}
   return data;
 }
-function syncStage(active){$('stage-toggle').setAttribute('aria-pressed',String(active));$('stage-toggle').textContent=active?"DisplayText3771 · DisplayText3772":"DisplayText4217";warmUI?.refresh();}
+function syncStage(active){$('stage-toggle').setAttribute('aria-pressed',String(active));$('stage-toggle').textContent=active?"DisplayText3771 · DisplayText3772":"DisplayText4217";refreshChrome();}
 function syncStageCamera(value=stageCameraState){
   stageCameraState=value??{active:false,returning:false,available:false,suppressed:false};const button=$('stage-camera-toggle'),camera=stageCameraState;
   button.hidden=!home||scene?.getView()!=='interior'||!(camera.available||camera.active||camera.returning);
   button.disabled=writing||camera.returning||button.hidden;button.setAttribute('aria-pressed',String(camera.active));
   button.textContent=camera.returning?"DisplayText3760…":camera.active?"DisplayText3761":"DisplayText3762";
-  button.title=camera.active||camera.returning?"DisplayText3763, DisplayText4218":"DisplayText4219, DisplayText4220";warmUI?.refresh();
+  button.title=camera.active||camera.returning?"DisplayText3763, DisplayText4218":"DisplayText4219, DisplayText4220";refreshChrome();
 }
-function syncView(view){$('stage-toggle').disabled=writing||view!=='interior';syncStageCamera();for(const key of views)$('view-'+key).setAttribute('aria-pressed',String(key===view));warmUI?.refresh();}
-function busy(value){writing=value;if(value)contextMenu.close();$('palette-colors').disabled=value;$('wardrobe-open').disabled=value;$('stage-toggle').disabled=value||scene?.getView()!=='interior';syncStageCamera();$('claim').disabled=value;$('search').disabled=value;for(const view of views)$('view-'+view).disabled=value;document.querySelectorAll('.student').forEach(button=>button.disabled=value);warmUI?.refresh();}
+function syncView(view){$('stage-toggle').disabled=writing||view!=='interior';syncStageCamera();for(const key of views)$('view-'+key).setAttribute('aria-pressed',String(key==='roam'?scene?.isRoaming?.()===true:key===view));refreshChrome();}
+function busy(value){writing=value;if(value)contextMenu.close();$('palette-colors').disabled=value;$('wardrobe-open').disabled=value;$('stage-toggle').disabled=value||scene?.getView()!=='interior';syncStageCamera();$('claim').disabled=value;$('search').disabled=value;for(const view of views)$('view-'+view).disabled=value;document.querySelectorAll('.student').forEach(button=>button.disabled=value);refreshChrome();}
 function renderStudents(){
   const query=$('search').value.trim().toLocaleLowerCase(),visible=students.filter(student=>student.displayName.toLocaleLowerCase().includes(query));
   $('students').replaceChildren();for(const student of visible){const button=document.createElement('button');button.type='button';button.className='student';button.dataset.studentId=student.id;button.setAttribute('aria-pressed',String(selected?.id===student.id));button.disabled=writing;
     const initial=document.createElement('span');initial.className='initial';initial.setAttribute('aria-hidden','true');initial.textContent=Array.from(student.displayName)[0];const name=document.createElement('span');name.className='student-name';name.textContent=student.displayName;
     button.append(initial,name);button.addEventListener('click',()=>selectStudent(student));$('students').append(button);}
-  $('roster-note').textContent=visible.length?`${visible.length} DisplayText4221`:(query?"DisplayText4222":"DisplayText4223, DisplayText4224.");warmUI?.refresh();
+  $('roster-note').textContent=visible.length?`${visible.length} DisplayText4221`:(query?"DisplayText4222":"DisplayText4223, DisplayText4224.");refreshChrome();
 }
 function syncPalette(){for(const key of['shell','accent'])document.querySelectorAll(`[data-${key}]`).forEach(button=>button.setAttribute('aria-pressed',String(button.dataset[key]===home?.avatar.colors[key])));}
 async function drawHome(own){
-  if(own!==selection)return;$('welcome').hidden=!!home;$('home-tools').hidden=true;$('scene-hint').hidden=true;warmUI?.refresh();
+  if(own!==selection)return;$('welcome').hidden=!!home;$('home-tools').hidden=true;$('scene-hint').hidden=true;refreshChrome();
   if(!home){message('');$('home-caption').textContent="DisplayText4225";status("DisplayText4226, DisplayText4227.");return;}
   $('home-caption').textContent=`${home.house.floors.length} DisplayText4228 · ${home.commerce?.owned.filter(item=>item.status!=='sold').length??0} DisplayText4229 · DisplayText0006`;message("DisplayText4230…");syncPalette();
-  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onRoamChange:()=>warmUI?.refresh(),onStageChange:syncStage,onStageCameraChange:syncStageCamera,warmUI:homeTheme.id==='warm',onRobotPalette:openPalette});
+  try{const createStudentHomeScene=await loadStudentHomeScene();if(own!==selection)return;scene??=createStudentHomeScene($('stage'),{onRobot:openPalette,onCommand:executeCommand,onStatus:status,onViewChange:syncView,onRoamChange:()=>{refreshChrome();if(homeTheme.id==='toy')syncView(scene?.getView());},onStageChange:syncStage,onStageCameraChange:syncStageCamera,warmUI:homeTheme.id==='warm',onRobotPalette:openPalette});
     const restored=await scene.replayRobotActivity?.({actorId:session.actor.id,studentId:selected.id,home,robotActivity});if(own!==selection)return;
     if(restored?.home){home=restored.home;robotActivity=restored.robotActivity??null;}
-    await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;if(latestWallet)scene.setWallet?.(latestWallet);syncView(scene.getView());message('');$('home-tools').hidden=false;$('scene-hint').hidden=false;warmUI?.refresh();status(restored?.pending?"DisplayText4231, DisplayText3811.":homeTheme.id==='warm'?"DisplayText4232 · DisplayText4763, DisplayText4764.":"DisplayText4232 · DisplayText4233 / Outdoors, DisplayText4202.");}
+    await scene.show(home,{robotActivity,actorId:session.actor.id});if(own!==selection)return;if(latestWallet)scene.setWallet?.(latestWallet);syncView(scene.getView());message('');$('home-tools').hidden=false;$('scene-hint').hidden=false;refreshChrome();status(restored?.pending?"DisplayText4231, DisplayText3811.":homeTheme.id==='warm'?"DisplayText4232 · DisplayText4763, DisplayText4764.":"DisplayText4232 · DisplayText4233 / Outdoors, DisplayText4202.");}
   catch{if(own!==selection)return;message("DisplayText4234");status("DisplayText4235, DisplayText4236.",()=>drawHome(own));}
 }
 async function refreshWallet(own=selection,student=selected){
@@ -121,17 +142,21 @@ async function selectStudent(student){
   student=students.find(item=>item.id===student?.id);if(!student)return;
   const leavingActor=session.actor.id;
   if(home&&scene?.prepareLeave){
-    changingStudent=true;warmUI?.refresh();
+    changingStudent=true;refreshChrome();
     try{await scene.prepareLeave();}catch{status("DisplayText4231, DisplayText3811.");}
-    finally{changingStudent=false;warmUI?.refresh();}
+    finally{changingStudent=false;refreshChrome();}
     if(session?.actor?.id!==leavingActor)return;
   }
   rememberStudent(student);
   contextMenu.close();selected=student;home=null;robotActivity=null;latestWallet=null;const own=++selection;++walletRequest;$('refresh-wallet').disabled=true;$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;clearBalance();$('balance').title='';$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";scene?.clear();
-  $('home-title').textContent=`${student.displayName}DisplayText4252`;renderStudents();message("DisplayText4253…");status("DisplayText4254…");
+  $('home-title').textContent=`${student.displayName}DisplayText4252`;$('home-caption').textContent="DisplayText5031…";syncStage(false);syncStageCamera({active:false,returning:false,available:false,suppressed:false});renderStudents();message("DisplayText4253…");status("DisplayText4254…");
   void loadStudentHomeScene().catch(()=>{});
   try{const result=await request(`/students/${student.id}/home`);if(own!==selection)return;home=result.home;robotActivity=result.robotActivity??null;await drawHome(own);}
-  catch(error){if(own===selection){message("DisplayText4255");errorStatus(error,()=>selectStudent(student));}}
+  catch(error){if(own===selection){
+    home=null;robotActivity=null;$('home-caption').textContent="DisplayText5032";$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;refreshChrome();
+    if(error.code==='storage_unavailable'){message("DisplayText5033");status("DisplayText5034.DisplayText5035\"DisplayText5036\", DisplayText5037.",()=>selectStudent(student),"DisplayText5036",{persistent:true});}
+    else{message("DisplayText4255");errorStatus(error,()=>selectStudent(student));}
+  }}
   if(own===selection)await refreshWallet(own,student);
 }
 async function claim(){if(!selected||home||writing||!session)return;const own=selection;busy(true);status("DisplayText4256…");
@@ -168,10 +193,10 @@ addEventListener('pagehide',event=>{contextMenu.close();
   // Capture synchronously before clearing a renderer. The editor persists its
   // identity-bound outbox before attempting an unload-safe request.
   void scene?.prepareLeave?.({keepalive:true});
-  if(!event.persisted){warmUI?.dispose();contextMenu.dispose();scene?.dispose();}
+  if(!event.persisted){shareDialog?.dispose();warmUI?.dispose();contextMenu.dispose();scene?.dispose();}
 });
 async function reloadIdentity(){
-  contextMenu.close();++selection;++walletRequest;selected=null;home=null;robotActivity=null;session=null;students=[];scene?.clear();$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;clearBalance();$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";$('home-title').textContent="DisplayText4267?";$('refresh-wallet').disabled=true;renderStudents();message("DisplayText4268, DisplayText4269…");busy(false);await boot();
+  contextMenu.close();++selection;++walletRequest;selected=null;home=null;robotActivity=null;session=null;students=[];scene?.clear();$('palette').hidden=true;$('welcome').hidden=true;$('home-tools').hidden=true;$('scene-hint').hidden=true;clearBalance();$('starter-note').textContent="DisplayText4251 150,000 DisplayText0920";$('home-title').textContent="DisplayText4267?";$('home-caption').textContent="DisplayText4349";syncStage(false);syncStageCamera({active:false,returning:false,available:false,suppressed:false});$('refresh-wallet').disabled=true;renderStudents();message("DisplayText4268, DisplayText4269…");busy(false);await boot();
 }
 
 async function boot(){

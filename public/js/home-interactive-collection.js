@@ -10,7 +10,7 @@ export const INTERACTIVE_COLLECTION=Object.freeze([
   television('ipRetroTelevision',"DisplayText1161",[1.48,.68,1.55],2400,'essential','#c99563',
     "DisplayText1162, DisplayText1163, DisplayText1164.DisplayText1165, DisplayText1166."),
   television('ipWideTelevision',"DisplayText1167",[2.20,.70,1.86],6200,'comfort','#8eb8af',
-    "DisplayText1168, DisplayText1169, DisplayText1170.DisplayText1171."),
+    "DisplayText1168, DisplayText1169, DisplayText1170.DisplayText4868."),
   television('ipCinemaTelevision',"DisplayText1172",[3.06,.74,2.18],12800,'signature','#55575c',
     "DisplayText1173, DisplayText1174, DisplayText1175.DisplayText1176, DisplayText1177."),
 ]);

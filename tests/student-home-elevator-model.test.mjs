@@ -21,14 +21,25 @@ test('elevator dispatch retains the staircase surface identity, entry footprints
  }
 });
 
-test('both parked heights and every moving sample stay in the dedicated elevator collision volume for all four directions',()=>{
+test('both parked heights and every moving cabin sample keep the unchanged collision volume while the complete shaft remains unclipped',()=>{
+ const shaftParts=new Set(['shaft-post','post-inlay','guide-rail','rail-stop','shaft-side-beam','shaft-cross-beam']);
  for(const direction of['up','down'])for(const rotation of[0,90,180,270]){
   const stairs=shape(direction,rotation),model=createHomeElevator(stairs),volume=getStaircaseVolume(stairs),base=direction==='down'?-STOREY_HEIGHT:0;
   assert.ok(volume);
+  close(volume.minY,base+FLOOR_Y-.02);close(volume.maxY,base+FLOOR_Y+STOREY_HEIGHT+2.2);
+  close(model.userData.shaftTopY,base+FLOOR_Y+STOREY_HEIGHT+2.10);
+  assert.equal(model.getObjectByName('elevator-lid-trim'),undefined);
   for(let n=0;n<=12;n++)for(const open of[0,.5,1]){
    model.userData.setElevatorFrame({cabinY:base+FLOOR_Y+STOREY_HEIGHT*n/12,doors:{lower:open,upper:open}});
-   const b=bounds(model);
-   for(const[axis,key]of[['x','X'],['y','Y'],['z','Z']]){assert.ok(b.min[axis]>=volume[`min${key}`]-1e-6,`${direction}/${rotation}/${n} min${key} ${b.min[axis]} < ${volume[`min${key}`]}`);assert.ok(b.max[axis]<=volume[`max${key}`]+1e-6,`${direction}/${rotation}/${n} max${key} ${b.max[axis]} > ${volume[`max${key}`]}`);}
+   const cabin=bounds(model.getObjectByName('elevator-cabin'));
+   for(const[axis,key]of[['x','X'],['y','Y'],['z','Z']]){assert.ok(cabin.min[axis]>=volume[`min${key}`]-1e-6,`${direction}/${rotation}/${n} cabin min${key}`);assert.ok(cabin.max[axis]<=volume[`max${key}`]+1e-6,`${direction}/${rotation}/${n} cabin max${key}`);}
+   model.traverseVisible(node=>{
+    if(!node.isMesh)return;const b=bounds(node),part=node.userData.elevatorPart,label=`${direction}/${rotation}/${n}/${part}`;
+    for(const[axis,key]of[['x','X'],['z','Z']]){assert.ok(b.min[axis]>=volume[`min${key}`]-1e-6,`${label} min${key}`);assert.ok(b.max[axis]<=volume[`max${key}`]+1e-6,`${label} max${key}`);}
+    assert.ok(b.min.y>=volume.minY-1e-6,`${label} minY`);
+    // The complete cap retains the original travel envelope.
+    assert.ok(b.max.y<=(shaftParts.has(part)?model.userData.shaftTopY:volume.maxY)+1e-6,`${label} maxY`);
+   });
   }model.dispose();
  }
 });
@@ -44,8 +55,29 @@ test('sliding landing gates clear a real passenger-width opening and car gates s
  set({cabinY:FLOOR_Y+STOREY_HEIGHT*.45,doors:{lower:1,upper:1},phase:'riding'});close(carLeft.position.x,-.275);close(carRight.position.x,.275);
  const cabinet=model.getObjectByName('elevator-cabin');close(cabinet.position.y,FLOOR_Y+STOREY_HEIGHT*.45);
  const canopy=model.getObjectByName('elevator-cabin-canopy-cross');assert.ok(bounds(canopy).min.y-cabinet.position.y>=ELEVATOR_CABIN_CLEAR_HEIGHT);
- const rearLeft=model.getObjectByName('elevator-cabin-rear-door-left');set({cabinY:FLOOR_Y+STOREY_HEIGHT,doors:{lower:0,upper:1},phase:'arriving'});close(rearLeft.position.x,-.81);
+ set({cabinY:FLOOR_Y+STOREY_HEIGHT,doors:{lower:0,upper:1},phase:'arriving'});close(carLeft.position.x,-.81);close(carRight.position.x,.81);
+ assert.equal(model.getObjectByName('elevator-cabin-rear-doors'),undefined);assert.equal(model.getObjectByName('elevator-cabin-rear-door-left'),undefined);
+ assert.ok(model.getObjectByName('elevator-cabin-rear-window'));assert.ok(model.getObjectByName('elevator-cabin-rear-kick'));
  model.dispose();
+});
+
+test('one front car gate serves both endpoints and the fixed rear stays closed at every rotation',()=>{
+ for(const rotation of[0,90,180,270]){
+  const model=createHomeElevator(shape('up',rotation)),set=model.userData.setElevatorFrame;
+  try{
+   let carGates=0;model.traverse(node=>{if(/^elevator-cabin-.*-doors$/.test(node.name))carGates++;assert.ok(!/^elevator-cabin-rear-.*(?:door|handle)/.test(node.name));});assert.equal(carGates,1);
+   for(const side of['lower','upper']){
+    const y=FLOOR_Y+(side==='upper'?STOREY_HEIGHT:0);set({cabinY:y,doors:{[side]:1}});model.updateMatrixWorld(true);
+    const front=model.getObjectByName('elevator-cabin-front-doors'),landing=model.getObjectByName(`elevator-${side}-landing-doors`),rear=model.getObjectByName('elevator-cabin-rear-window');
+    const local=node=>model.worldToLocal(node.getWorldPosition(new THREE.Vector3()));
+    close(local(front).z,1.29);close(local(landing).z,1.44);close(local(front).y,y);close(local(landing).y,y);close(local(rear).z,-1.29);
+    close(model.getObjectByName('elevator-cabin-front-door-left').position.x,-.81);
+    const start=model.localToWorld(new THREE.Vector3(0,y+1,-1.8)),end=model.localToWorld(new THREE.Vector3(0,y+1,0)),delta=end.clone().sub(start);
+    const ray=new THREE.Raycaster(start,delta.clone().normalize(),0,delta.length()),meshes=[];model.traverse(node=>{if(node.isMesh)meshes.push(node);});
+    assert.ok(ray.intersectObjects(meshes,false).some(hit=>hit.object===rear),'rear glass physically closes the non-entry side');
+   }
+  }finally{model.dispose();}
+ }
 });
 
 test('frame sampling clamps invalid heights, keeps controls readable and adds no clock, opaque roof or downloaded texture',()=>{
@@ -99,11 +131,12 @@ test('a three-storey overview captures each complete elevator connection once wi
  const a={...shape('up'),id:'floor-1-2'},b={...shape('up',90),id:'floor-2-3',x:6};
  const homes=[{staircases:[a]},{staircases:[{...a,direction:'down'},b]},{staircases:[{...b,direction:'down'}]}];
  const groups=homes.map((home,index)=>createFloorStaircaseGroup(home,index)),snapshots=groups.map((group,index)=>captureHomeFloor(group,{floorIndex:index,home:homes[index]}));
- const count=group=>{let value=0;group.traverse(node=>{if(node.isMesh)value++;});return value;};
+ const count=group=>{let value=0;group.traverseVisible(node=>{if(node.isMesh)value++;});return value;};
  assert.equal(snapshots[0].userData.captureStats.sourceMeshes,count(groups[0]));
  assert.equal(snapshots[1].userData.captureStats.sourceMeshes,count(groups[1].children[1]),'middle floor only adds its upward connection');
  assert.equal(snapshots[2].userData.captureStats.sourceMeshes,0,'top floor does not add another complete copy of the lower shaft');
- const upstairs=groups[1].children[0];assert.equal(upstairs.visible,true);assert.ok(upstairs.children.every(child=>child.visible));
+ const upstairs=groups[1].children[0];assert.equal(upstairs.visible,true);assert.ok(upstairs.children.filter(child=>child.name!=='elevator-lid-trim').every(child=>child.visible));
+ for(const group of groups)for(const model of group.children)assert.equal(model.getObjectByName('elevator-lid-trim'),undefined,'removed trim never enters overview captures');
  assert.equal(applyFloorElevatorFrame(groups[1],{stairId:a.id,cabinY:-1.5,doors:{lower:0,upper:0}}),true);close(upstairs.userData.elevatorFrame.cabinY,-1.5);
  for(const snapshot of snapshots)snapshot.userData.dispose();for(const group of groups)for(const model of [...group.children])model.dispose();
 });

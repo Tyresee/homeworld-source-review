@@ -22,4 +22,32 @@
 :root[data-theme="warm"] .home-roam-help-note { margin:14px 0 8px; color:var(--warm-muted); }
 :root[data-theme="warm"] .home-roam-help > .home-roam-button { margin-top:4px; }
 :root[data-theme="warm"] .home-roam-hover { position:fixed; z-index:40; pointer-events:none; max-width:calc(100vw - 32px); padding:7px 11px; border-radius:10px; background:var(--warm-ink); color:var(--warm-panel); font-size:14px; font-weight:600; }
+:root[data-theme="warm"] .home-roam-elevator-menu { box-sizing:border-box; position:fixed; z-index:60; overflow:auto; padding:14px; border:1px solid var(--warm-line); border-radius:20px; background:var(--warm-panel-soft); color:var(--warm-ink); box-shadow:0 14px 42px var(--warm-shadow); font:400 15px/1.5 "PingFang SC","Microsoft YaHei",system-ui,sans-serif; pointer-events:auto; }
+:root[data-theme="warm"] .home-roam-elevator-menu[hidden] { display:none !important; }
+:root[data-theme="warm"] .home-roam-elevator-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+:root[data-theme="warm"] .home-roam-elevator-title { font-size:17px; }
+:root[data-theme="warm"] .home-roam-elevator-close { appearance:none; flex:0 0 44px; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:transparent; color:inherit; font:400 28px/1 system-ui,sans-serif; cursor:pointer; }
+:root[data-theme="warm"] .home-roam-elevator-hint { margin:0 0 12px; color:var(--warm-muted); font-size:13px; }
+:root[data-theme="warm"] .home-roam-elevator-options { display:grid; gap:8px; }
+:root[data-theme="warm"] .home-roam-elevator-option { appearance:none; display:flex; align-items:center; gap:12px; width:100%; min-height:52px; box-sizing:border-box; padding:10px 12px; border:1px solid var(--warm-line); border-radius:13px; background:var(--warm-panel); color:inherit; font-family:inherit; font-size:16px; font-weight:600; line-height:1.4; text-align:left; cursor:pointer; }
+:root[data-theme="warm"] .home-roam-elevator-arrow { display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:10px; background:var(--warm-selected); color:var(--warm-accent); font:700 22px/1 system-ui,sans-serif; }
+:root[data-theme="warm"] .home-roam-elevator-option:hover,:root[data-theme="warm"] .home-roam-elevator-close:hover { background:var(--warm-selected); }
+:root[data-theme="warm"] .home-roam-elevator-option:focus-visible,:root[data-theme="warm"] .home-roam-elevator-close:focus-visible { outline:3px solid var(--warm-accent); outline-offset:2px; }
 @media(max-width:700px) { :root[data-theme="warm"] .home-roam-bar { left:16px; right:16px; bottom:16px; gap:8px; flex-wrap:wrap; } :root[data-theme="warm"] .home-roam-button { padding:9px 11px; font-size:14px; } :root[data-theme="warm"] .home-roam-status { top:16px; right:16px; } :root[data-theme="warm"] .home-roam-instructions { max-width:calc(100% - 32px); font-size:13px; } :root[data-theme="warm"] .home-roam-help { right:16px; bottom:100px; width:min(370px,calc(100% - 32px)); } }
+
+/* Native accessibility/hit areas follow the actual cabin meshes. Their
+ * transparent faces leave the three-dimensional panel as the visible control. */
+:root[data-theme="warm"] .home-roam-cabin-ui { position:absolute; inset:0; z-index:36; overflow:hidden; pointer-events:none; color:var(--warm-ink); font:400 14px/1.4 "PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
+:root[data-theme="warm"] .home-roam-cabin-ui[hidden],:root[data-theme="warm"] .home-roam-cabin-ui [hidden] { display:none !important; }
+:root[data-theme="warm"] .home-roam-ui[data-cabin] .home-roam-bar,:root[data-theme="warm"] .home-roam-ui[data-cabin] .home-roam-instructions { display:none !important; }
+:root[data-theme="warm"] .home-roam-cabin-hotspots { position:absolute; inset:0; pointer-events:none; }
+:root[data-theme="warm"] .home-roam-cabin-floor { appearance:none; position:absolute; margin:0; padding:0; min-width:0; min-height:0; border:0; border-radius:50%; background:transparent; color:transparent; pointer-events:auto; cursor:pointer; touch-action:manipulation; }
+:root[data-theme="warm"] .home-roam-cabin-floor:disabled { pointer-events:none; cursor:default; }
+:root[data-theme="warm"] .home-roam-cabin-floor:focus-visible { outline:3px solid #ffe29a; outline-offset:3px; box-shadow:0 0 0 5px #1d3e3d88; }
+:root[data-theme="warm"] .home-roam-cabin-chip { position:absolute; left:50%; bottom:max(28px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 16px; align-items:center; width:max-content; max-width:calc(100% - 48px); box-sizing:border-box; padding:11px 14px 11px 18px; border:1px solid var(--warm-line); border-radius:18px; background:var(--warm-panel-soft); box-shadow:0 8px 28px var(--warm-shadow); }
+:root[data-theme="warm"] .home-roam-cabin-message { font-weight:600; }
+:root[data-theme="warm"] .home-roam-cabin-keyboard { grid-column:1; color:var(--warm-muted); font-size:12px; }
+:root[data-theme="warm"] .home-roam-cabin-exit { appearance:none; grid-column:2; grid-row:1 / 3; min-height:44px; margin:0; padding:10px 15px; border:0; border-radius:12px; color:var(--warm-ink); background:var(--warm-selected); font-family:inherit; font-size:14px; font-weight:600; line-height:1.4; pointer-events:auto; cursor:pointer; }
+:root[data-theme="warm"] .home-roam-cabin-exit:disabled { opacity:.45; cursor:default; }
+:root[data-theme="warm"] .home-roam-cabin-exit:focus-visible { outline:3px solid var(--warm-accent); outline-offset:2px; }
+@media(max-width:700px) { :root[data-theme="warm"] .home-roam-cabin-chip { bottom:max(20px,env(safe-area-inset-bottom)); max-width:calc(100% - 24px); gap:3px 10px; padding:10px 12px; } :root[data-theme="warm"] .home-roam-cabin-keyboard { font-size:11px; } }

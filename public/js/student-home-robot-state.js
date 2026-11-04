@@ -44,22 +44,23 @@ export function isRobotActivityShape(value){
     &&(!Object.hasOwn(value,'remaining')||value.action==='wave');
   if(value.kind==='furniture')return keys(value,['kind','action','itemId','storey'],['time','remaining','phase','step','progress','rotation','entrySide','originTime','approachIndex','exitRequested','originRotation'])
     &&common(value)&&ROBOT_FURNITURE_ACTIONS.includes(value.action)&&optional(value,'time',time)
-    &&optional(value,'originRotation',v=>['tidy','wipe'].includes(value.action)&&rotation(v))
+    &&optional(value,'originRotation',v=>['cook','tidy','wipe'].includes(value.action)&&rotation(v))
     &&optional(value,'remaining',v=>bounded(v,0,5))&&optional(value,'rotation',rotation)&&optional(value,'originTime',time)
     &&phaseTriple(value,['enter','exit'],ROBOT_STATE_LIMITS.furnitureStep)
     &&(!Object.hasOwn(value,'phase')||['sit','lie'].includes(value.action))
     &&optional(value,'entrySide',v=>['left','right'].includes(v))&&optional(value,'approachIndex',v=>step(v,11))
     &&(!Object.hasOwn(value,'entrySide')||value.action==='lie')
     &&optional(value,'exitRequested',v=>v===true&&value.phase==='enter');
-  if(value.kind==='football')return keys(value,['kind','itemId','storey','time','originRotation'],['exitRequested'])&&common(value)&&value.storey===0&&bounded(value.time,0,15)&&rotation(value.originRotation)&&optional(value,'exitRequested',v=>v===true);
+  if(value.kind==='football')return keys(value,['kind','itemId','storey','time','originRotation'],['exitRequested','entryIndex'])&&optional(value,'entryIndex',v=>step(v,11))&&common(value)&&value.storey===0&&bounded(value.time,0,15)&&rotation(value.originRotation)&&optional(value,'exitRequested',v=>v===true);
   if(value.kind==='swim'){
-    if(!keys(value,['kind','itemId','storey'],['time','phase','step','progress','rotation','exitFrom','loopTime'])||!common(value)||value.storey!==0
-      ||!optional(value,'time',time)||!optional(value,'loopTime',time)||!optional(value,'rotation',rotation)||!optional(value,'exitFrom',exitFrom))return false;
+    if(!keys(value,['kind','itemId','storey'],['time','phase','step','progress','rotation','exitFrom','loopTime','variant','entryIndex'])||!common(value)||value.storey!==0
+      ||!optional(value,'variant',v=>['swim','ring','spa'].includes(v))||!optional(value,'entryIndex',v=>step(v,11))||!optional(value,'time',time)||!optional(value,'loopTime',time)||!optional(value,'rotation',rotation)||!optional(value,'exitFrom',exitFrom))return false;
     if(value.phase==='loop')return !Object.hasOwn(value,'step')&&!Object.hasOwn(value,'progress')&&!Object.hasOwn(value,'exitFrom');
     return phaseTriple(value,['enter','exit'],ROBOT_STATE_LIMITS.poolStep)&&(!Object.hasOwn(value,'exitFrom')||value.phase==='exit');
   }
-  if(['stairs','elevator'].includes(value.kind))return keys(value,['kind','itemId','storey','step','progress','rotation'],['time','originTime'])
-    &&common(value)&&step(value.step,ROBOT_STATE_LIMITS.transitStep)&&progress(value.progress)&&rotation(value.rotation)&&optional(value,'time',time)&&optional(value,'originTime',time);
+  if(['stairs','elevator'].includes(value.kind))return keys(value,['kind','itemId','storey','step','progress','rotation'],value.kind==='elevator'?['time','originTime','targetStorey']:['time','originTime'])
+    &&common(value)&&step(value.step,ROBOT_STATE_LIMITS.transitStep)&&progress(value.progress)&&rotation(value.rotation)&&optional(value,'time',time)&&optional(value,'originTime',time)
+    &&optional(value,'targetStorey',target=>storey(target)&&Math.abs(target-value.storey)>=2);
   return false;
 }
 // Already canonical angles must stay bit-for-bit stable. Repeating trig on an
@@ -70,7 +71,7 @@ const yaw=value=>{const result=value>=-Math.PI&&value<=Math.PI?value:Math.atan2(
 export function normalizeRobotActivity(value){
   if(!isRobotActivityShape(value))return null;
   const result={kind:value.kind};
-  for(const key of ['environment','action','itemId','seatId','storey'])if(Object.hasOwn(value,key))result[key]=value[key];
+  for(const key of ['environment','action','itemId','seatId','storey','targetStorey','variant','entryIndex'])if(Object.hasOwn(value,key))result[key]=value[key];
   if(value.point)result.point={x:value.point.x,z:value.point.z};
   if(Object.hasOwn(value,'rotation'))result.rotation=yaw(value.rotation);
   if(Object.hasOwn(value,'originRotation'))result.originRotation=yaw(value.originRotation);

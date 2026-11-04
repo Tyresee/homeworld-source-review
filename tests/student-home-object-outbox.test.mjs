@@ -64,7 +64,7 @@ test('safe rebase checks placed ownership storey and exact base for both unsent 
 
 test('the journal rejects malformed config prototype keys foreign payload and invalid bounds',()=>{
   const outbox=createStudentHomeObjectOutbox({storage:storage(),randomId:ids()});
-  for(const override of[{id:'__proto__'},{id:'constructor'},{id:'../other'}, {storey:-1},{storey:256},{expectedRevision:NaN},{expectedRevision:-1},{patch:{}},{patch:{channel:0}},{patch:{brightness:4}},{patch:{power:'true'}},{patch:JSON.parse('{"__proto__":{"power":true}}')},{baseState:{power:false}},{baseState:{power:false,brightness:2,password:'secret'}},{actorId:''}])assert.equal(outbox.enqueue(input(override)),null,JSON.stringify(override));
+  for(const override of[{id:'__proto__'},{id:'constructor'},{id:'../other'}, {storey:-1},{storey:256},{expectedRevision:NaN},{expectedRevision:-1},{patch:{}},{patch:{channel:0}},{patch:{brightness:4}},{patch:{power:'true'}},{patch:JSON.parse('{"__proto__":{"power":true}}')},{baseState:{power:0}},{baseState:{power:false,brightness:2,password:'secret'}},{actorId:''}])assert.equal(outbox.enqueue(input(override)),null,JSON.stringify(override));
   assert.equal(outbox.enqueue({...input(),wallet:150000}),null);assert.equal(outbox.list('teacher-a','student-a').length,0);
   const tv=outbox.enqueue(input({id:'tv-1',patch:{channel:3,volume:2},baseState:{power:false,channel:0,volume:1}}));assert.ok(tv);
   assert.ok(outbox.enqueue(input({id:'clock-1',patch:{chime:false},baseState:{chime:true}})));
@@ -88,3 +88,55 @@ test('a full queue never discards an unknown request and unavailable storage sta
 });
 
 const copy=value=>JSON.parse(JSON.stringify(value));
+
+test('new television channels retain durable retries across outbox recreation and acknowledge without crossing students',()=>{
+  const disk=storage(),outbox=createStudentHomeObjectOutbox({storage:disk,randomId:()=> 'new-tv-channel-retry'});
+  const baseState={power:true,channel:3,volume:1},job=outbox.enqueue(input({id:'tv-12',patch:{channel:11},baseState}));
+  assert.ok(job);assert.equal(job.durable,true);outbox.markSent('teacher-a','student-a',job.id,7);
+  const reloaded=createStudentHomeObjectOutbox({storage:disk});assert.equal(reloaded.list('teacher-a','student-a')[0].patch.channel,11);assert.equal(reloaded.list('teacher-a','student-a')[0].expectedRevision,7);assert.deepEqual(reloaded.list('teacher-a','student-b'),[]);
+  const snapshot=home({power:true,channel:11,volume:1},{id:'tv-12',kind:'ipRetroTelevision',revision:8});
+  assert.equal(reloaded.acknowledge('teacher-a','student-a',job.id,{home:snapshot}),true);assert.equal(reloaded.pending('teacher-a','student-a'),false);
+  for(const channel of [-1,12,1.5,'11'])assert.equal(reloaded.enqueue(input({id:'tv-12',baseState,patch:{channel}})),null);
+});
+
+const computerKinds=['pcPocketLaptop','pcStudyAllInOne','pcNeonDesktop','pcStudioDual'];
+for(const kind of computerKinds)test(`${kind} power intent survives durable recreation, exact retry and acknowledgement without crossing accounts or students`,()=>{
+  const disk=storage(),outbox=createStudentHomeObjectOutbox({storage:disk,randomId:ids()});
+  const job=outbox.enqueue(input({id:'owned-computer',baseState:{power:false}}));assert.ok(job,'the real editor must be able to enqueue its boolean-only computer state');assert.equal(job.durable,true);
+  const sent=outbox.markSent('teacher-a','student-a',job.id,9);assert.equal(sent.attempted,true);assert.equal(sent.expectedRevision,9);
+  const restored=createStudentHomeObjectOutbox({storage:disk,randomId:()=> 'computer-retry-next'}),[pending]=restored.list('teacher-a','student-a');
+  assert.equal(pending.id,job.id);assert.deepEqual(pending.patch,{power:true});assert.deepEqual(pending.baseState,{power:false});assert.equal(pending.attempted,true);
+  assert.deepEqual(restored.list('teacher-b','student-a'),[]);assert.deepEqual(restored.list('teacher-a','student-b'),[]);
+  assert.equal(restored.acknowledge('teacher-b','student-a',job.id,{home:home({power:true},{id:'owned-computer',kind})}),false);
+  const retry=restored.markSent('teacher-a','student-a',job.id,99);assert.equal(retry.id,job.id);assert.equal(retry.expectedRevision,9);assert.deepEqual(retry.patch,{power:true});
+  assert.equal(restored.acknowledge('teacher-a','student-a',job.id,{home:home({power:true},{id:'owned-computer',kind,revision:10})}),true);
+  assert.equal(restored.pending('teacher-a','student-a'),false);assert.equal(disk.data.size,0);
+});
+
+test('computer rebase requires the same owned placed unit, same floor, same capability and exact boolean base state',()=>{
+  for(const attempted of[false,true]){
+    const disk=storage(),outbox=createStudentHomeObjectOutbox({storage:disk,randomId:ids()}),job=outbox.enqueue(input({baseState:{power:false}}));if(attempted)outbox.markSent('teacher-a','student-a',job.id,3);
+    for(const snapshot of[
+      home({power:true},{kind:computerKinds[0]}),home({power:false},{kind:computerKinds[0],storey:1}),
+      home({power:false},{kind:computerKinds[0],status:'stored'}),home({power:false},{kind:computerKinds[0],status:'sold'}),
+      home({power:false},{kind:computerKinds[0],id:'another-owned'}),home({power:false},{kind:'plant'}),home({power:false},{kind:'ipWideTelevision'}),
+    ]){assert.equal(outbox.rebase('teacher-a','student-a',job.id,{home:snapshot}),null);assert.equal(outbox.list('teacher-a','student-a')[0].id,job.id);}
+    const next=outbox.rebase('teacher-a','student-a',job.id,{home:home({power:false},{kind:computerKinds[0],revision:12})});assert.ok(next);assert.notEqual(next.id,job.id);assert.equal(next.expectedRevision,12);assert.equal(next.attempted,false);assert.deepEqual(next.baseState,{power:false});
+    assert.equal(outbox.rebase('teacher-b','student-a',next.id,{home:home({power:false},{kind:computerKinds[0],revision:13})}),null);
+  }
+});
+
+test('a proven computer acknowledgement rebases a later unsent off intent but preserves an unknown sent request',()=>{
+  const disk=storage(),outbox=createStudentHomeObjectOutbox({storage:disk,randomId:ids()}),first=outbox.enqueue(input({baseState:{power:false}}));outbox.markSent('teacher-a','student-a',first.id,3);
+  const second=outbox.enqueue(input({baseState:{power:false},patch:{power:false}}));
+  outbox.acknowledge('teacher-a','student-a',first.id,{home:home({power:true},{kind:computerKinds[0],revision:4})});
+  const [next]=outbox.list('teacher-a','student-a');assert.equal(next.id,second.id);assert.deepEqual(next.baseState,{power:true});assert.deepEqual(next.patch,{power:false});assert.equal(next.expectedRevision,4);
+  outbox.markSent('teacher-a','student-a',next.id,4);const recreated=createStudentHomeObjectOutbox({storage:disk});assert.deepEqual(recreated.list('teacher-a','student-a')[0].patch,{power:false});recreated.acknowledge('teacher-a','student-a',next.id,{home:home({power:false},{kind:computerKinds[0],revision:5})});assert.equal(recreated.pending('teacher-a','student-a'),false);
+});
+
+test('computer journals still reject malformed extra fields, media payloads and nonboolean power values',()=>{
+  const outbox=createStudentHomeObjectOutbox({storage:storage(),randomId:ids()});
+  for(const baseState of[{power:0},{power:'false'},{power:null},{power:false,mode:'browser'},{power:false,url:'https://example.invalid'}])assert.equal(outbox.enqueue(input({baseState})),null);
+  for(const patch of[{power:1},{power:'true'},{channel:0},{brightness:1},{mode:'browser'},{url:'https://example.invalid'},JSON.parse('{"power":true,"__proto__":{}}')])assert.equal(outbox.enqueue(input({baseState:{power:false},patch})),null);
+  const valid=outbox.enqueue(input({baseState:{power:false},patch:{power:true}}));assert.ok(valid);assert.equal(valid.durable,true);
+});

@@ -68,5 +68,19 @@
   "tests/student-homes-server.test.mjs",
   "tests/student-homes-starter-grant.test.mjs",
   "tests/student-homes-static-assets.test.mjs",
-  "tests/student-homes-television-integration.test.mjs"
+  "tests/student-homes-television-integration.test.mjs",
+  "tests/home-share-controller.test.mjs",
+  "tests/home-share-model.test.mjs",
+  "tests/home-share-viewer-materials.test.mjs",
+  "tests/home-share-viewer.test.mjs",
+  "tests/student-homes-share-http.test.mjs",
+  "tests/student-homes-share-snapshot.test.mjs",
+  "tests/student-homes-shares.test.mjs",
+  "tests/student-home-share-dialog.test.mjs",
+  "tests/share-view-review.test.mjs",
+  "tests/home-share-copy.test.mjs",
+  "tests/home-share-metadata.test.mjs",
+  "tests/home-share-orbit-view.test.mjs",
+  "tests/home-share-wechat.test.mjs",
+  "tests/student-homes-share-proxy.test.mjs"
 ]

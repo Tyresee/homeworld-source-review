@@ -38,8 +38,8 @@ test('both language tables have complete immutable controls, action labels and m
 
 test('television actions and floor travel share complete classroom and review copy',()=>{
   const en=getHomeRoamCopy('en'),zh=getHomeRoamCopy('en');
-  assert.deepEqual(en.tvChannels,['Forest animation','Weather','Sports','Music']);assert.equal(en.tvOn,'Turn television on');assert.equal(en.tvOff,'Turn television off');assert.ok(en.tvNextChannel.includes('{channel}'));
-  assert.deepEqual(zh.tvChannels,["Forest animation","Weather","Sports","Music"]);assert.equal(zh.tvOn,"Turn television on");assert.equal(zh.tvOff,"Turn television off");assert.ok(zh.tvNextChannel.includes('{channel}'));
+  assert.deepEqual(en.tvChannels,['Forest animation','Weather','Sports','Music','Aquarium','Space explorer','Dinosaur valley','Little kitchen','Toy railway','Robot dance','Art studio','Discovery lab']);assert.equal(en.tvOn,'Turn television on');assert.equal(en.tvOff,'Turn television off');assert.ok(en.tvNextChannel.includes('{channel}'));
+  assert.deepEqual(zh.tvChannels,["Forest animation","Weather","Sports","Music","Aquarium","Space explorer","Dinosaur valley","Little kitchen","Toy railway","Robot dance","Art studio","Discovery lab"]);assert.equal(zh.tvOn,"Turn television on");assert.equal(zh.tvOff,"Turn television off");assert.ok(zh.tvNextChannel.includes('{channel}'));
   assert.equal(en.floorLabel.replace('{floor}','1'),'1F');assert.equal(en.floorLabel.replace('{floor}','3'),'3F');assert.equal(zh.floorLabel,"{floor}F");
   assert.equal(en.floorsAria,'Visit a floor');assert.equal(zh.floorsAria,"Visit a floor");
   assert.deepEqual([en.stairsUp,en.stairsDown,en.elevatorUp,en.elevatorDown],['Walk upstairs','Walk downstairs','Take elevator up','Take elevator down']);

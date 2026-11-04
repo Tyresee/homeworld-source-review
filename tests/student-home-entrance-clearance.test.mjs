@@ -5,13 +5,17 @@ import { createEstateManor } from '../public/js/home-estate-manor.js';
 import { getManorFacadeLayout, getManorEntranceStepBounds } from '../public/js/home-manor-layout.js';
 import { createRoom, getFloorBounds, getFloorBoundarySegments, resolveRooms } from '../public/js/home-layout.js';
 import { validateOutdoorPlacement } from '../public/js/home-outdoor-placement.js';
+import {createAccountCommerce} from '../server/student-homes/commerce.mjs';
 import { createCommerceState, setCartQuantity, checkoutCart, placeOwnedOutdoor, updateOwnedOutdoor,
   validateCommerceState, migrateCommerceState, quoteFloorConstruction, purchaseFloorConstruction } from '../public/js/home-commerce.js';
 
 const starter = () => ({ rooms: [], slab: { rects: [{ minX: -2.8, minZ: -2.6, width: 5.6, depth: 5.2 }] } });
 const lamp = (x, z) => ({ kind: 'outdoor-lamp', x, z, rotation: 0 });
 const accepted = result => { assert.equal(result.ok, true, result.error); return result.state; };
-const paidLamp = () => accepted(checkoutCart(accepted(setCartQuantity(accepted(createCommerceState()), 'outdoor-lamp', 1)), 'entrance-test-lamp'));
+const paidLamp = () => {
+  const state=createAccountCommerce();state.wallet={balance:1000000,initialBalance:1000000};
+  return accepted(checkoutCart(accepted(setCartQuantity(state, 'outdoor-lamp', 1)), 'entrance-test-lamp'));
+};
 const close = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-5, `${label}: ${actual} != ${expected}`);
 
 test('shared facade bays partition actual slab edges without crossing the L-shaped courtyard', () => {

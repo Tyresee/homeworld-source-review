@@ -1,3 +1,4 @@
+import {createComputerProduct,isComputerProduct} from './home-computer-models.js';
 import { createModularKitchenProduct, isModularKitchenProduct } from './home-modular-kitchen-models.js';
 import { createRoomyFurniture, isRoomyFurniture } from './home-roomy-furniture-models.js';
 import { createLivingProduct, isLivingProduct } from './home-living-models.js';
@@ -40,8 +41,10 @@ const CRYSTAL = '#c9e2de';
 const BOOK_COLORS = ['#809b87', '#cb9280', '#d7b16f', '#a0b6bd', '#a294ad'];
 
 /** Each mesh owns its geometry and material; supplied maps remain immutable. */
-export function createLuxuryItem({ kind, color = CREAM, material = 'ceramic', level = 1, plans, maps = {} } = {}) {
+export function createLuxuryItem(options = {}) {
+  const {kind,color=CREAM,material='ceramic',level=1,plans,maps={}}=options;
   const name = String(kind || '').replace(/^(furniture|props?):/, '');
+  if(isComputerProduct(name))return createComputerProduct({kind:name,color:options.color,material,maps});
   if(isInteractiveProduct(name))return createInteractiveProduct({kind:name,color,material,maps});
   if (isModularKitchenProduct(name)) return createModularKitchenProduct({kind:name,color,material,maps});
   if (isRoomyFurniture(name)) return createRoomyFurniture({kind:name,color,material,maps});

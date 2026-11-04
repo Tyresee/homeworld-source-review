@@ -20,6 +20,7 @@ function fixture(view='interior',size={width:1440,height:900}){
   const camera=new THREE.OrthographicCamera(),pan=new THREE.Vector3();let renders=0,exits=0,interruptions=0;
   const context={THREE,frameHomeCamera,boundedZoom,camera,container:{clientWidth:size.width,clientHeight:size.height},view,houseMode:'exterior',houseOverview:null,outdoorState:null,
     zoom:1,angle:Math.PI/4,cameraPan:pan,lastCameraBounds:null,cameraBounds:()=>bounds,presentationPaused:false,
+    elevatorCamera:null,elevatorTransit:null,elevatorStackVisible:false,freezeElevatorSettle(){},
     renderer:{domElement:{width:0,height:0},getPixelRatio:()=>1,setSize(w,h){this.domElement.width=w;this.domElement.height=h;}},
     requestRender:()=>renders++,stageCamera:{exit(options){assert.deepEqual({...options},{restore:false});exits++;}},interruptCameraMotion:()=>interruptions++,
   };

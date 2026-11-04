@@ -1,3 +1,4 @@
+import {exteriorElevatorDoorOnEdge} from './home-exterior-elevator-door.js';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { getHomeTheme } from './home-theme.js';
@@ -63,7 +64,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
   const geometries = new Set();
   const materials = new Map();
   let definition, layout, floorLayouts = [], disposed = false, currentRoom = null, currentStorey = 0;
-  const roaming = roam === true && theme.id === 'warm';
+  const roaming = roam === true && ['warm','toy'].includes(theme.id);
   let roamEntrance=null,roamDoor=null;
   let customization = { plans: normalizePlans(plans), color: normalizeColor(color) };
   let colors = {};
@@ -189,7 +190,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       // Only the visible ground-floor door is an entrance target. Keep the
       // facade, porch, steps and lamps available to their existing handlers.
       const entrancePart = mesh => {
-        if (theme.id === 'warm' && currentStorey === 0) mesh.userData.estateEntranceDoor = true;
+        if (['warm','toy'].includes(theme.id) && currentStorey === 0) mesh.userData.estateEntranceDoor = true;
         return mesh;
       };
       entrancePart(add(new THREE.ExtrudeGeometry(arch(doorW + .36, doorH + .20), { depth: .24, bevelEnabled: true, bevelSize: .035, bevelThickness: .035, bevelSegments: 2, steps: 1, curveSegments: 16 }), colors.trim, [0, 0, .02], group));
@@ -229,6 +230,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       const group = facadeGroup(x + nx * MANOR_FACADE_OFFSET, baseY, z + nz * MANOR_FACADE_OFFSET, face.side);
       group.userData = { roomId: room.id, storey: currentStorey, buildingPart: 'facade', side: face.side };
       const isEntrance = !!entrance && entrance.room === room && entrance.face.side === face.side && entrance.face.from === face.from;
+      if(roaming&&exteriorElevatorDoorOnEdge(floorLayouts[currentStorey].home,{...face,at:face.side==='left'?rect.minX:face.at}))continue;
       if(!roaming||!isEntrance)facadePattern(group, length, wallH, materialPlan);
       if (isEntrance) { door(group, wallH, structure, decor, detail, length);if(roaming)group.userData.entrance=true;continue; }
       const front = face.side === 'front' || face.side === 'right';
@@ -274,6 +276,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       const x=(nx===0?mid:face.at)+ox,z=(nz===0?mid:face.at)+oz;
       const group=facadeGroup(x+nx*MANOR_FACADE_OFFSET,baseY,z+nz*MANOR_FACADE_OFFSET,face.side);
       group.userData={roomId:null,storey:currentStorey,buildingPart:'facade',side:face.side,shell:true};
+      if(roaming&&exteriorElevatorDoorOnEdge(home,face))continue;
       if(!roaming||face!==entrance)facadePattern(group,length,WALL_HEIGHT,materialPlan);
       if(face===entrance){door(group,WALL_HEIGHT,structure,decor,detail,length);group.userData.entrance=true;}
       else if(length>=.7) {
@@ -295,7 +298,7 @@ export function createEstateManor({ tier = 'mansion', rooms, floors, plans = {},
       const alongX=edge.side==='back'||edge.side==='front',[nx,nz]=FACE_NORMALS[edge.side],mid=(edge.from+edge.to)/2;
       const hasDoor=currentStorey===0&&entryMatchesEdge(roamEntrance,edge),alongDoor=alongX?roamEntrance?.wallCenter.x:roamEntrance?.wallCenter.z;
       const geometry=createRoamWallGeometry({length:edge.to-edge.from,height:WALL_HEIGHT,thickness:ROAM_WALL_THICKNESS,
-        opening:hasDoor?{width:roamEntrance.width,top:roamEntrance.top-baseY,center:alongX?alongDoor-mid:mid-alongDoor}:null});
+        opening:exteriorElevatorDoorOnEdge(home,edge)??(hasDoor?{width:roamEntrance.width,top:roamEntrance.top-baseY,center:alongX?alongDoor-mid:mid-alongDoor}:null)});
       const wall=add(geometry,wallColor,alongX?[mid+ox,baseY,edge.at+oz-nz*ROAM_WALL_THICKNESS/2]:[edge.at+ox-nx*ROAM_WALL_THICKNESS/2,baseY,mid+oz]);
       if(!alongX)wall.rotation.y=Math.PI/2;
       wall.userData.buildingPart='roam-wall';wall.userData.roamWall={side:edge.side,alongAxis:alongX?'x':'z',normalAxis:alongX?'z':'x',axis:alongX?'z':'x',plane:edge.at,from:edge.from,to:edge.to,thickness:ROAM_WALL_THICKNESS,minY:baseY,maxY:baseY+WALL_HEIGHT,entrance:hasDoor};

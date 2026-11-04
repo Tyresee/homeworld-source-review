@@ -1,3 +1,4 @@
+import { COMPUTER_COLLECTION } from './home-computer-collection.js';
 import { MODULAR_KITCHEN_COLLECTION } from './home-modular-kitchen-collection.js';
 import { ROOMY_FURNITURE_COLLECTION } from './home-roomy-furniture-collection.js';
 import { LIVING_COLLECTION } from './home-living-collection.js';
@@ -101,6 +102,7 @@ export const EXTRA_SHOP_ITEMS = Object.freeze([
   ...MODULAR_KITCHEN_COLLECTION,
   ...ROOMY_FURNITURE_COLLECTION,
   ...INTERACTIVE_COLLECTION,
+  ...COMPUTER_COLLECTION,
 ]);
 
 export const EXTRA_ITEM_DIMENSIONS = Object.freeze(Object.fromEntries(EXTRA_SHOP_ITEMS.map(({ id, width, depth, height }) => [id, Object.freeze({ width, depth, height })])));

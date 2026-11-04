@@ -8,12 +8,15 @@ import {ROBOT_CLOTHING_PRODUCTS} from './robot-wardrobe-catalog.js';
 import {createStudentHomeWardrobe} from './student-home-wardrobe.js';
 import {createStudentHomeThumbnails} from './student-home-thumbnails.js';
 import {SHOP_CATALOG,ELEVATOR_UPGRADE_PRODUCT,quoteStaircaseUpgrade,listOwnedResaleQuotes,getFloorHomes,getFloorHome,setCartQuantity,quoteFloorConstruction,quoteOwnedRoomPlacement,getStoreyRoomSlots,placeOwnedItem,placeOwnedOutdoor} from './home-commerce.js';
-import {getHomeStairs} from './home-staircase-shape.js';
+import {getHomeStairs,areElevatorsAligned} from './home-staircase-shape.js';
+import {getHomeElevatorStacks} from './home-elevator-stack.js';
 import {applyChange,PALETTE} from './home-engine.js';
-import {getHomeSwatches} from './home-theme.js';
+import {getHomeSwatches,getHomeTheme} from './home-theme.js';
 import {getWarmFloorMenu} from './student-home-floor-menu.js';
 import {getWarmWallMenu,getWallMenuTarget} from './home-wall-menu.js';
-import {roomRect} from './home-layout.js';
+import {roomRect,getRoomKind} from './home-layout.js';
+import {getElevatorServedFloors} from './student-home-robot-elevator.js';
+import {buildElevatorKeypad,keypadScreenFloor,ELEVATOR_KEYPAD_COPY} from './home-elevator-keypad.js';
 import {getStoredPlacementGroups} from './home-inventory-menu.js';
 import {cloneRobotActivity,sameRobotActivity,isRobotActivityShape} from './student-home-robot-state.js';
 import {createStudentHomeRobotOutbox} from './student-home-robot-outbox.js';
@@ -39,9 +42,21 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   function captureRobotActivity(){if(!home||!world)return;const activity=world.captureRobotActivity?.({emit:false});if(activity!==undefined)queueRobotActivity(activity);}
   const catalog=[...SHOP_CATALOG.filter(p=>!['clothing','storey'].includes(p.productType)),...ROBOT_CLOTHING_PRODUCTS],products=new Map(catalog.map(p=>[p.skuId,p]));
   const thumbnails=createStudentHomeThumbnails(),menu=createSceneContextMenu();
-  let quickSelection=null,quickRobotPage='main';
-  const quickActions=createStudentHomeQuickActions({onAction:runQuickAction,onStop:()=>{if(!home||isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};world?.standAvatar();return {ok:true};},onClose:()=>{quickSelection=null;quickRobotPage='main';}});
-  function closeQuickActions(){quickSelection=null;quickRobotPage='main';quickActions.close();}
+  let quickSelection=null,quickRobotPage='main',quickElevatorTrip=null,quickArrivalFloor=null,quickArrivalSerial=0,quickPoll=null,quickHandoff=false;
+  const stopQuickPoll=()=>{if(quickPoll!==null)clearTimeout(quickPoll);quickPoll=null;};
+  function scheduleQuickPoll(){if(quickPoll!==null||disposed||!quickSelection||!quickModel()?.elevator||globalThis.document?.visibilityState==='hidden')return;quickPoll=setTimeout(()=>{quickPoll=null;if(!disposed&&quickSelection&&quickActions.isOpen!==false){refreshQuickActions({keepStatus:true});scheduleQuickPoll();}},100);quickPoll.unref?.();}
+  const quickActions=createStudentHomeQuickActions({onAction:runQuickAction,onStop:stopQuickAction,onClose:()=>{stopQuickPoll();quickSelection=null;quickRobotPage='main';quickElevatorTrip=null;quickArrivalFloor=null;}});
+  function closeQuickActions(){if(quickHandoff)return;stopQuickPoll();quickSelection=null;quickRobotPage='main';quickElevatorTrip=null;quickArrivalFloor=null;quickActions.close();}
+  function stopQuickAction(){
+    if(!home||isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
+    const elevator=quickModel()?.elevator===true,result=world?.standAvatar();
+    if(result?.ok===false||result===false)return result===false?{ok:false}:result;
+    // A successful stop can cancel walking toward the lift before any cabin
+    // frame exists. Retire that pending destination; rejected cabin stops
+    // retain it so the moving keypad and target light remain authoritative.
+    if(elevator){quickElevatorTrip=null;quickArrivalFloor=null;refreshQuickActions();}
+    return result&&typeof result==='object'?result:{ok:true};
+  }
   function quickActivityStatus(model){
     const activity=activityIntent;if(!activity||activity.storey!==floor)return null;
     if(model.targetId==='avatar'&&activity.kind==='dance'){
@@ -50,10 +65,10 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
       return stage?.requested&&stage.active===false?"DisplayText3719, DisplayText3720.":"DisplayText3721, DisplayText3722.";
     }
     const id=model.owned?.id??model.targetId?.replace(/^stair:/,'');
-    if(activity.itemId!==id&&!(activity.kind==='watch'&&activity.seatId===id))return null;
+    if(activity.itemId!==id&&!model.stairIds?.includes(activity.itemId)&&!(activity.kind==='watch'&&activity.seatId===id))return null;
     if(activity.kind==='watch')return ({'to-remote':"DisplayText3723.",pickup:"DisplayText3724.",'to-seat':"DisplayText3725.",sit:"DisplayText3726.",watch:"DisplayText3727.",rise:"DisplayText3728.",'to-return':"DisplayText3729.",return:"DisplayText3730."})[activity.phase]??"DisplayText3731.";
     if(activity.kind==='sleep')return "DisplayText3732.";
-    if(activity.kind==='swim')return activity.phase==='exit'?"DisplayText3733.":activity.phase==='enter'?"DisplayText3734.":"DisplayText3735.";
+    if(activity.kind==='swim')return activity.phase==='exit'?"DisplayText3733.":activity.phase==='enter'?"DisplayText3734.":activity.variant==='spa'?"DisplayText4910.":activity.variant==='ring'?"DisplayText4911.":"DisplayText3735.";
     if(activity.kind==='football')return activity.exitRequested?"DisplayText3736, DisplayText3737.":"DisplayText3738.";
     if(activity.kind==='stairs')return "DisplayText3739.";
     if(activity.kind==='elevator')return "DisplayText3740.";
@@ -67,6 +82,36 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   const quickActivityKey=value=>JSON.stringify(value?[value.kind,value.action,value.itemId,value.seatId,value.storey,value.phase,value.exitRequested]:null);
   const emptyStageCamera=()=>({active:false,returning:false,available:false,suppressed:false});
   function stageCameraChanged(value){onStageCameraChange(value);refreshQuickActions({keepStatus:true});}
+  // One visible lift may contain several adjacent-floor connection records.
+  // Resolve against the selected floor, rather than whichever segment's frame
+  // happened to be the first mesh under the pointer.
+  function stairQuickModel(data){
+    if(!data?.stairId||!world||!home)return null;
+    const floors=getFloorHomes(home.commerce),choices=world.getAvatarStairs?.()??[];
+    const clicked=getHomeStairs(floors[floor]).find(row=>row.id===data.stairId)??floors.flatMap(getHomeStairs).find(row=>row.id===data.stairId);
+    if(clicked?.type!=='elevator'){
+      const selected=choices.find(row=>row.id===data.stairId);if(!selected)return null;
+      return {targetId:`stair:${selected.id}`,stairIds:[selected.id],elevator:false,title:"DisplayText3769",actions:[{id:`stairs:${selected.id}`,label:selected.label,icon:'stairs',disabled:selected.disabled,reason:selected.reason??selected.error,command:{type:'stairs',id:selected.id}}]};
+    }
+    const camera=world.getElevatorCameraState?.()??{},source=quickElevatorTrip?.fromFloor??quickArrivalFloor??(activityIntent?.kind==='elevator'?activityIntent.storey:floor);
+    const currentFloor=Number.isInteger(source)&&source>=0&&source<floors.length?source:floor;
+    const stack=getHomeElevatorStacks(floors).find(links=>links.some(link=>link.stairs.id===clicked.id));
+    const records=getHomeStairs(floors[currentFloor]),current=records.filter(row=>areElevatorsAligned(row,clicked)&&stack?.some(link=>link.stairs.id===row.id));
+    const selected=current.find(row=>row.id===data.stairId)??current[0];if(!selected)return null;
+    const reach=getElevatorServedFloors(floors,selected.id,currentFloor);if(!reach)return null;const {served}=reach,stairIds=stack?.map(link=>link.stairs.id)??current.map(row=>row.id);
+    const activity=activityIntent?.kind==='elevator'&&activityIntent.storey===currentFloor?activityIntent:null;
+    const riding=quickArrivalFloor===null&&(!!quickElevatorTrip||camera.active===true||!!activity);
+    const connection=records.find(row=>row.id===activity?.itemId),targetFloor=quickElevatorTrip?.targetFloor??camera.targetStorey??activity?.targetStorey??(activity?currentFloor+(connection?.direction==='down'?-1:1):null);
+    const labelFor=index=>{const labels=[...new Set((floors[index]?.rooms??[]).map(room=>getRoomKind(room.kind)?.label).filter(Boolean))];return labels.length?labels.slice(0,3).join(", ")+(labels.length>3?ELEVATOR_KEYPAD_COPY.moreRoomsSuffix:''):null;};
+    const keypad=buildElevatorKeypad({floorCount:floors.length,currentFloor,served,labelFor,riding,targetFloor});
+    const actions=served.filter(index=>index!==currentFloor).map(index=>{
+      const direction=index>currentFloor?'up':'down',first=choices.find(row=>current.some(record=>record.id===row.id)&&row.direction===direction);
+      return {id:`elevator-floor:${index}`,label:ELEVATOR_KEYPAD_COPY.goAria(index+1),icon:'stairs',disabled:riding||first?.disabled===true,reason:first?.reason??first?.error,command:{type:'stairs',id:selected.id,targetFloor:index}};
+    });
+    for(const row of keypad.rows)for(const cell of row){const action=cell&&actions.find(action=>action.command.targetFloor===cell.floor);if(action?.disabled){cell.disabled=true;if(action.reason)cell.title=action.reason;}}
+    return {targetId:`stair:${selected.id}`,stairIds,elevator:true,title:ELEVATOR_KEYPAD_COPY.title,prompt:riding?ELEVATOR_KEYPAD_COPY.hintRiding:ELEVATOR_KEYPAD_COPY.hintIdle,actions,
+      keypad:{...keypad,currentFloor,riding,targetFloor,direction:targetFloor>currentFloor?'up':'down',screenFloor:riding&&Number.isFinite(camera.residentStack?.focusStorey)?Math.max(1,Math.min(floors.length,keypadScreenFloor(camera.residentStack.focusStorey))):currentFloor+1,screenLabel:labelFor(currentFloor),arrivalToken:quickArrivalFloor===null?null:quickArrivalSerial}};
+  }
   function quickModel(){
     if(!quickSelection||!world||!home||quickSelection.epoch!==identityEpoch||quickSelection.floor!==floor||quickSelection.view!==world.getView())return null;
     const {data,view}=quickSelection;
@@ -82,7 +127,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
       {id:'avatar:wave',label:"DisplayText3711",icon:'stand',command:{type:'wave'}},
       ...(warmUI?[{id:'avatar:dress',label:"Dress up",icon:'wardrobe',detail:"DisplayText4191 · DisplayText3710",command:{type:'dress'}}]:[{id:'avatar:wardrobe',label:"DisplayText3768",icon:'wardrobe',command:{type:'wardrobe'}}]),
     ]};}
-    if(data.stairId){const stair=world.getAvatarStairs().find(row=>row.id===data.stairId);return stair?{targetId:`stair:${stair.id}`,title:"DisplayText3769",actions:[{id:`stairs:${stair.id}`,label:stair.label,icon:'stairs',disabled:stair.disabled,reason:stair.reason??stair.error,command:{type:'stairs',id:stair.id}}]}:null;}
+    if(data.stairId)return view==='interior'?stairQuickModel(data):null;
     const owned=getQuickActionOwned(home.commerce,data,view,floor);if(!owned)return null;
     const product=products.get(owned.skuId),targetId=`${view==='estate'?'outdoor':'furniture'}:${owned.id}`;
     // The record and the view must agree; never offer a hidden floor's item.
@@ -95,14 +140,16 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     // Object-setting acknowledgements can rebuild these buttons after the
     // robot has already reached its seat. The current semantic checkpoint,
     // never the generic selection prompt, owns an active object's status.
-    const activityStatus=quickActivityStatus(model);
+    const activityStatus=model.elevator?model.prompt:quickActivityStatus(model);
     const stopLabel=activityIntent?.kind==='dance'?"DisplayText3771 · DisplayText3772":activityIntent?.kind==='swim'?"DisplayText3773":activityIntent?.kind==='football'?"DisplayText3774":"DisplayText3775";
     quickActions.show({...model,busy:isCommerceBusy(),stopLabel,...activityStatus?{status:activityStatus}:keepStatus?{}:{status:model.prompt??(model.actions.length?"DisplayText3776, DisplayText3777.":"DisplayText3778; DisplayText3779.")}});
     if(quickSelection.view==='interior'&&model.owned)world.selectSurface(model.targetId);
+    if(model.elevator)scheduleQuickPoll();else stopQuickPoll();
   }
   function openQuickActions(request){
     menu.close({restoreFocus:false});
     if(!home||isCommerceBusy()||world?.isRoaming?.()||roamEntering||placing||!request.data){closeQuickActions();return;}
+    if(!request.data.stairId){quickElevatorTrip=null;quickArrivalFloor=null;}
     quickRobotPage='main';quickSelection={data:{...request.data},view:request.view,floor,epoch:identityEpoch};refreshQuickActions();
   }
   async function runQuickAction(id,targetId){
@@ -113,7 +160,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     const epoch=identityEpoch,c=action.command;void world.unlockObjectAudio();
     let result;
     if(c.type==='robot')result=world.interactAvatar(targetId,c.actionId);
-    else if(c.type==='stairs')result=world.useAvatarStairs(c.id);
+    else if(c.type==='stairs'){if(Number.isInteger(c.targetFloor)){quickArrivalFloor=null;quickElevatorTrip={fromFloor:model.keypad.currentFloor,targetFloor:c.targetFloor,stairId:c.id};}result=world.useAvatarStairs(c.id,c.targetFloor);if(result?.ok===false)quickElevatorTrip=null;refreshQuickActions({keepStatus:result?.ok===false});}
     else if(c.type==='patch')result=await changeObjectState(model.owned.id,c.patch,floor);
     else if(c.type==='demonstrate'){world.demonstrateObject(model.owned.id);result={ok:true};}
     else if(c.type==='robot-channel')result=world.changeAvatarTelevisionChannel(model.owned.id);
@@ -172,9 +219,17 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     const result=camera.active||camera.returning?world.exitStageCamera():camera.available?world.resumeStageCamera():{ok:false,error:"DisplayText3797."};
     if(result?.error)onStatus(result.error);return result??{ok:true};
   }
-  function switchFloor(index){if(isCommerceBusy())return;closeQuickActions();floor=index;world.setView('interior');sync();onStageChange(world.getStageState?.().requested===true);}
+  function switchFloor(index){
+    if(isCommerceBusy())return;
+    const arrival=quickSelection&&quickElevatorTrip?.targetFloor===index;
+    if(!arrival){closeQuickActions();floor=index;world.setView('interior');sync();onStageChange(world.getStageState?.().requested===true);return;}
+    quickHandoff=true;
+    try{floor=index;quickSelection.floor=index;quickElevatorTrip=null;quickArrivalFloor=index;quickArrivalSerial++;world.setView('interior');sync();}
+    finally{quickHandoff=false;}
+    refreshQuickActions();onStageChange(world.getStageState?.().requested===true);
+  }
   async function enterRoam({throughDoor=false}={}){
-    if(!warmUI||disposed||!home||!world||readyIdentityEpoch!==identityEpoch||leaving)return {ok:false,error:"DisplayText4768."};
+    if((!warmUI&&getHomeTheme().id!=='toy')||disposed||!home||!world||readyIdentityEpoch!==identityEpoch||leaving)return {ok:false,error:"DisplayText4768."};
     if(isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
     if(throughDoor&&world.getView()!=='estate')return {ok:false,error:"DisplayText4768."};
     if(world.isRoaming?.())return {ok:true,unchanged:true};
@@ -397,7 +452,17 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
       if(selected)items.push({...selected,label:selected.disabled&&selected.detail==="DisplayText3824"?"DisplayText3845":selected.label});
       else if(upgrades.length)items.push({id:'elevator-upgrades',label:"DisplayText3846",detail:`DisplayText3847 ${ELEVATOR_UPGRADE_PRODUCT.price.toLocaleString('en')} DisplayText0920`,children:upgrades});
     }
-    if(stairs.length)items.push({id:'robot-stairs',label:"DisplayText3848",children:stairs.map(stair=>({id:stair.id,label:stair.label,action:()=>world.useAvatarStairs(stair.id)}))});
+    const clickedLift=request.view==='interior'?stairQuickModel(data):null,liftEpoch=identityEpoch,liftFloor=floor;
+    const useClickedLift=(id,targetFloor)=>{
+      if(disposed||!home||liftEpoch!==identityEpoch||liftFloor!==floor||world.getView()!=='interior'||world.isRoaming?.()||roamEntering)return {ok:false,error:"DisplayText3785, DisplayText3786, DisplayText4912."};
+      if(isCommerceBusy())return {ok:false,error:"DisplayText3716, DisplayText3345."};
+      const current=stairQuickModel(data)?.actions.find(action=>action.command.id===id&&action.command.targetFloor===targetFloor);
+      if(!current)return {ok:false,error:"DisplayText4913, DisplayText3781."};
+      if(current.disabled)return {ok:false,error:current.reason||"DisplayText4914."};
+      return world.useAvatarStairs(id,targetFloor);
+    };
+    if(clickedLift?.elevator)items.push({id:'robot-stairs',label:ELEVATOR_KEYPAD_COPY.contextTitle,children:clickedLift.actions.map(action=>({id:action.id,label:action.label,disabled:action.disabled,detail:action.reason,action:()=>useClickedLift(action.command.id,action.command.targetFloor)}))});
+    else if(stairs.length)items.push({id:'robot-stairs',label:"DisplayText3848",children:stairs.map(stair=>({id:stair.id,label:stair.label,action:()=>world.useAvatarStairs(stair.id)}))});
     if(actions.length)items.push({id:'robot-use',label:"DisplayText3849",detail:"DisplayText3850, DisplayText3851",children:actions.map(action=>({id:action.id,label:action.label,disabled:action.disabled===true,action:()=>world.interactAvatar(targetId,action.id)}))});
     if(owned){const outdoor=product?.productType==='outdoor';const update=patch=>command({type:outdoor?'updateOutdoor':'updateItem',id:owned.id,patch,...outdoor?{}:{storey:floor}});
       items.push({id:'rotate',label:"Rotate 90°",action:()=>update({rotation:((owned.item.rotation??0)+90)%360})},{id:'colors',label:"DisplayText3852",children:getHomeSwatches(PALETTE).map(color=>({id:color.id??color.value,label:color.label??color.name??color.color,action:()=>update({color:color.color??color.value})}))},{id:'move',label:"DisplayText3853",detail:"DisplayText3854, DisplayText3855",action:()=>{world.selectSurface(`furniture:${owned.id}`);world.setTool('move');onStatus("DisplayText3854, DisplayText3856.");}},{id:'store',label:"DisplayText3857",action:()=>command({type:outdoor?'storeOutdoor':'storeItem',id:owned.id,...outdoor?{}:{storey:floor}})});
@@ -452,7 +517,7 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
   const wardrobe=createStudentHomeWardrobe({getState:state,getColors:()=>home?.avatar.colors,getThumbnail:thumbnails.image,onEquip:(skuId,slot)=>command({type:'equipClothing',skuId,slot}),onAddToCart:addToCart,onShop:()=>openShop('clothing')});
   const floorPlanner=createFloorPlanner({getFloors:()=>getFloorHomes(home.commerce),getBalance:()=>wallet?.balance??0,quote:s=>quoteFloorConstruction(state(),s),purchase:s=>command({type:'constructFloor',selection:s}),onBuilt:index=>switchFloor(index),onRoomPlanning:index=>openRooms(index)});
   const roomPlanner=createRoomPlanner({getFloors:()=>getFloorHomes(home.commerce),getBalance:()=>wallet?.balance??0,getStock:()=>home.commerce.owned.filter(row=>row.status==='stored'&&products.get(row.skuId)?.productType==='room').map(row=>({...row,label:products.get(row.skuId).name})),getSlots:(id,index)=>{const row=home.commerce.owned.find(r=>r.id===id);if(!row)return[];const r=roomRect(row.item)??products.get(row.skuId);return getStoreyRoomSlots(state(),row.item.kind,index,{width:r.width,depth:r.depth});},quote:(id,pose,index)=>quoteOwnedRoomPlacement(state(),id,pose,{storey:index}),place:(id,pose,index)=>command({type:'placeRoom',id,pose,storey:index}),onBuilt:index=>switchFloor(index),onShop:index=>{switchFloor(index);openShop('rooms');},onFloorExpansion:openFloor});
-  async function init(){world=await createStudentHomeWorld({container,warmUI,onEntranceClick:()=>enterRoam({throughDoor:true}),onRoamChange:value=>onRoamChange({...value,entering:roamEntering}),onObjectClick:openQuickActions,onPanStart:closeQuickActions,onStageCameraChange:stageCameraChanged,onViewChange:view=>{closeQuickActions();onViewChange(view);},onRobotActivityChange:queueRobotActivity,onObjectAction:({id,storey,patch})=>changeObjectState(id,patch,storey),onCancel:()=>sync(),onContextMenu:openContext,onPalette:onRobot,onStatus:result=>{onStageChange(world?.getStageState?.().requested===true);const message=result.message??result;onStatus(message);const model=quickModel(),currentStatus=model?quickActivityStatus(model):null;quickActions.updateStatus(result.error?message:currentStatus??(typeof message==='string'?message.split(" · DisplayText3901")[0]:message),{error:result.error===true});},onStoreyChange:switchFloor,onObjectEdit:request=>openContext({...request,data:{surfaceId:request.surfaceId},view:'interior'}),onOutdoorMove:(id,patch)=>command({type:'updateOutdoor',id,patch}),onDrag(change,commit){if(isCommerceBusy())return;if(change.type!=='furniture'){sync();return;}if(!commit){const probe=applyChange(getFloorHome(home.commerce,floor),change);if(probe.ok)world.setPreview(probe.state);return;}const patch=Object.fromEntries(['x','z','rotation','mount'].filter(k=>change[k]!==undefined).map(k=>[k,change[k]]));void command({type:'updateItem',id:change.id,patch,storey:floor});},onPlacementPreview(pose){if(!placing||isCommerceBusy())return {ok:false,error:"DisplayText3902."};const row=home.commerce.owned.find(r=>r.id===placing);const result=products.get(row.skuId)?.productType==='outdoor'?placeOwnedOutdoor(state(),placing,pose):placeOwnedItem(state(),placing,pose,{storey:floor});onStatus(result.ok?"DisplayText3903, DisplayText3835.":result.error);return {ok:result.ok,error:result.error};},onPlacementCommit:pose=>place(placing,pose),onPlacementCancel(){placing=null;},onPlacementReject:result=>onStatus(result?.error??"DisplayText3904, DisplayText0615.")});if(disposed){world.dispose();return;}thumbnails.setRobotSource(world.getRobotSource());}
+  async function init(){world=await createStudentHomeWorld({container,warmUI,onEntranceClick:()=>enterRoam({throughDoor:true}),onRoamChange:value=>onRoamChange({...value,entering:roamEntering}),onObjectClick:openQuickActions,onPanStart:closeQuickActions,onStageCameraChange:stageCameraChanged,onViewChange:view=>{closeQuickActions();onViewChange(view);},onRobotActivityChange:queueRobotActivity,onObjectAction:({id,storey,patch})=>changeObjectState(id,patch,storey),onCancel:()=>sync(),onContextMenu:openContext,onPalette:onRobot,onStatus:result=>{onStageChange(world?.getStageState?.().requested===true);const message=result.message??result;onStatus(message);const model=quickModel(),currentStatus=model?(model.elevator?model.prompt:quickActivityStatus(model)):null;quickActions.updateStatus(result.error?message:currentStatus??(typeof message==='string'?message.split(" · DisplayText3901")[0]:message),{error:result.error===true});},onStoreyChange:switchFloor,onObjectEdit:request=>openContext({...request,data:{surfaceId:request.surfaceId},view:'interior'}),onOutdoorMove:(id,patch)=>command({type:'updateOutdoor',id,patch}),onDrag(change,commit){if(isCommerceBusy())return;if(change.type!=='furniture'){sync();return;}if(!commit){const probe=applyChange(getFloorHome(home.commerce,floor),change);if(probe.ok)world.setPreview(probe.state);return;}const patch=Object.fromEntries(['x','z','rotation','mount'].filter(k=>change[k]!==undefined).map(k=>[k,change[k]]));void command({type:'updateItem',id:change.id,patch,storey:floor});},onPlacementPreview(pose){if(!placing||isCommerceBusy())return {ok:false,error:"DisplayText3902."};const row=home.commerce.owned.find(r=>r.id===placing);const result=products.get(row.skuId)?.productType==='outdoor'?placeOwnedOutdoor(state(),placing,pose):placeOwnedItem(state(),placing,pose,{storey:floor});onStatus(result.ok?"DisplayText3903, DisplayText3835.":result.error);return {ok:result.ok,error:result.error};},onPlacementCommit:pose=>place(placing,pose),onPlacementCancel(){placing=null;},onPlacementReject:result=>onStatus(result?.error??"DisplayText3904, DisplayText0615.")});if(disposed){world.dispose();return;}thumbnails.setRobotSource(world.getRobotSource());}
   function clear(){
     readyIdentityEpoch=null;roamSerial++;roamEntering=false;world?.exitRoam?.();onRoamChange({active:false,phase:'inactive',entering:false});
     closeQuickActions();
@@ -464,12 +529,13 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     suppressActivity=true;world?.clearRobotAccountBinding?.();identityEpoch++;binding=null;actorId=null;home=null;wallet=null;robotActivity=null;activityIntent=null;desiredActivity=null;activityRetry=null;activitySaving=null;commandInFlight=null;objectFlights.clear();savedDeparture=null;busy=false;cart=[];pending=null;placing=null;floor=0;menu.close();shop.close();wardrobe.close();floorPlanner.close();roomPlanner.close();world?.clear();onStageChange(false);onStageCameraChange(emptyStageCamera());suppressActivity=false;leaving=wasLeaving;
   }
   const lifecycle=()=>{void flushBeforeLeave({keepalive:true});};
-  const hidden=()=>{if(globalThis.document?.visibilityState==='hidden')lifecycle();};
+  const hidden=()=>{if(globalThis.document?.visibilityState==='hidden'){stopQuickPoll();lifecycle();}else scheduleQuickPoll();};
   const quickEscape=event=>{
     if(event.key!=='Escape'||event.defaultPrevented||!quickSelection||placing)return;
     const doc=globalThis.document,target=event.target;
+    const modalOpen=[...(doc?.querySelectorAll?.('dialog[open], [role="dialog"][aria-modal="true"]:not([hidden]), #palette:not([hidden])')??[])].some(node=>node.getClientRects?.().length>0);
     if(target?.isContentEditable||target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"][aria-modal="true"]')
-      ||doc?.querySelector?.('dialog[open], [role="dialog"][aria-modal="true"]:not([hidden]), #palette:not([hidden])'))return;
+      ||modalOpen)return;
     event.preventDefault();event.stopPropagation();closeQuickActions();
   };
   globalThis.addEventListener?.('pagehide',lifecycle);
@@ -491,5 +557,5 @@ export function createStudentHomeScene(container,{onRobot,onRobotPalette=onRobot
     refit(){if(disposed||!home||!world||world.isRoaming?.()||roamEntering)return false;world.refit?.();return true;},
     openRobotQuickActions(){if(disposed||!home||!world||isCommerceBusy()||world.isRoaming?.()||roamEntering)return false;openQuickActions({view:world.getView(),data:{surfaceId:'avatar'}});return true;},
     setView,getView:()=>world?.getView()??'interior',clear,
-    dispose(){if(disposed)return;roamSerial++;roamEntering=false;world?.exitRoam?.();const wasLeaving=leaving;leaving=true;captureRobotActivity();leaving=wasLeaving;globalThis.removeEventListener?.('pagehide',lifecycle);globalThis.document?.removeEventListener?.('visibilitychange',hidden);globalThis.document?.removeEventListener?.('keydown',quickEscape);disposed=true;identityEpoch++;desiredActivity=null;activityRetry=null;quickActions.dispose();menu.dispose();shop.dispose();wardrobe.dispose();floorPlanner.dispose();roomPlanner.dispose();thumbnails.dispose();world?.dispose();}};
+    dispose(){if(disposed)return;roamSerial++;roamEntering=false;world?.exitRoam?.();const wasLeaving=leaving;leaving=true;captureRobotActivity();leaving=wasLeaving;globalThis.removeEventListener?.('pagehide',lifecycle);globalThis.document?.removeEventListener?.('visibilitychange',hidden);globalThis.document?.removeEventListener?.('keydown',quickEscape);disposed=true;stopQuickPoll();identityEpoch++;desiredActivity=null;activityRetry=null;quickActions.dispose();menu.dispose();shop.dispose();wardrobe.dispose();floorPlanner.dispose();roomPlanner.dispose();thumbnails.dispose();world?.dispose();}};
 }

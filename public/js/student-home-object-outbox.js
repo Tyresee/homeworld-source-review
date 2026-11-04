@@ -1,4 +1,4 @@
-import {getObjectState} from './home-object-state.js';
+import {getObjectState,TELEVISION_CHANNELS} from './home-object-state.js';
 
 const namespace='homeworld:student-homes:object-outbox:v1:';
 const MAX_JOBS=64,MAX_BYTES=131072,forbidden=new Set(['__proto__','prototype','constructor']);
@@ -10,8 +10,9 @@ const commandId=value=>typeof value==='string'&&/^[a-z\d_.:-]{1,128}$/i.test(val
 const integer=(value,min=0,max=Number.MAX_SAFE_INTEGER)=>Number.isSafeInteger(value)&&value>=min&&value<=max;
 const copy=value=>JSON.parse(JSON.stringify(value));
 function stateType(value){
+  if(keys(value,['power'])&&typeof value.power==='boolean')return 'computer';
   if(keys(value,['power','brightness'])&&typeof value.power==='boolean'&&integer(value.brightness,1,3))return 'lamp';
-  if(keys(value,['power','channel','volume'])&&typeof value.power==='boolean'&&integer(value.channel,0,3)&&integer(value.volume,0,2))return 'television';
+  if(keys(value,['power','channel','volume'])&&typeof value.power==='boolean'&&integer(value.channel,0,TELEVISION_CHANNELS.length-1)&&integer(value.volume,0,2))return 'television';
   if(keys(value,['chime'])&&typeof value.chime==='boolean')return 'clock';
   return null;
 }

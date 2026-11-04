@@ -91,7 +91,7 @@ const BY_KIND = Object.freeze({
 });
 
 const BY_FAMILY = Object.freeze({
-  beds: BEDROOM, sofas: LIVING, desks: STUDY,
+  beds: BEDROOM, sofas: LIVING, desks: STUDY, computers: STUDY,
   wardrobes: BEDROOM, vanities: null, // Bathroom vanities and bedroom dressing tables share this family.
   bookcases: rooms('study', 'living', 'playroom'),
   armchairs: rooms('living', 'study', 'bedroom'),

@@ -14,8 +14,15 @@ test('object controls change only the selected capability and follow acknowledge
   const lamp=getObjectQuickActions({kind:'hhTripodLamp',objectState:{power:true,brightness:3}});
   assert.deepEqual(lamp[0].command.patch,{power:false});assert.deepEqual(lamp[1].command.patch,{power:true,brightness:1});
   const tv=getObjectQuickActions({kind:'ipWideTelevision',objectState:{power:true,channel:3,volume:1}});
-  assert.deepEqual(tv[1].command.patch,{power:true,channel:0});
+  assert.deepEqual(tv[1].command.patch,{power:true,channel:4});
+  assert.deepEqual(getObjectQuickActions({kind:'ipWideTelevision',objectState:{power:true,channel:11,volume:1}})[1].command.patch,{power:true,channel:0});
   assert.equal(getObjectQuickActions({kind:'ipWideTelevision',objectState:{power:true,channel:0,volume:1},watching:true})[1].command.type,'robot-channel');
+});
+test('pool variants have distinct executable labels rather than three identical swimming buttons',()=>{
+  const rows=getObjectQuickActions({kind:'outdoor-pool-3',robotActions:[{id:'swim',kind:'swim',label:"DisplayText4141"},{id:'swim-ring',kind:'swim',label:"DisplayText4970"},{id:'soak',kind:'swim',label:"DisplayText4969"}]});
+  assert.deepEqual(rows.map(row=>row.label),["DisplayText3934","DisplayText4970","DisplayText4969"]);
+  assert.deepEqual(rows.map(row=>row.command.actionId),['swim','swim-ring','soak']);
+  assert.ok(rows.every(row=>row.icon==='swim'));
 });
 test('selection cannot leak across floors or use stored items',()=>{
   const row={id:'bed-a',status:'placed',storey:1},commerce={owned:[row,{id:'sold',status:'sold',storey:1}]};

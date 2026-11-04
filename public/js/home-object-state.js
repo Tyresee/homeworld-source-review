@@ -2,19 +2,23 @@
  * Animated transforms, sounds, media URLs and robot poses never enter this map. */
 const LAMPS=Object.freeze(['lamp','candelabra','chandelier','taskLamp','readingLamp','hhTripodLamp','hhArcLamp','hhLanternLamp','hhMushroomLamp','hhTaskLamp','hhPleatedLamp','hhWallSconce','hhFlowerSconce','decorLavaLamp','decorOrbLamp']);
 const CLOCKS=Object.freeze(['cuckooClock','wallClock','deskClock','wallPendulum','wallDaisyClock']);
+const COMPUTERS=Object.freeze(['pcPocketLaptop','pcStudyAllInOne','pcNeonDesktop','pcStudioDual']);
 const TELEVISIONS=Object.freeze(['ipRetroTelevision','ipWideTelevision','ipCinemaTelevision']);
-export const OBJECT_CAPABILITY_KINDS=Object.freeze({lamp:LAMPS,clock:CLOCKS,television:TELEVISIONS});
-export const TELEVISION_CHANNELS=Object.freeze(["DisplayText1993","DisplayText1994","DisplayText1995","DisplayText1996"]);
+export const OBJECT_CAPABILITY_KINDS=Object.freeze({lamp:LAMPS,clock:CLOCKS,television:TELEVISIONS,computer:COMPUTERS});
+export const TELEVISION_CHANNELS=Object.freeze(["DisplayText1993","DisplayText1994","DisplayText1995","DisplayText1996","DisplayText4869","DisplayText4870","DisplayText4871","DisplayText4872","DisplayText4873","DisplayText4874","DisplayText4875","DisplayText4876"]);
+// Accept the forthcoming catalogue before exposing it. This compatibility
+// release remains a safe code rollback after a child selects a newer channel.
+export const TELEVISION_CHANNEL_LIMIT=12;
 const capabilities=new Map(Object.entries(OBJECT_CAPABILITY_KINDS).flatMap(([type,kinds])=>kinds.map(kind=>[kind,Object.freeze({type})])));
-const defaults=Object.freeze({lamp:Object.freeze({power:false,brightness:2}),television:Object.freeze({power:false,channel:0,volume:1}),clock:Object.freeze({chime:true})});
+const defaults=Object.freeze({computer:Object.freeze({power:false}),lamp:Object.freeze({power:false,brightness:2}),television:Object.freeze({power:false,channel:0,volume:1}),clock:Object.freeze({chime:true})});
 const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
 const forbidden=new Set(['__proto__','prototype','constructor']);
 const safeId=id=>typeof id==='string'&&/^[a-z\d_.:-]{1,96}$/i.test(id)&&!forbidden.has(id);
 const member=(value,min,max)=>Number.isSafeInteger(value)&&value>=min&&value<=max;
 const ownedObject=(commerce,id)=>safeId(id)&&Array.isArray(commerce?.owned)?commerce.owned.find(row=>row?.id===id):null;
 const activeObject=owned=>owned&&['purchase','gift'].includes(owned.source)&&owned.status==='placed'&&Number.isSafeInteger(owned.storey)&&owned.storey>=0&&owned.item?.id===owned.id;
-const isValue=(type,key,value)=>type==='lamp'?(key==='power'?typeof value==='boolean':key==='brightness'&&member(value,1,3))
-  :type==='television'?(key==='power'?typeof value==='boolean':key==='channel'?member(value,0,3):key==='volume'&&member(value,0,2))
+const isValue=(type,key,value)=>type==='computer'?(key==='power'&&typeof value==='boolean'):type==='lamp'?(key==='power'?typeof value==='boolean':key==='brightness'&&member(value,1,3))
+  :type==='television'?(key==='power'?typeof value==='boolean':key==='channel'?member(value,0,TELEVISION_CHANNEL_LIMIT-1):key==='volume'&&member(value,0,2))
     :type==='clock'&&key==='chime'&&typeof value==='boolean';
 const isState=(type,value)=>record(value)&&Object.keys(value).length===Object.keys(defaults[type]).length
   &&Object.keys(value).every(key=>Object.hasOwn(defaults[type],key)&&isValue(type,key,value[key]));

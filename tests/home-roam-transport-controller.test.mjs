@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createHomeRoamController} from '../public/js/home-roam-controller.js';
-import {createHomeRoamJourney,isHomeRoamInterior} from '../public/js/home-roam-transport.js';
+import {createHomeRoamJourney,isHomeRoamInterior,getHomeRoamLandingEyePoint} from '../public/js/home-roam-transport.js';
 import {createHomeRoamUI} from '../public/js/home-roam-ui.js';
 import {FLOOR_Y,STOREY_HEIGHT,getStaircaseEntrances} from '../public/js/home-staircase-shape.js';
 
@@ -23,7 +23,7 @@ function fixture(options={}){
   document=new Node('document');document.createElement=tag=>new Node(tag);document.defaultView={innerWidth:1440,innerHeight:900,location:{search:''}};
   const canvas=new Node('canvas'),container=new Node(),ui=createHomeRoamUI({container,document,floorCount:3,locale:'en',onLeave:()=>controller?.leave()});ui.setVisible(true);
   const controls={target:new THREE.Vector3(),update:()=>false,addEventListener(){},removeEventListener(){},dispose(){controlDisposed++;}};
-  controller=createHomeRoamController({element:canvas,eventTarget:document,bounds:{min:{x:-5,y:0,z:-5},max:{x:5,y:9.3,z:5}},interiorBounds:{min:{x:-5,y:0,z:-5},max:{x:5,y:9.3,z:5}},entrance:{center:{x:0,y:0,z:5},outward:{x:0,y:0,z:1}},containsInterior:options.containsInterior,onRequestLeave:options.onRequestLeave,onExit:()=>exits++,now:()=>time,controlsFactory:()=>controls,onMode:snapshot=>{modes.push({...snapshot});ui.update({...snapshot,storey:Math.min(2,Math.max(0,Math.floor((controller?.camera.position.y??0)/STOREY_HEIGHT)))});}});
+  controller=createHomeRoamController({element:canvas,eventTarget:document,bounds:{min:{x:-5,y:0,z:-5},max:{x:5,y:9.3,z:5}},interiorBounds:{min:{x:-5,y:0,z:-5},max:{x:5,y:9.3,z:5}},entrance:{center:{x:0,y:0,z:5},outward:{x:0,y:0,z:1}},containsInterior:options.containsInterior,onViewOpacity:options.onViewOpacity,onRequestLeave:options.onRequestLeave,onExit:()=>exits++,now:()=>time,controlsFactory:()=>controls,onMode:snapshot=>{modes.push({...snapshot});ui.update({...snapshot,storey:Math.min(2,Math.max(0,Math.floor((controller?.camera.position.y??0)/STOREY_HEIGHT)))});}});
   return {controller,canvas,document,ui,controls,modes,get disposed(){return controlDisposed;},get exits(){return exits;},tick(value){time=value;return controller.tick(time);},get time(){return time;},key(code){return document.dispatch('keydown',{code,key:'Process'});},enter(){controller.start();controller.tick(time);assert.equal(controller.enterDoor(),true);time+=4750;controller.tick(time);assert.equal(controller.getState().phase,'free');},dispose(){controller.dispose();ui.dispose();}};
 }
 
@@ -100,4 +100,60 @@ test('the arrival turn rotates the real perspective camera in place and settles 
     }
     assert.equal(c.getState().phase,'free');near(c.camera.position.y,STOREY_HEIGHT+FLOOR_Y+1.45);const expected=centre.clone().setY(c.camera.position.y).sub(c.camera.position).normalize();near(c.camera.getWorldDirection(new THREE.Vector3()).distanceTo(expected),0);
   }finally{f.dispose();}
+});
+
+
+test('controller forwards raw quarter-time to journey sampling rather than applying a second easing curve',()=>{
+  const f=fixture(),c=f.controller,progresses=[];
+  try{
+    f.enter();const start=c.camera.position.clone(),end=start.clone().add(new THREE.Vector3(4,0,0)),direction=c.camera.getWorldDirection(new THREE.Vector3()),step={name:'travel-approach',duration:1000};
+    const journey={steps:[step],sample(received,progress){assert.equal(received,step);progresses.push(progress);const position=start.clone().lerp(end,progress);return{position,lookAt:position.clone().add(direction)};}};
+    const begin=f.time;assert.equal(c.travel([journey]),true);f.tick(begin+250);near(progresses.at(-1),.25);near(c.camera.position.distanceTo(start),1);
+    f.tick(begin+750);near(progresses.at(-1),.75);near(c.camera.position.distanceTo(start),3);f.tick(begin+1000);assert.equal(c.getState().phase,'free');near(c.camera.position.distanceTo(end),0);
+  }finally{f.dispose();}
+});
+
+test('the real perspective camera keeps its initial pitched view and every routed corner through a complete elevator journey',()=>{
+  const f=fixture(),c=f.controller;let complete=0;
+  try{
+    f.enter();const transport=connection('elevator',0),start=c.camera.position.clone(),wait=getHomeRoamLandingEyePoint(transport,0),corner=new THREE.Vector3(-2,wait.y,3),route=[start.clone(),corner,wait];
+    const direction=new THREE.Vector3(.6,.3,-.7).normalize();c.camera.lookAt(start.clone().add(direction));const initialQuaternion=c.camera.quaternion.clone();
+    const journey=createHomeRoamJourney(transport,0,start,{initialLookAt:start.clone().add(direction),approachPath:route}),begin=f.time;assert.equal(c.travel([journey],{onComplete:()=>complete++}),true);
+    near(c.camera.position.distanceTo(start),0);near(c.camera.quaternion.angleTo(initialQuaternion),0);f.tick(begin);near(c.camera.getWorldDirection(new THREE.Vector3()).distanceTo(direction),0);
+    let elapsed=begin,previous=null;
+    for(const step of journey.steps){
+      for(let i=0;i<20;i++){const progress=i/20;f.tick(elapsed+step.duration*progress);const expected=journey.sample(step,progress);near(c.camera.position.distanceTo(expected.position),0);near(c.camera.getWorldDirection(new THREE.Vector3()).distanceTo(expected.lookAt.clone().sub(expected.position).normalize()),0);
+        const q=c.camera.quaternion.clone();if(previous)assert.ok(previous.angleTo(q)<.4,'camera yaw/pitch remains continuous at every approach, turn, boarding, ride and exit boundary');previous=q;
+      }
+      elapsed+=step.duration;f.tick(elapsed);near(c.camera.position.distanceTo(step.to),0);
+    }
+    assert.equal(complete,1);assert.equal(c.getState().phase,'free');near(c.camera.position.distanceTo(journey.position),0);
+    const initialStep=journey.steps[0],probe=fixture();try{probe.enter();probe.controller.camera.position.copy(start);probe.controller.camera.lookAt(start.clone().add(direction));const at=probe.time;probe.controller.travel([journey]);probe.tick(at+initialStep.duration/4);
+      const offset=probe.controller.camera.position.clone().sub(initialStep.from),total=initialStep.to.clone().sub(initialStep.from),fraction=offset.dot(total)/total.lengthSq(),once=.25*.25*(3-2*.25),twice=once*once*(3-2*once);near(fraction,once);assert.ok(Math.abs(fraction-twice)>.05,'the real journey applies its ease exactly once at quarter wall-clock time');
+    }finally{probe.dispose();}
+  }finally{f.dispose();}
+});
+
+for(const startMode of ['free','orbit'])test(`explicit elevator from ${startMode} recovers its camera pose under a veil before any cabin action`,()=>{
+ const opacity=[],f=fixture({onViewOpacity:value=>opacity.push(value)}),c=f.controller,samples=[];
+ try{if(startMode==='free')f.enter();else c.start();c.camera.position.set(-4,8.7,-4);const original=c.camera.position.clone(),at=f.time,transport=connection('elevator',1),position=getHomeRoamLandingEyePoint(transport,1),lookAt=position.clone().add(new THREE.Vector3(0,0,-2)),journey=createHomeRoamJourney(transport,1,position,{initialLookAt:lookAt,approachPath:[position]});
+ assert.equal(c.travel([journey],{preparation:{position,lookAt},onSample:(j,p)=>samples.push(p)}),true);assert.equal(c.getState().phase,'preparing-elevator-out');
+ f.tick(at+199);assert.deepEqual(c.camera.position.toArray(),original.toArray());assert.equal(samples.length,0);
+ f.tick(at+200);assert.equal(opacity.at(-1),0);assert.deepEqual(c.camera.position.toArray(),position.toArray());assert.equal(samples.length,0);
+ f.tick(at+399);assert.equal(samples.length,0);f.tick(at+400);assert.equal(opacity.at(-1),1);assert.ok(samples.length>0);
+ f.tick(at+400+journey.steps.reduce((sum,step)=>sum+step.duration,0)+1);assert.equal(c.getState().phase,'free');assert.deepEqual(c.camera.position.toArray(),journey.position.toArray());
+ }finally{f.dispose();}
+});
+
+test('elevator menu pause clears held camera input and prevents pointer, wheel and keyboard movement until resumed',()=>{
+ const f=fixture(),c=f.controller;try{f.enter();f.key('KeyW');c.moveTo({x:4,z:4,y:1.45},{floor:true});c.setInputPaused(true);const before=c.getCameraPose();
+ f.key('KeyW');f.key('KeyE');f.canvas.dispatch('wheel',{deltaY:-1});f.canvas.dispatch('pointerdown',{button:0,pointerId:7,clientX:20,clientY:20});f.canvas.dispatch('pointermove',{pointerId:7,clientX:500,clientY:300});f.tick(f.time+100);assert.deepEqual(c.getCameraPose(),before);assert.equal(c.moveTo({x:0,z:0,y:1.45},{floor:true}),false);
+ c.setInputPaused(false);f.tick(f.time+100);assert.deepEqual(c.getCameraPose(),before,'menu keys cannot remain held after closing');f.key('KeyW');f.tick(f.time+100);assert.notDeepEqual(c.camera.position.toArray(),before.position);
+ }finally{f.dispose();}
+});
+
+test('invalid explicit elevator recovery cannot move the camera or start the preplanned trip',()=>{
+ const f=fixture(),c=f.controller;try{f.enter();const before=c.getCameraPose(),journey=createHomeRoamJourney(connection('elevator',0),0,c.camera.position.clone());
+ for(const position of [new THREE.Vector3(NaN,1,0),new THREE.Vector3(99,1,0)]){assert.equal(c.travel([journey],{preparation:{position,lookAt:new THREE.Vector3(0,1,0)}}),false);assert.deepEqual(c.getCameraPose(),before);assert.equal(c.getState().phase,'free');}
+ }finally{f.dispose();}
 });

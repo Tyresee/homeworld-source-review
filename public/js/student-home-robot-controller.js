@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import {createRobotAvatar,poseRobotAvatar,poseRobotTransition,poseRobotStairStep,measureRobotStairRig,poseRobotTelevisionArms,poseRobotSurfaceHands,poseRobotDance,setRobotPalette,measureRobotAvatar,disposeRobotAvatar} from './robot-avatar.js';
+import {createRobotAvatar,poseRobotAvatar,poseRobotTransition,withRobotPoseSnapshot,poseRobotStairStep,measureRobotStairRig,poseRobotTelevisionArms,poseRobotSurfaceHands,poseRobotDance,setRobotPalette,measureRobotAvatar,disposeRobotAvatar} from './robot-avatar.js';
 import {createRobotWardrobe} from './robot-wardrobe.js';
 import {findAvatarSpawn,planAvatarWalk,isAvatarPositionWalkable,getAvatarInteractionTargetLabel} from './home-avatar-navigation.js';
-import {listRobotInteractions,planRobotStairs,planRobotTelevision,isRobotTelevisionKind,sampleTelevisionRemoteReach,TELEVISION_REACH_DURATION,TELEVISION_HANDOFF_TIME,isRobotSofaKind,planRobotSofaTelevision,sampleRobotSofaTidy} from './student-home-robot-interactions.js';
+import {listRobotInteractions,planRobotStairs,planRobotTelevision,isRobotTelevisionKind,isRobotTelevisionSeatKind,sampleTelevisionRemoteReach,TELEVISION_REACH_DURATION,TELEVISION_HANDOFF_TIME,planRobotSofaTelevision,sampleRobotSofaTidy,sampleRobotCooking} from './student-home-robot-interactions.js';
+import {createRobotCookingEffects} from './home-cooking-effects.js';
 import {createRobotFurnitureEntry,reverseRobotFurnitureSteps,sampleRobotMotionStep} from './student-home-robot-motion.js';
 import {listOutdoorRobotInteractions,planOutdoorRobotWalk,findOutdoorRobotSpawn,createRobotPoolEntry,createRobotPoolExit,sampleRobotPoolMotionStep,sampleRobotPoolLoop} from './student-home-robot-swimming.js';
 import {getHomeStairs} from './home-staircase-shape.js';
 import {createRobotStairMotion,sampleRobotStairMotion} from './student-home-robot-stairs.js';
 import {planRobotElevator,createRobotElevatorMotion,sampleRobotElevatorMotion} from './student-home-robot-elevator.js';
 import {normalizeRobotActivity,cloneRobotActivity,sameRobotActivity} from './student-home-robot-state.js';
-import {getObjectState} from './home-object-state.js';
+import {getObjectState,TELEVISION_CHANNELS} from './home-object-state.js';
 import {getRobotFootballDescriptor,sampleRobotFootballMotion,FOOTBALL_PERIOD,FOOTBALL_BALL_RADIUS} from './student-home-robot-football.js';
 import {DANCE_PERIOD,DANCE_CLEARANCE_RADIUS} from './student-home-robot-dance.js';
 
@@ -18,7 +19,7 @@ const FLOOR_Y=.08;
 // droplets. Lap position has its own measured pool period.
 const SWIM_ANIMATION_PERIOD=100;
 const cycleTime=(time,period)=>{if(time>=0&&time<period)return time;const value=time%period;return value<0?value+period:value;};
-const televisionLabels={'to-remote':"DisplayText3953",'pickup':"DisplayText3954",'to-seat':"DisplayText3955",'sit':"DisplayText3956, DisplayText3957",'watch':"DisplayText3958",'rise':"DisplayText3959, DisplayText3960",'to-return':"DisplayText3961",'return':"DisplayText3962"};
+const televisionLabels={'to-remote':"DisplayText3953",'pickup':"DisplayText3954",'to-seat':"DisplayText3955",'sit':"DisplayText3956, DisplayText3957",'watch':"DisplayText3931",'rise':"DisplayText3959, DisplayText3960",'to-return':"DisplayText3961",'return':"DisplayText3962"};
 /** Persist bounded semantic checkpoints; rebuild contacts and motion against
  * the active account's current world rather than storing rendered transforms. */
 export function createStudentHomeRobotController({source,parent,requestRender,onStatus,onStoreyChange,onActivityChange,onElevatorFrame,onObjectAction,onObjectPresentation}) {
@@ -29,6 +30,9 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(navigation.radius*.7,24),new THREE.MeshBasicMaterial({color:'#617851',opacity:.17,transparent:true,depthWrite:false}));
   shadow.rotation.x=-Math.PI/2;shadow.position.y=.082;group.add(shadow);
   const props=createActionProps(robot);
+  const cookingEffects=createRobotCookingEffects(group);
+  let cookingFrame=null;
+  const cookingTip=new THREE.Vector3(),cookingNeck=new THREE.Vector3(),cookingInverse=new THREE.Matrix4();
   let objectContext=null,television=null,presentedRemote=null;
   const remoteTarget=new THREE.Vector3(),surfaceContacts={L:new THREE.Vector3(),R:new THREE.Vector3()};
   let surfaceOriginRotation=0,presentedCushion=null,afterSurface=null,football=null,footballFrame=null;
@@ -41,18 +45,31 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   let savedActivity=null,activityKnown=false,suspended=false,restoring=false,lastActivityAt=0,lastActivityPhase='',activeAction=null;
   const emittedActivities=new Set();
   let environment='interior',outdoor=null,outdoorKey='',outdoorPoint=null,swimming=null,swimFrame=null;
-  const waterEffects=createSwimEffects(group);
+  const waterEffects=createSwimEffects(group),swimRing=createSwimmingRing(group);
   const stairWorldFeet={L:new THREE.Vector3(),R:new THREE.Vector3()},stairPose={feet:stairWorldFeet};
   const floorPositions=new Map(),status=(message,error=false)=>onStatus?.({message,error,action});
   function calibrate(){
     props.update('idle',0);robot.position.set(0,0,0);robot.rotation.set(0,0,0);
-    for(const kind of['idle','sit','tuck','lie']){
-      poseRobotAvatar(robot,{action:kind==='tuck'?'sit':kind,tuck:kind==='tuck'?1:0});robot.updateMatrixWorld(true);
-      const measure=measureRobotAvatar(robot),box=new THREE.Box3();robot.traverseVisible(n=>{if(n.isMesh)box.union(new THREE.Box3().setFromObject(n));});
+    for(const kind of['idle','sit','tuck','lie','curl','ladder','compact','perch']){
+      poseRobotAvatar(robot,{action:kind==='tuck'?'sit':kind==='curl'?'lie':kind==='ladder'?'stairs':kind==='compact'?'walk':kind==='perch'?'sit':kind,tuck:['tuck','perch'].includes(kind)?1:0,curl:kind==='curl'?1:0,ladder:['ladder','perch'].includes(kind)?1:0,compact:kind==='compact'?1:0});robot.updateMatrixWorld(true);
+      const measure=measureRobotAvatar(robot),box=new THREE.Box3(),parts=[];robot.traverseVisible(n=>{if(n.isMesh){const b=new THREE.Box3().setFromObject(n);box.union(b);parts.push({id:n.uuid,min:b.min.toArray(),max:b.max.toArray()});}});
       const shin=new THREE.Box3(),feet=new THREE.Box3();for(const name of['ShinShellL','ShinShellR','FootShellL','FootShellR'])shin.union(new THREE.Box3().setFromObject(robot.getObjectByName(name)));
       for(const name of['AnkleL','AnkleR'])feet.union(new THREE.Box3().setFromObject(robot.getObjectByName(name)));
-      poses[kind]={...measure,bounds:{min:box.min.toArray(),max:box.max.toArray()},shinMinZ:shin.min.z,foot:{x:(feet.min.x+feet.max.x)/2,y:feet.min.y,z:(feet.min.z+feet.max.z)/2}};
+      poses[kind]={...measure,bounds:{min:box.min.toArray(),max:box.max.toArray()},parts,shinMinZ:shin.min.z,foot:{x:(feet.min.x+feet.max.x)/2,y:feet.min.y,z:(feet.min.z+feet.max.z)/2}};
+      if(kind==='compact'){
+        const indexed=new Map(parts.map(part=>[part.id,part]));
+        for(let n=1;n<12;n++){poseRobotAvatar(robot,{action:'walk',compact:1,time:n/12*Math.PI*2/6.8});robot.updateMatrixWorld(true);robot.traverseVisible(mesh=>{if(!mesh.isMesh)return;const b=new THREE.Box3().setFromObject(mesh),part=indexed.get(mesh.uuid);box.union(b);if(part)for(let i=0;i<3;i++){part.min[i]=Math.min(part.min[i],b.min.getComponent(i));part.max[i]=Math.max(part.max[i],b.max.getComponent(i));}});}
+        poses[kind].bounds={min:box.min.toArray(),max:box.max.toArray()};
+      }
     }
+    poses.withGeometrySampling=inspect=>withRobotPoseSnapshot(robot,()=>{
+      const previous=poses.sampleMotion,inverse=new THREE.Matrix4();
+      poses.sampleMotion=sample=>{
+        robot.position.set(sample.point.x,sample.point.y,sample.point.z);robot.rotation.set(0,sample.rotation*Math.PI/180,0);poseRobotTransition(robot,sample);robot.updateWorldMatrix(true,true);inverse.copy(group.matrixWorld).invert();
+        const rows=[];robot.traverseVisible(mesh=>{if(!mesh.isMesh||mesh.userData.robotActionProp)return;if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();const matrix=new THREE.Matrix4().multiplyMatrices(inverse,mesh.matrixWorld),box=mesh.geometry.boundingBox.clone().applyMatrix4(matrix);rows.push({minX:box.min.x,maxX:box.max.x,minY:box.min.y,maxY:box.max.y,minZ:box.min.z,maxZ:box.max.z});});return rows;
+      };
+      try{return inspect();}finally{poses.sampleMotion=previous;}
+    });
     navigation={...baseNavigation};
     for(let sample=0;sample<12;sample++){
       poseRobotAvatar(robot,{action:'walk',time:sample/12*Math.PI*2/6.8});robot.updateMatrixWorld(true);
@@ -66,7 +83,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   calibrate();
   function present(){
     group.visible=visible&&!!point&&!disposed;if(presentationPaused||!point||disposed)return;
-    robot.position.set(point.x,point.y??FLOOR_Y,point.z);robot.rotation.y=angle;
+    robot.position.set(point.x,point.y??FLOOR_Y,point.z);robot.rotation.set(0,angle,0);
     if(dancing){
       if(dancing.turn&&dancing.blend===0){const progress=dancing.turn.elapsed/dancing.turn.duration;poseRobotTransition(robot,{from:{action:'idle'},to:{action:'walk',time:elapsed},progress:Math.sin(Math.PI*progress)*.3,time:elapsed});}
       else poseRobotDance(robot,{time:dancing.time,blend:dancing.blend});
@@ -80,7 +97,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       }
     }else if(swimFrame){
       if(swimFrame.gait>0&&swimFrame.swimBlend<.001)poseRobotTransition(robot,{from:{action:'idle'},to:{action:'walk',time:elapsed},progress:swimFrame.gait,time:elapsed});
-      else poseRobotAvatar(robot,{action:'swim',time:elapsed,swimBlend:swimFrame.swimBlend});
+      else poseRobotAvatar(robot,{action:'swim',time:elapsed,swimBlend:swimFrame.swimBlend,waterStyle:swimming?.descriptor.variant==='ring'?'float':swimming?.descriptor.variant==='spa'?'soak':'swim'});
     }
     else if(stairFrame?.feet){
       // The planner works in the current floor's local coordinates. A rendered
@@ -89,7 +106,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       group.updateWorldMatrix(true,false);for(const side of['L','R']){const foot=stairFrame.feet[side];stairWorldFeet[side].set(foot.x,foot.y,foot.z).applyMatrix4(group.matrixWorld);}
       stairPose.bodyLean=stairFrame.bodyLean;stairPose.armSwing=stairFrame.armSwing;stairPose.intensity=stairFrame.intensity??1;poseRobotStairStep(robot,stairPose);
     }else if(television&&['pickup','return'].includes(television.phase)){const sample=sampleTelevisionRemoteReach(television.plan,television.elapsed);poseRobotTransition(robot,{from:{action:'idle'},to:{action:'walk',time:television.elapsed*1.6},progress:sample.gait,time:television.elapsed});}
-    else if(visual)poseRobotTransition(robot,visual);else poseRobotAvatar(robot,{action:television?(['to-remote','to-seat','to-return'].includes(television.phase)?'walk':television.phase==='watch'?'sit':'idle'):['admire','tidy','wipe'].includes(action)?'idle':action,time:elapsed});
+    else if(visual)poseRobotTransition(robot,visual);else poseRobotAvatar(robot,{action:television?(['to-remote','to-seat','to-return'].includes(television.phase)?'walk':television.phase==='watch'?'sit':'idle'):['admire','tidy','wipe','cook'].includes(action)?'idle':action,time:elapsed});
     if(television){
       const phase=television.phase,t=television.elapsed,reach=['pickup','return'].includes(phase)?sampleTelevisionRemoteReach(television.plan,t).reach:0;
       const motion=television.motion,motionProgress=motion?(motion.index+motion.elapsed/motion.steps[motion.index].duration)/motion.steps.length:0;
@@ -103,16 +120,29 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       poseRobotSurfaceHands(robot,{reach:sample.reach,contacts:surfaceContacts,lean:activeAction.tidy.lean??1.05});
       if(action==='tidy'){const id=activeAction.targetId.slice(10);presentedCushion=id;onObjectPresentation?.({id,cushionTidy:{partIndex:activeAction.tidy.cushionIndex,compression:sample.compression}});}else clearCushionPresentation();
     }else clearCushionPresentation();
-    presentRemote();props.update(action,elapsed,{remoteHeld:remoteHeld(),remoteGrip:television?.plan.grip});shadow.position.x=point.x;shadow.position.z=point.z;shadow.position.y=footballFrame?point.y+.002:.082;
+    if(action==='cook'&&activeAction?.cooking){
+      cookingFrame=sampleRobotCooking(activeAction,elapsed);group.updateWorldMatrix(true,false);robot.updateWorldMatrix(true,true);cookingInverse.copy(group.matrixWorld).invert();
+      for(const side of['L','R']){
+        const p=cookingFrame.contacts[side],contact=surfaceContacts[side];robot.getObjectByName(`HandSocket${side}`).getWorldPosition(contact).applyMatrix4(cookingInverse);
+        // First raise each hand outside the cabinet, then move it across the
+        // worktop. Solve those world contacts fully: blending final joint
+        // rotations would sweep the hand (and its spoon) through the cabinet.
+        contact.set(contact.x+(p.x-contact.x)*cookingFrame.handAcross,contact.y+(p.y-contact.y)*cookingFrame.handLift,contact.z+(p.z-contact.z)*cookingFrame.handAcross).applyMatrix4(group.matrixWorld);
+      }
+      if(cookingFrame.handLift>0)poseRobotSurfaceHands(robot,{reach:1,contacts:surfaceContacts,lean:activeAction.cooking.lean,wrists:true});
+      cookingTip.set(cookingFrame.tip.x,cookingFrame.tip.y,cookingFrame.tip.z).applyMatrix4(group.matrixWorld);cookingNeck.set(cookingFrame.neck.x,cookingFrame.neck.y,cookingFrame.neck.z).applyMatrix4(group.matrixWorld);
+      cookingEffects.update(cookingFrame.station,elapsed,cookingFrame.heat);
+    }else{cookingFrame=null;cookingEffects.update();}
+    presentRemote();props.update(action,elapsed,{remoteHeld:remoteHeld(),remoteGrip:television?.plan.grip,cooking:cookingFrame?{tip:cookingTip,neck:cookingNeck,blend:cookingFrame.tipBlend}:null});shadow.position.x=point.x;shadow.position.z=point.z;shadow.position.y=footballFrame?point.y+.002:.082;
     shadow.visible=!swimFrame&&!['sit','lie','stairs','elevator','entering','exiting','watch'].includes(action);
-    footballBall.update(footballFrame,football?.descriptor.field.rotation??0);waterEffects.update(swimFrame,swimming?.descriptor,elapsed);requestRender();
+    swimRing.update(point,angle,swimming?.descriptor??pendingAction,swimFrame);footballBall.update(footballFrame,football?.descriptor.field.rotation??0);waterEffects.update(swimFrame,swimming?.descriptor,elapsed);requestRender();
   }
   function clearElevatorFrame(){
     if(elevatorFrame)onElevatorFrame?.({stairId:elevatorFrame.stairId,reset:true});
     elevatorFrame=null;
   }
   function clearCushionPresentation(){if(presentedCushion){onObjectPresentation?.({id:presentedCushion,cushionTidy:null});presentedCushion=null;}}
-  function cancel(){dancing=null;danceRequested=false;danceRequestSerial++;danceStartCallback=null;danceTarget=null;danceFacing=null;afterSurface=null;football=null;footballFrame=null;footballBall.update(null);clearCushionPresentation();clearTelevision();if(frame)cancelAnimationFrame(frame);frame=0;route=null;pendingAction=null;sequence=null;stairJourney=null;stairMotion=null;stairFrame=null;elevatorJourney=null;elevatorMotion=null;clearElevatorFrame();swimming=null;swimFrame=null;remaining=0;}
+  function cancel(){dancing=null;danceRequested=false;danceRequestSerial++;danceStartCallback=null;danceTarget=null;danceFacing=null;afterSurface=null;football=null;footballFrame=null;footballBall.update(null);cookingFrame=null;cookingEffects.update();clearCushionPresentation();clearTelevision();if(frame)cancelAnimationFrame(frame);frame=0;route=null;pendingAction=null;sequence=null;stairJourney=null;stairMotion=null;stairFrame=null;elevatorJourney=null;elevatorMotion=null;clearElevatorFrame();swimming=null;swimFrame=null;remaining=0;}
   function resetToSafePoint(){cancel();activeFurniture=null;activeAction=null;visual=null;exitRequested=false;afterExit=null;if(safePoint)point={...safePoint,y:FLOOR_Y};action='idle';elapsed=0;present();}
   function resetBeforeContinuation(next){
     // Finishing a five-second task or an unstarted TV route resets its old
@@ -137,7 +167,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     if(suspended)return cloneRobotActivity(savedActivity);
     if(!point||!home||disposed)return null;
     if(dancing)return {kind:'dance',storey:floor,point:{x:point.x,z:point.z},rotation:angle,time:dancing.time,blend:dancing.blend,...dancing.exitRequested?{exitRequested:true}:{}};
-    if(football)return {kind:'football',itemId:football.descriptor.targetId.slice(8),storey:0,time:football.time,originRotation:football.originRotation,...football.exitRequested?{exitRequested:true}:{}};
+    if(football)return {kind:'football',itemId:football.descriptor.targetId.slice(8),storey:0,time:football.time,originRotation:football.originRotation,entryIndex:football.descriptor.entryIndex,...football.exitRequested?{exitRequested:true}:{}};
     if(television){
       const value={kind:'watch',itemId:television.plan.tvId,seatId:television.plan.seatId,storey:floor,phase:television.phase,point:{x:point.x,z:point.z},rotation:angle,originRotation:television.originRotation,time:television.elapsed};
       if(television.motion)Object.assign(value,checkpoint(television.motion));
@@ -147,10 +177,10 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     }
     if(elevatorMotion||stairMotion){
       const motion=elevatorMotion??stairMotion,journey=elevatorJourney??stairJourney;
-      return {kind:elevatorMotion?'elevator':'stairs',itemId:journey.stairId,storey:floor,...checkpoint(motion),rotation:motion.startRotation??0,time:elapsed,originTime:motion.startTime??0};
+      return {kind:elevatorMotion?'elevator':'stairs',itemId:journey.stairId,storey:floor,...elevatorMotion&&Math.abs(journey.floorDelta??1)>1?{targetStorey:journey.target}:{},...checkpoint(motion),rotation:motion.startRotation??0,time:elapsed,originTime:motion.startTime??0};
     }
     if(swimming){
-      const value={kind:'swim',itemId:swimming.descriptor.targetId.slice(8),storey:0,phase:swimming.mode,time:swimming.mode==='loop'?cycleTime(elapsed,SWIM_ANIMATION_PERIOD):elapsed,loopTime:cycleTime(swimming.time,swimming.descriptor.pool.loop.duration),rotation:swimming.startRotation??0};
+      const value={kind:'swim',itemId:swimming.descriptor.targetId.slice(8),storey:0,phase:swimming.mode,time:swimming.mode==='loop'?cycleTime(elapsed,SWIM_ANIMATION_PERIOD):elapsed,loopTime:cycleTime(swimming.time,swimming.descriptor.pool.loop.duration),rotation:swimming.startRotation??0,entryIndex:swimming.descriptor.pool.entryIndex,variant:swimming.descriptor.variant??'swim'};
       if(swimming.mode!=='loop')Object.assign(value,checkpoint(swimming));
       if(swimming.mode==='exit')value.exitFrom=structuredClone(swimming.exitFrom);
       return value;
@@ -161,10 +191,10 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       if(!itemId)return null;
       if(action==='lie'&&!sequence)return {kind:'sleep',itemId,storey:floor};
       const value={kind:'furniture',action:descriptor.kind,itemId,storey:floor};
-      if(!descriptor.motion&&Number.isSafeInteger(descriptor.approachIndex))value.approachIndex=descriptor.approachIndex;
+      if((!descriptor.motion||descriptor.compactOrigin||descriptor.footEntry||descriptor.motion?.ladder)&&Number.isSafeInteger(descriptor.approachIndex))value.approachIndex=descriptor.approachIndex;
       if(sequence){Object.assign(value,{phase:sequence.mode,...checkpoint(sequence),rotation:sequence.startRotation??angle,time:elapsed,originTime:sequence.startTime??0});if(descriptor.entrySide)value.entrySide=descriptor.entrySide;if(sequence.mode==='enter'&&exitRequested)value.exitRequested=true;}
       else if(remaining)Object.assign(value,{time:elapsed,remaining});
-      if(['tidy','wipe'].includes(descriptor.kind))value.originRotation=surfaceOriginRotation;
+      if(['tidy','wipe','cook'].includes(descriptor.kind))value.originRotation=surfaceOriginRotation;
       return value;
     }
     const value={kind:'stand',environment,storey:environment==='estate'?0:floor,point:{x:point.x,z:point.z},rotation:angle};
@@ -197,7 +227,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
         point={...value.point,y:FLOOR_Y};safePoint={...value.point};angle=value.rotation;
         dancing={time:cycleTime(value.time,DANCE_PERIOD),blend:value.blend,exitRequested:value.exitRequested===true,after:null};danceRequested=true;danceTarget={...value.point};danceFacing=angle;action='dance';elapsed=0;
       }else if(value.kind==='football'){
-        const descriptor=getRobotFootballDescriptor(outdoor,`outdoor:${value.itemId}`,{navigation});if(!descriptor)return restoreFallback();
+        const descriptor=getRobotFootballDescriptor(outdoor,`outdoor:${value.itemId}`,{navigation,entryIndex:value.entryIndex});if(!descriptor)return restoreFallback();
         football={descriptor,time:value.time,originRotation:value.originRotation,exitRequested:value.exitRequested===true,after:null};safePoint={...descriptor.approach};outdoorPoint={...safePoint};action='football';advanceFootball(0);
       }else if(value.kind==='watch'){
         const plan=planRobotTelevision(home,value.itemId,{navigation,poses,seatId:value.seatId});
@@ -212,17 +242,17 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
         if(value.action==='wave'){action='wave';remaining=value.remaining??Math.max(0,1.9-elapsed);}
       }else if(value.kind==='stairs'||value.kind==='elevator'){
         const planner=value.kind==='elevator'?planRobotElevator:planRobotStairs;
-        const journey=planner(home,floors,floor,value.itemId,safePoint,navigation);
+        const journey=value.kind==='elevator'?planRobotElevator(home,floors,floor,value.itemId,safePoint,navigation,value.targetStorey??null):planner(home,floors,floor,value.itemId,safePoint,navigation);
         if(!journey.ok)return restoreFallback();
         safePoint={x:journey.approach.x,z:journey.approach.z};point={...journey.approach};
         const motion={...(value.kind==='elevator'?createRobotElevatorMotion(journey,{point,rotation:value.rotation,time:value.originTime??0}):createRobotStairMotion(journey,stairRig,{point,rotation:value.rotation,time:value.originTime??0})),startRotation:value.rotation,startTime:value.originTime??0};
         setCheckpoint(motion,value);action=value.kind;elapsed=value.time??0;
         if(value.kind==='elevator'){elevatorJourney=journey;elevatorMotion=motion;advanceElevator(0);}else{stairJourney=journey;stairMotion=motion;advanceStairs(0);}
       }else if(value.kind==='swim'){
-        const descriptor=listOutdoorRobotInteractions(outdoor,`outdoor:${value.itemId}`,{navigation}).find(row=>row.kind==='swim');
+        const descriptor=listOutdoorRobotInteractions(outdoor,`outdoor:${value.itemId}`,{navigation,entryIndex:value.entryIndex}).find(row=>row.variant===(value.variant??'swim'));
         if(!descriptor)return restoreFallback();
         safePoint={...descriptor.approach};outdoorPoint={...safePoint};
-        const entry=createRobotPoolEntry(descriptor,{point:descriptor.approach,rotation:(value.rotation??0)*180/Math.PI});
+        const entry=createRobotPoolEntry(descriptor,{point:descriptor.compactOrigin??descriptor.approach,rotation:(value.rotation??0)*180/Math.PI});
         const sampleSource=origin=>{
           if(origin.phase==='loop')return sampleRobotPoolLoop(descriptor,origin.time??0);
           const step=entry[Math.min(origin.step??0,entry.length-1)];return sampleRobotPoolMotionStep(step,origin.progress??0,origin.time??0);
@@ -240,15 +270,15 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
         const kind=value.kind==='sleep'?'lie':value.action;
         const descriptor=listRobotInteractions(home,targetId,{navigation,poses,entrySide:value.entrySide,approachIndex:value.approachIndex}).find(row=>row.kind===kind);
         if(!descriptor)return restoreFallback();
-        safePoint={...descriptor.approach};floorPositions.set(floor,{...safePoint});
+        safePoint={...descriptor.compactOrigin??descriptor.approach};floorPositions.set(floor,{...safePoint});
         if(['sit','lie'].includes(kind)){
-          const entry=createRobotFurnitureEntry(descriptor,poses,{point:descriptor.approach,rotation:(value.rotation??descriptor.motion.alignment.rotation*Math.PI/180)*180/Math.PI,time:value.originTime??0});
+          const entry=createRobotFurnitureEntry(descriptor,poses,{point:descriptor.compactOrigin??descriptor.approach,rotation:(value.rotation??descriptor.motion.alignment.rotation*Math.PI/180)*180/Math.PI,time:value.originTime??0});
           if(value.phase){
             const steps=value.phase==='exit'?reverseRobotFurnitureSteps(entry):entry;
             activeFurniture=value.phase==='exit'?{descriptor,steps:entry}:null;
             sequence={steps,index:0,elapsed:0,mode:value.phase,descriptor,startRotation:value.rotation??0,startTime:value.originTime??0};setCheckpoint(sequence,value);action=value.phase==='enter'?'entering':'exiting';exitRequested=value.exitRequested===true;advanceSequence(0);
           }else{activeFurniture={descriptor,steps:entry};visual=sampleRobotMotionStep(entry.at(-1),1);point={...visual.point};angle=visual.rotation*Math.PI/180;action=kind;}
-        }else{activeAction=descriptor;point={...descriptor.pose};angle=(descriptor.pose.rotation??0)*Math.PI/180;action=kind;remaining=['read','cook','wash','dishwash','tidy','wipe'].includes(kind)?value.remaining??Math.max(0,5-elapsed):0;if(['tidy','wipe'].includes(kind)){surfaceOriginRotation=value.originRotation??angle;updateSurfaceTurn();}}
+        }else{activeAction=descriptor;point={...descriptor.pose};angle=(descriptor.pose.rotation??0)*Math.PI/180;action=kind;remaining=['read','cook','wash','dishwash','tidy','wipe'].includes(kind)?value.remaining??Math.max(0,5-elapsed):0;if(['tidy','wipe','cook'].includes(kind)){surfaceOriginRotation=value.originRotation??angle;updateSurfaceTurn();}}
       }
       updateSurfaceTurn();present();publishActivity();if(route||sequence||stairMotion||elevatorMotion||swimming||football||dancing||remaining||televisionNeedsFrame())schedule();return true;
     }finally{restoring=false;}
@@ -280,7 +310,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     return presentationPaused;
   }
   function startSequence(steps,mode,descriptor){
-    sequence={steps,index:0,elapsed:0,mode,descriptor,startRotation:angle,startTime:elapsed};action=mode==='enter'?'entering':'exiting';
+    sequence={steps,index:0,elapsed:0,mode,descriptor,startRotation:steps.originRotation??angle,startTime:steps.originTime??elapsed};action=mode==='enter'?'entering':'exiting';
     visual=sampleRobotMotionStep(steps[0],0,0);status(steps[0].label);publishActivity(true);schedule();
   }
   function startExit(){
@@ -303,7 +333,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   // A five-second surface task already ends with hand release and torso rise.
   // Keep that authored release before switching commands rather than snapping
   // hands away from the cushion/table or teleporting the cloth to the waist.
-  function finishSurface(after=null){if(!['tidy','wipe'].includes(action)||!remaining)return false;afterSurface=after;status("DisplayText3963, DisplayText3964.");schedule();return true;}
+  function finishSurface(after=null){if(!['tidy','wipe','cook'].includes(action)||!remaining)return false;afterSurface=after;status(action==='cook'?"DisplayText4920, DisplayText3964.":"DisplayText3963, DisplayText3964.");schedule();return true;}
   function beginAction(descriptor){
     if(descriptor.kind==='dance'){startDance(descriptor.facing);return;}
     if(descriptor.kind==='football'){football={descriptor,time:0,originRotation:angle,exitRequested:false,after:null};action='football';elapsed=0;advanceFootball(0);publishActivity(true);schedule();return;}
@@ -321,9 +351,9 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       const steps=createRobotFurnitureEntry(descriptor,poses,{point,rotation:angle*180/Math.PI,time:elapsed});
       startSequence(steps,'enter',descriptor);return;
     }
-    surfaceOriginRotation=angle;activeAction=descriptor;if(!['tidy','wipe'].includes(descriptor.kind))angle=(descriptor.pose.rotation??0)*Math.PI/180;action=descriptor.kind;elapsed=0;point={...descriptor.pose};remaining=['read','cook','wash','dishwash','tidy','wipe'].includes(action)?5:0;status(descriptor.label);publishActivity(true);
+    surfaceOriginRotation=angle;activeAction=descriptor;if(!['tidy','wipe','cook'].includes(descriptor.kind))angle=(descriptor.pose.rotation??0)*Math.PI/180;action=descriptor.kind;elapsed=0;point={...descriptor.pose};remaining=['read','cook','wash','dishwash','tidy','wipe'].includes(action)?5:0;updateSurfaceTurn();status(descriptor.label);publishActivity(true);
   }
-  function updateSurfaceTurn(){if(!['tidy','wipe'].includes(action)||!activeAction)return;const target=activeAction.pose.rotation*Math.PI/180,delta=Math.atan2(Math.sin(target-surfaceOriginRotation),Math.cos(target-surfaceOriginRotation));angle=surfaceOriginRotation+delta*sampleRobotSofaTidy(activeAction,elapsed).turn;}
+  function updateSurfaceTurn(){if(!['tidy','wipe','cook'].includes(action)||!activeAction)return;const target=activeAction.pose.rotation*Math.PI/180,delta=Math.atan2(Math.sin(target-surfaceOriginRotation),Math.cos(target-surfaceOriginRotation));const sample=action==='cook'?sampleRobotCooking(activeAction,elapsed):sampleRobotSofaTidy(activeAction,elapsed);angle=surfaceOriginRotation+delta*sample.turn;if(action==='cook')point={...sample.point};}
   function advanceSequence(dt){
     let left=dt;
     while(sequence&&left>=0){
@@ -367,7 +397,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       if(progress<1)break;
       if(current.index<current.steps.length-1){current.index++;current.elapsed=0;if(left<=0)break;continue;}
       if(current.mode==='enter'){
-        current.mode='loop';current.time=0;action='swim';status("DisplayText3972 · DisplayText3973\"DisplayText3894\"DisplayText3974.");
+        current.mode='loop';current.time=0;action='swim';status(current.descriptor.variant==='spa'?"DisplayText4910 · DisplayText4921.":current.descriptor.variant==='ring'?"DisplayText4922, DisplayText4923 · DisplayText4924.":"DisplayText3972 · DisplayText3973\"DisplayText3894\"DisplayText3974.");
       }else{
         const approach=current.descriptor.approach;swimming=null;swimFrame=null;action='idle';elapsed=0;
         safePoint={...approach};outdoorPoint={...safePoint};point={...safePoint,y:FLOOR_Y};status("DisplayText3975, DisplayText3976.");
@@ -396,7 +426,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       const motion=elevatorMotion,step=motion.steps[motion.index],take=Math.min(left,step.duration-motion.elapsed);motion.elapsed+=take;left-=take;
       const progress=Math.min(1,motion.elapsed/step.duration),previousPhase=elevatorFrame?.phase;
       elevatorFrame=sampleRobotElevatorMotion(motion,motion.index,progress);point={...elevatorFrame.point};angle=elevatorFrame.rotation;visual=elevatorFrame.visual;
-      onElevatorFrame?.({stairId:elevatorFrame.stairId,cabinY:elevatorFrame.cabinY,doors:{...elevatorFrame.doors},phase:elevatorFrame.phase,direction:elevatorFrame.direction});
+      onElevatorFrame?.({stairId:elevatorFrame.stairId,doorStairId:elevatorFrame.doorStairId,floorDelta:elevatorFrame.floorDelta,cabinY:elevatorFrame.cabinY,doors:{...elevatorFrame.doors},phase:elevatorFrame.phase,direction:elevatorFrame.direction});
       if(previousPhase!==elevatorFrame.phase)status(elevatorFrame.phaseLabel);
       if(progress<1)break;
       if(motion.index<motion.steps.length-1){motion.index++;motion.elapsed=0;if(left<=0)break;continue;}
@@ -423,7 +453,8 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       while(route.length&&distance>0){
         const target=route[0],dx=target.x-point.x,dz=target.z-point.z,dy=(target.y??FLOOR_Y)-(point.y??FLOOR_Y),length=Math.hypot(dx,dy,dz);
         if(length<1e-7){route.shift();continue;}
-        angle=Math.atan2(dx,dz);const step=Math.min(distance,length),ratio=step/length;
+        const heading=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(heading-angle),Math.cos(heading-angle));
+        angle=environment==='interior'&&pendingAction?.motion?angle+Math.max(-dt*6,Math.min(dt*6,delta)):heading;const step=Math.min(distance,length),ratio=step/length;
         point.x+=dx*ratio;point.z+=dz*ratio;point.y=(point.y??FLOOR_Y)+dy*ratio;distance-=step;if(!stairJourney)safePoint={x:point.x,z:point.z};
         if(step>=length-1e-7)route.shift();
       }
@@ -437,7 +468,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   }
   const planWalk=(from,to)=>environment==='estate'?planOutdoorRobotWalk(outdoor,from,to,navigation):planAvatarWalk(home,from,to,navigation);
   function travelNow(to,descriptor=null){
-    const result=planWalk(safePoint,to);if(!result.ok){status(result.error,true);return result;}
+    const result=planWalk(safePoint,descriptor?.compactOrigin??to);if(!result.ok){status(result.error,true);return result;}
     resetToSafePoint();route=result.path.map(value=>({...value,y:FLOOR_Y}));action='walk';pendingAction=descriptor;danceRequested=descriptor?.kind==='dance';if(danceRequested){danceTarget={x:to.x,z:to.z};danceFacing=descriptor.facing;}elapsed=0;
     status(descriptor?`DisplayText3982 · ${descriptor.label}`:"DisplayText3983…");publishActivity(true);schedule();return {ok:true};
   }
@@ -446,7 +477,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     if(elevatorMotion)return elevatorBusy();
     if(danceRequested&&!dancing)stopDance();
     if(dancing){const check=planWalk(safePoint,to);if(!check.ok){status(check.error,true);return check;}finishDance(()=>travelNow(to,descriptor));return {ok:true,deferred:true};}
-    if(['tidy','wipe'].includes(action)&&remaining){const check=planWalk(safePoint,to);if(!check.ok){status(check.error,true);return check;}finishSurface(()=>travelNow(to,descriptor));return{ok:true,deferred:true};}
+    if(['tidy','wipe','cook'].includes(action)&&remaining){const check=planWalk(safePoint,to);if(!check.ok){status(check.error,true);return check;}finishSurface(()=>travelNow(to,descriptor));return{ok:true,deferred:true};}
     if(football){const check=planWalk(football.descriptor.approach,to);if(!check.ok){status(check.error,true);return check;}endFootball(()=>travelNow(to,descriptor));return {ok:true,deferred:true};}
     if(television){endTelevision(()=>travelNow(to,descriptor));return {ok:true,deferred:true};}
     if(swimming){const check=planWalk(swimming.descriptor.approach,to);if(!check.ok){status(check.error,true);return check;}startSwimExit(()=>travelNow(to,descriptor));return{ok:true,deferred:true};}
@@ -503,7 +534,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     }
     const choices=environment==='estate'?listOutdoorRobotInteractions(outdoor,targetId,{navigation,from:swimming?.descriptor.approach??safePoint}):listRobotInteractions(home,targetId,{navigation,from:safePoint,poses});
     if(environment==='estate'){const practice=getRobotFootballDescriptor(outdoor,targetId,{navigation,from:safePoint});if(practice)choices.unshift(practice);}
-    if(environment==='interior'&&targetId.startsWith('furniture:')&&isRobotSofaKind(home.furniture.find(item=>item.id===targetId.slice(10))?.kind)){
+    if(environment==='interior'&&targetId.startsWith('furniture:')&&isRobotTelevisionSeatKind(home.furniture.find(item=>item.id===targetId.slice(10))?.kind)){
       const plan=planRobotSofaTelevision(home,targetId.slice(10),{navigation,from:safePoint,poses});
       choices.splice(choices.findIndex(row=>row.id==='sit')+1,0,{id:'watch',kind:'watch',label:"DisplayText3931",targetId,disabled:!plan.ok,reason:plan.error??null});
     }
@@ -521,11 +552,11 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     safePoint=next==='estate'?findOutdoorRobotSpawn(outdoor,outdoorPoint,navigation):home?findAvatarSpawn(home,floorPositions.get(floor),navigation):null;
     point=safePoint?{...safePoint,y:FLOOR_Y}:null;publishActivity(true);present();
   }
-  function useStairs(stairId){
+  function useStairs(stairId,targetFloor=null){
     if(environment!=='interior'||!home||!safePoint||!visible||disposed)return{ok:false,error:"DisplayText3988."};
     if(elevatorMotion)return elevatorBusy();
     const elevator=getHomeStairs(home).find(row=>row.id===stairId)?.type==='elevator';
-    const journey=(elevator?planRobotElevator:planRobotStairs)(home,floors,floor,stairId,safePoint,navigation);if(!journey.ok){status(journey.error,true);return journey;}
+    const journey=elevator?planRobotElevator(home,floors,floor,stairId,safePoint,navigation,targetFloor):planRobotStairs(home,floors,floor,stairId,safePoint,navigation);if(!journey.ok){status(journey.error,true);return journey;}
     return travel(journey.approach,{kind:elevator?'elevator':'stairs',label:elevator?(journey.direction==='up'?"DisplayText3989":"DisplayText3990"):(journey.direction==='up'?"DisplayText3991":"DisplayText3992"),journey});
   }
   function elevatorBusy(){const error="DisplayText3993, DisplayText3994.";status(error);return{ok:false,error};}
@@ -678,7 +709,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
     if(environment!=='interior'||!home||!point||!visible||disposed)return {ok:false,error:"DisplayText3988."};
     if(elevatorMotion)return elevatorBusy();
     if(danceRequested&&!dancing)stopDance();
-    const selectedId=targetId.replace(/^furniture:/,''),selected=home.furniture.find(row=>row.id===selectedId),plan=isRobotSofaKind(selected?.kind)?planRobotSofaTelevision(home,selectedId,{navigation,from:safePoint,poses}):planRobotTelevision(home,selectedId,{navigation,from:safePoint,poses});const tvId=plan.tvId;
+    const selectedId=targetId.replace(/^furniture:/,''),selected=home.furniture.find(row=>row.id===selectedId),plan=isRobotTelevisionSeatKind(selected?.kind)?planRobotSofaTelevision(home,selectedId,{navigation,from:safePoint,poses}):planRobotTelevision(home,selectedId,{navigation,from:safePoint,poses});const tvId=plan.tvId;
     if(!plan.ok){status(plan.error,true);return plan;}
     const start=()=>{resetToSafePoint();plan.grip=televisionGrip(plan);television={plan,phase:'to-remote',elapsed:0,originRotation:angle,pressRemaining:0,exitRequested:false,after:null};setTelevisionPhase('to-remote');};
     if(finishDance(start))return {ok:true,deferred:true};
@@ -699,7 +730,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
   function changeTelevisionChannel(tvId){
     tvId=tvId?.replace(/^furniture:/,'');
     if(!television||television.phase!=='watch'||television.plan.tvId!==tvId){const error="DisplayText4018, DisplayText4019.";status(error,true);return {ok:false,error};}
-    const state=getObjectState(objectContext,tvId),channel=((state?.channel??0)+1)%4;
+    const state=getObjectState(objectContext,tvId),channel=((state?.channel??0)+1)%TELEVISION_CHANNELS.length;
     television.pressRemaining=1.2;televisionCommand({power:true,channel});status("DisplayText4020, DisplayText4021.");publishActivity(true);schedule();return {ok:true};
   }
   function advanceTelevision(dt){
@@ -741,7 +772,7 @@ export function createStudentHomeRobotController({source,parent,requestRender,on
       stairStep:stairFrame?.stairStep?structuredClone(stairFrame.stairStep):null,
       elevatorFrame:elevatorFrame?structuredClone(elevatorFrame):null,elevatorDirection:elevatorJourney?.direction??null,
       stairDirection:stairJourney?.direction??null,football:football?{itemId:football.descriptor.targetId.slice(8),time:football.time,exitRequested:football.exitRequested,frame:structuredClone(footballFrame)}:null,television:television?{tvId:television.plan.tvId,seatId:television.plan.seatId,remoteHeld:remoteHeld()}:null,environment,swimPool:swimming?.descriptor.targetId??null,swimBlend:swimFrame?.swimBlend??0,activity:cloneRobotActivity(savedActivity)}),
-    dispose(){if(disposed)return;if(activityKnown)captureActivity();disposed=true;cancel();document.removeEventListener('visibilitychange',visibilityChanged);footballBall.dispose();waterEffects.dispose();props.dispose();wardrobe.dispose();disposeRobotAvatar(robot);shadow.geometry.dispose();shadow.material.dispose();group.removeFromParent();},
+    dispose(){if(disposed)return;if(activityKnown)captureActivity();disposed=true;cancel();document.removeEventListener('visibilitychange',visibilityChanged);footballBall.dispose();waterEffects.dispose();swimRing.dispose();cookingEffects.dispose();props.dispose();wardrobe.dispose();disposeRobotAvatar(robot);shadow.geometry.dispose();shadow.material.dispose();group.removeFromParent();},
   };
 }
 
@@ -768,7 +799,7 @@ function createSwimEffects(parent){
 /** Readable action props are local runtime objects, never hidden inventory grants. */
 function createActionProps(robot){
   const root=new THREE.Group();root.name='robot-daily-action-props';robot.add(root);
-  const book=new THREE.Group(),cook=new THREE.Group(),wash=new THREE.Group();book.name='robot-open-book';cook.name='robot-cooking-bowl';wash.name='robot-washing-water';root.add(book,cook,wash);
+  const book=new THREE.Group(),wash=new THREE.Group();book.name='robot-open-book';wash.name='robot-washing-water';root.add(book,wash);
   const geometries=new Set(),materials=new Set();
   function mesh(parent,g,color,p){const m=new THREE.MeshStandardMaterial({color,roughness:.65}),n=new THREE.Mesh(g,m);n.position.set(...p);n.userData.robotActionProp=true;parent.add(n);geometries.add(g);materials.add(m);return n;}
   const box=(p,s,c,at)=>mesh(p,new THREE.BoxGeometry(...s),c,at);
@@ -777,21 +808,22 @@ function createActionProps(robot){
   box(remote,[.10,.026,.22],'#304849',[0,0,0]);box(remote,[.075,.006,.065],'#b9ddd3',[0,.017,-.055]);
   for(let row=0;row<3;row++)for(const side of[-1,1])box(remote,[.023,.009,.023],row===0&&side===-1?'#e7896b':'#e9dfc9',[side*.024,.02,.01+row*.04]);
   for(const side of[-1,1]){const page=new THREE.Group();page.rotation.z=side*-.12;book.add(page);box(page,[.21,.024,.29],'#518e96',[side*.108,0,0]);box(page,[.20,.018,.27],'#fff5db',[side*.108,.022,0]);for(let n=0;n<5;n++)box(page,[.15,.003,.005],'#8d9b95',[side*.108,.033,-.09+n*.04]);}
-  mesh(cook,new THREE.SphereGeometry(.16,20,10,0,Math.PI*2,Math.PI/2,Math.PI/2),'#d79263',[0,0,0]);mesh(cook,new THREE.CylinderGeometry(.15,.15,.012,20),'#d3b765',[0,0,0]);
-  const spoon=new THREE.Group();spoon.name='robot-stirring-spoon';root.add(spoon);mesh(spoon,new THREE.CylinderGeometry(.012,.012,.30,8),'#937553',[0,0,0]);mesh(spoon,new THREE.SphereGeometry(.035,10,8),'#937553',[0,-.15,0]);
+  const spoon=new THREE.Group();spoon.name='robot-stirring-spoon';root.add(spoon);
+  const spoonHandle=mesh(spoon,new THREE.CylinderGeometry(.010,.010,1,8),'#937553',[0,0,0]),spoonNeck=mesh(spoon,new THREE.CylinderGeometry(.007,.007,1,8),'#aabbbb',[0,0,0]),spoonTip=mesh(spoon,new THREE.SphereGeometry(.022,12,8),'#aabbbb',[0,0,0]);
+  spoonHandle.name='robot-cooking-tool-handle';spoonNeck.name='robot-cooking-tool-neck';spoonTip.name='robot-cooking-tool-tip';spoonTip.scale.set(1,.35,1.3);
+  const grip=new THREE.Group();grip.name='robot-cooking-tool-grip';spoon.add(grip);
   for(let n=0;n<7;n++)mesh(wash,new THREE.SphereGeometry(.018,8,6),'#99d9e7',[0,0,0]);
   const cloth=box(root,[.20,.012,.16],'#55b9b1',[0,0,0]);cloth.name='robot-cleaning-cloth';
-  const a=new THREE.Vector3(),b=new THREE.Vector3(),tip=new THREE.Vector3(),shaft=new THREE.Vector3(),up=new THREE.Vector3(0,1,0),inverse=new THREE.Matrix4();
-  return {update(action,time,{remoteHeld=false,remoteGrip=null}={}){
+  const a=new THREE.Vector3(),b=new THREE.Vector3(),tip=new THREE.Vector3(),neck=new THREE.Vector3(),targetTip=new THREE.Vector3(),targetNeck=new THREE.Vector3(),shaft=new THREE.Vector3(),up=new THREE.Vector3(0,1,0),inverse=new THREE.Matrix4();
+  const segment=(mesh,from,to)=>{shaft.copy(to).sub(from);mesh.position.copy(from).add(to).multiplyScalar(.5);mesh.scale.y=shaft.length();mesh.quaternion.setFromUnitVectors(up,shaft.normalize());};
+  return {update(action,time,{remoteHeld=false,remoteGrip=null,cooking=null}={}){
     remote.visible=remoteHeld;if(remoteHeld&&remoteGrip){remote.position.copy(remoteGrip.position);remote.quaternion.copy(remoteGrip.quaternion);}
     cloth.visible=action==='wipe';if(cloth.visible){robot.updateWorldMatrix(true,true);inverse.copy(robot.matrixWorld).invert();robot.getObjectByName('HandSocketR').getWorldPosition(b).applyMatrix4(inverse);cloth.position.copy(b);cloth.position.y-=.025;}
-    book.visible=action==='read';cook.visible=spoon.visible=action==='cook';wash.visible=action==='wash';if(!['read','cook','wash'].includes(action))return;
+    book.visible=action==='read';spoon.visible=action==='cook'&&!!cooking;wash.visible=action==='wash';if(!['read','cook','wash'].includes(action))return;
     robot.updateWorldMatrix(true,true);inverse.copy(robot.matrixWorld).invert();
     robot.getObjectByName('HandSocketL').getWorldPosition(a).applyMatrix4(inverse);robot.getObjectByName('HandSocketR').getWorldPosition(b).applyMatrix4(inverse);
     book.position.copy(a).add(b).multiplyScalar(.5);book.position.y-=.035;book.rotation.x=.32;
-    cook.position.copy(a);cook.position.x-=.11;cook.position.y-=.06;
-    tip.set(Math.sin(time*3.6)*.055,-.10,Math.cos(time*3.6)*.055).add(cook.position);
-    shaft.copy(b).sub(tip);spoon.position.copy(b).add(tip).multiplyScalar(.5);spoon.scale.y=shaft.length()/.30;spoon.quaternion.setFromUnitVectors(up,shaft.normalize());
+    if(cooking){targetTip.copy(cooking.tip).applyMatrix4(inverse);targetNeck.copy(cooking.neck).applyMatrix4(inverse);tip.copy(b);tip.y-=.24;tip.lerp(targetTip,cooking.blend);neck.copy(b);neck.y-=.10;neck.lerp(targetNeck,cooking.blend);grip.position.copy(b);segment(spoonHandle,b,neck);segment(spoonNeck,neck,tip);spoonTip.position.copy(tip);}
     wash.position.copy(a).add(b).multiplyScalar(.5);wash.children.forEach((drop,n)=>drop.position.set(Math.sin(n*2.3)*.065,-((time*.6+n*.027)%.23),Math.cos(n*2.3)*.06));
   },dispose(){geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());root.removeFromParent();remote.removeFromParent();}};
 }
@@ -802,4 +834,18 @@ function createFootballBall(parent){
   const patchGeometry=new THREE.CircleGeometry(FOOTBALL_BALL_RADIUS*.33,5),patchMaterial=new THREE.MeshStandardMaterial({color:'#274a45',roughness:.8,side:THREE.DoubleSide});
   for(const normal of [[0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]]){const n=new THREE.Vector3(...normal),patch=new THREE.Mesh(patchGeometry,patchMaterial);patch.position.copy(n).multiplyScalar(FOOTBALL_BALL_RADIUS+.001);patch.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);ball.add(patch);}
   group.visible=false;return {update(frame,fieldRotation=0){group.visible=!!frame;if(!frame)return;group.position.set(frame.ball.x,frame.ball.y,frame.ball.z);group.rotation.y=fieldRotation*Math.PI/180;ball.rotation.set(0,0,-frame.ballRoll);},dispose(){group.removeFromParent();geometry.dispose();material.dispose();patchGeometry.dispose();patchMaterial.dispose();}};
+}
+
+/** One reusable ring per robot; no remote asset, wallet or new ownership state.
+ * It is carried at the waist on the approach, then rests on the real waterline. */
+function createSwimmingRing(parent){
+  const root=new THREE.Group();root.name='robot-swimming-ring';root.visible=false;parent.add(root);
+  const geometry=new THREE.TorusGeometry(.39,.10,12,48),material=new THREE.MeshStandardMaterial({color:'#ffbd47',roughness:.35});
+  const ring=new THREE.Mesh(geometry,material);ring.rotation.x=Math.PI/2;root.add(ring);
+  const bands=new THREE.Group();root.add(bands);const bandGeometry=new THREE.TorusGeometry(.39,.103,8,8,Math.PI/5),bandMaterial=new THREE.MeshStandardMaterial({color:'#fff7df',roughness:.4});
+  for(let i=0;i<5;i++){const band=new THREE.Mesh(bandGeometry,bandMaterial);band.rotation.set(Math.PI/2,0,i*Math.PI*2/5);bands.add(band);}
+  root.traverse(n=>{if(n.isMesh){n.castShadow=false;n.receiveShadow=true;n.userData.avatar=true;n.userData.surfaceId='avatar';}});
+  return {update(point,angle,descriptor,frame){root.visible=!!point&&descriptor?.variant==='ring';if(!root.visible)return;
+    const blend=frame?.swimBlend??0;root.position.set(point.x,(point.y??.08)+.68*(1-blend)+.045*blend,point.z);root.rotation.y=angle;
+  },dispose(){root.removeFromParent();geometry.dispose();material.dispose();bandGeometry.dispose();bandMaterial.dispose();}};
 }

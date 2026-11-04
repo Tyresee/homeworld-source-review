@@ -6,11 +6,13 @@ import {isWallStyleId,isWallColorId} from './home-wall-finishes.js';
 import {
   FURNITURE_ITEMS, MATERIALS, createHomeState, migrateHomeStateWithInventory, validateHomeState, applyChange,
   getFurnitureFootprint, findHomeCollision, findIntroducedBuildingCollision, findIntroducedFurnitureCollision, createFurnitureItem, validateFurnitureItem,
-  getStaircaseCollision,
-  getWallMountTargets,
+  getStaircaseCollision, getHomeCandidateVolume,
+  getWallMountTargets, getFurniturePose, getFurnitureMountBounds,
 } from './home-engine.js';
 
+import {overlapBuildingVolume} from './home-building-collision.js';
 import { OUTDOOR_PRODUCTS, getOutdoorProduct } from './home-outdoor-catalog.js';
+import {getOutdoorItemBounds} from './home-outdoor-placement.js';
 import { validateOutdoorPlacement, suggestOutdoorPlacement } from './home-outdoor-placement.js';
 import { getEstateOutdoorDefinition, getEstateForRoomCount } from './home-estate-outdoor.js';
 export { OUTDOOR_PRODUCTS, getOutdoorProduct, validateOutdoorPlacement, suggestOutdoorPlacement };
@@ -20,7 +22,7 @@ import { STOREY_PRODUCTS, FLOOR_CONSTRUCTION_RATES } from './home-storey-product
 import { AVATAR_CLOTHING_PRODUCTS, getClothingProduct } from './home-avatar-catalog.js';
 import { AVATAR_EQUIPMENT_SLOTS, createAvatarState, validateAvatarAppearance, validateAvatarState } from './home-avatar-state.js';
 import { STAIR_WIDTH, STAIR_DEPTH, getHomeStairs } from './home-staircase.js';
-import { getStaircaseEntrances } from './home-staircase-shape.js';
+import { getStaircaseEntrances, getElevatorStationContacts, isElevatorShaftContinuation, isExteriorElevator, getExteriorElevatorPose, getExteriorElevatorDoorBounds, getExteriorElevatorShaftBounds } from './home-staircase-shape.js';
 import { ELEVATOR_UPGRADE_PRODUCT } from './home-elevator-products.js';
 import { planAvatarWalk } from './home-avatar-navigation.js';
 import {validateObjectStates,reconcileObjectStates,applyOwnedObjectState} from './home-object-state.js';
@@ -162,7 +164,7 @@ function validateConstructionAccounting(state,transactionIds) {
   if(!keysAre(state.constructionBasis,['floors'])||!Array.isArray(state.constructionBasis.floors)||!state.constructionBasis.floors.length
     ||!Array.isArray(state.constructionLedger)||state.constructionLedger.length>10000)return null;
   try {
-    const homes=getFloorHomes(state),floors=state.constructionBasis.floors.map(rects=>unionRectangles(rects)),ids=new Set(),usedKits=new Set(),upgradedConnections=new Set();let paid=0;
+    const homes=getFloorHomes(state),floors=state.constructionBasis.floors.map(rects=>unionRectangles(rects)),ids=new Set(),usedKits=new Set(),upgradedConnections=new Set(),constructedConnections=new Set();let paid=0;
     if(floors.length>homes.length||floors.some((rects,i)=>!isRectangleUnionConnected(rects)||i>0&&!rectangleUnionContains(floors[i-1],rects)))return null;
     for(const entry of state.constructionLedger) {
       if(entry?.type==='elevator-upgrade') {
@@ -194,12 +196,22 @@ function validateConstructionAccounting(state,transactionIds) {
       if(isNew) {
         const upper=getHomeStairs(homes[entry.storey]).find(stair=>stair.direction==='down');
         if(!upper||entry.stairId!==upper.id)return null;
+        constructedConnections.add(`${entry.storey-1}:${entry.stairId}`);
       } else if(entry.stairId!==null)return null;
       paid+=entry.total;if(!moneyIsValid(paid))return null;
       floors[entry.storey]=after;ids.add(entry.id);transactionIds.add(entry.transactionId);
     }
     if(floors.length!==homes.length||homes.some((home,i)=>!sameRects(getFloorRects(home),floors[i])))return null;
-    if(homes.some((home,i)=>getHomeStairs(home).some(stair=>stair.direction==='up'&&stair.type==='elevator'&&!upgradedConnections.has(`${i}:${stair.id}`))))return null;
+    // A paid installation owns the shaft. Further paid floors may continue it
+    // without another installation purchase, but never at a different position
+    // or rotation, and never without that floor's original construction receipt.
+    const entitled=new Set(upgradedConnections);
+    for(const [i,home] of homes.entries()) for(const stair of getHomeStairs(home).filter(row=>row.direction==='up'&&row.type==='elevator')) {
+      const key=`${i}:${stair.id}`;if(entitled.has(key))continue;
+      const incoming=getHomeStairs(home).find(row=>row.direction==='down');
+      if(i===0||!constructedConnections.has(key)||!isElevatorShaftContinuation(stair,incoming)||!entitled.has(`${i-1}:${incoming.id}`))return null;
+      entitled.add(key);
+    }
     return paid;
   } catch {return null;}
 }
@@ -268,10 +280,12 @@ function validStoreyStructure(state, legacy) {
     if(index>0&&!isUpperFloorSupported(homes[index-1],home))return false;
     const stairs=getHomeStairs(home),up=stairs.filter(value=>value.direction==='up'),down=stairs.filter(value=>value.direction==='down');
     if(up.length!==(index<homes.length-1?1:0)||down.length!==(index>0?1:0))return false;
-    for(const item of stairs)if(getStaircaseCollision(home,item))return false;
+    // Placement-only entrance clearance is enforced on new edits. Historical
+    // indoor stair/lift positions must remain readable for guarded migration.
+    for(const item of stairs)if(getStaircaseCollision(home,item,{entrance:false}))return false;
     if(index<homes.length-1) {
       const peer=getHomeStairs(homes[index+1]).find(value=>value.direction==='down');
-      if(!peer||!['id','x','z','rotation','type'].every(key=>up[0][key]===peer[key]))return false;
+      if(!peer||!['id','x','z','rotation','type','placement'].every(key=>up[0][key]===peer[key]))return false;
     }
   }
   return true;
@@ -951,12 +965,24 @@ function prepareFloorConstruction(state,selection,{kitId=null}={}) {
     catch { return fail(state,"DisplayText0675, DisplayText0676; DisplayText0583."); }
     const ids=new Set(homes.flatMap(home=>getHomeStairs(home).map(stair=>stair.id)));let serial=1,id=`stairs-${storey}-${storey+1}`;
     while(ids.has(id))id=`stairs-${storey}-${storey+1}-${++serial}`;
-    const up=findPairedStaircaseSite(homes[storey-1],nextHome,id);
+    const incoming=getHomeStairs(homes[storey-1]).find(row=>row.direction==='down'&&row.type==='elevator');
+    // Keep the installed lift's real vertical axis. A smaller upper selection
+    // must include that footprint and its doorway; silently adding stairs (or
+    // moving the elevator sideways) would break the existing paid shaft.
+    const extended=incoming?{...incoming,id,direction:'up'}:null;
+    const up=extended??findPairedStaircaseSite(homes[storey-1],nextHome,id);
     if(!up)return fail(state,"DisplayText0677 2.2 × 3.2 DisplayText0678, DisplayText0679.");
+    if(extended) {
+      const blocked=getStaircaseCollision(homes[storey-1],up)||getStaircaseCollision(nextHome,{...up,direction:'down'});
+      if(blocked)return fail(state,`DisplayText4776, DisplayText4777${blocked.label??"DisplayText0695"}DisplayText0693.DisplayText4778; DisplayText0583.`);
+      if(!elevatorDoorIsClear(homes[storey-1],up,'lower')
+        ||!elevatorDoorIsClear(nextHome,{...up,direction:'down'},'upper'))
+        return fail(state,"DisplayText4779.DisplayText4780; DisplayText0583.");
+    }
     const down={...up,direction:'down'},lowerResult=applyChange(homes[storey-1],{type:'stairs',stairs:up}),upperResult=applyChange(nextHome,{type:'stairs',stairs:down});
     if(!lowerResult.ok||!upperResult.ok)return fail(state,lowerResult.error??upperResult.error);
     lowerHome=lowerResult.state;nextHome=upperResult.state;
-    stairConnection={id,fromStorey:storey-1,toStorey:storey,lower:up,upper:down};
+    stairConnection={id,fromStorey:storey-1,toStorey:storey,lower:up,upper:down,extendsElevator:!!extended};
   } else {
     const result=applyChange(homes[storey],{type:'slab',slab:{rects:finalRects}});if(!result.ok)return fail(state,result.error);nextHome=result.state;
   }
@@ -967,7 +993,7 @@ function prepareFloorConstruction(state,selection,{kitId=null}={}) {
       if(!collision.ok) return fail(state,`DisplayText0680${BY_SKU.get(owned.skuId).name}DisplayText0681, DisplayText0682.`);
     }
   }
-  const quote={storey,isNewStorey,fromArea:getUnionArea(beforeRects),toArea:getUnionArea(finalRects),addedArea,areaCost,stairCost,total,
+  const quote={storey,isNewStorey,transportType:stairConnection?.lower.type??(stairConnection?'stairs':null),extendsElevator:stairConnection?.extendsElevator??false,fromArea:getUnionArea(beforeRects),toArea:getUnionArea(finalRects),addedArea,areaCost,stairCost,total,
     pricePerSquareMetre:kitId?0:FLOOR_CONSTRUCTION_RATES.pricePerSquareMetre,balanceAfter:state.wallet.balance-total,
     selectedRects,finalRects,stairConnection,changed:addedArea>0};
   return pass(state,{quote,beforeRects,nextHome,lowerHome});
@@ -1002,7 +1028,10 @@ export function purchaseFloorConstruction(state,selection,transactionId) {
     if(previous.type==='elevator-upgrade')return fail(state,"DisplayText0685, DisplayText0550.");
     let normalized;try{normalized=normalizeConstructionSelection(selection);}catch(error){return fail(state,error.message);}
     if(previous.kitId!==null||normalized.storey!==previous.storey||!sameRects(normalized.rects,previous.selectedRects))return fail(state,"DisplayText0686, DisplayText0550.");
+    const connection=previous.stairId?getHomeStairs(getFloorHome(state,previous.storey-1)).find(stair=>stair.id===previous.stairId&&stair.direction==='up'):null;
+    const incoming=getHomeStairs(getFloorHome(state,previous.storey-1)).find(stair=>stair.direction==='down');
     return pass(state,{repeated:true,construction:previous,quote:{storey:previous.storey,isNewStorey:previous.stairId!==null,
+      transportType:connection?.type??(connection?'stairs':null),extendsElevator:isElevatorShaftContinuation(connection,incoming),
       fromArea:getUnionArea(previous.beforeRects),toArea:getUnionArea(previous.afterRects),addedArea:previous.addedArea,areaCost:previous.areaCost,stairCost:previous.stairCost,
       total:previous.total,pricePerSquareMetre:previous.areaRate,balanceAfter:state.wallet.balance,selectedRects:previous.selectedRects,finalRects:previous.afterRects,changed:true}});
   }
@@ -1011,13 +1040,16 @@ export function purchaseFloorConstruction(state,selection,transactionId) {
   if(!prepared.quote.changed)return pass(state,{quote:prepared.quote});
   return commitFloorConstruction(state,prepared,transactionId);
 }
-function elevatorDoorIsClear(home,stairs,point,sign) {
+function elevatorDoorIsClear(home,stairs,side) {
   // Rounded up from the v4 robot's measured walking envelope (.44859 × 1.50377).
   // Keep this in sync with the controller's real body, rather than the old
   // generic .29 navigation radius which would accept an unusably narrow door.
-  const radius=.45,navigation={radius,height:1.51},angle=stairs.rotation*Math.PI/180,margin=radius+.08;
-  const outside={x:point.x+Math.sin(angle)*sign*margin,z:point.z+Math.cos(angle)*sign*margin};
-  const withoutConnection={...home,staircases:getHomeStairs(home).filter(row=>row.id!==stairs.id)};delete withoutConnection.stairs;
+  if(isExteriorElevator(stairs))return !getStaircaseCollision(home,stairs);
+  const radius=.45,navigation={radius,height:1.51},margin=radius+.08;
+  const point=getStaircaseEntrances(stairs)?.[side],station=getElevatorStationContacts(stairs)?.[side];
+  if(!point||!station)return false;
+  const outside={x:point.x+station.normal.x*margin,z:point.z+station.normal.z*margin};
+  const withoutConnection={...home,staircases:getHomeStairs(home).filter(row=>row.id!==stairs.id&&!isElevatorShaftContinuation(row,stairs))};delete withoutConnection.stairs;
   // Navigation's direct-segment test checks the full swept body and exact slab
   // support, including narrow obstacles. One context measures furnishings once;
   // a one-node search budget prevents treating a detour as a clear doorway.
@@ -1033,23 +1065,20 @@ function prepareStaircaseUpgrade(state,id,options) {
   const lowerStorey=stairs.direction==='up'?storey:storey-1,upperStorey=lowerStorey+1,
     lowerHome=getFloorHome(state,lowerStorey),upperHome=getFloorHome(state,upperStorey),
     lower=getHomeStairs(lowerHome).find(row=>row.id===id&&row.direction==='up'),upper=getHomeStairs(upperHome).find(row=>row.id===id&&row.direction==='down');
-  if(!lower||!upper||!['id','x','z','rotation','type'].every(key=>lower[key]===upper[key]))return fail(state,"DisplayText0690, DisplayText0691.");
+  if(!lower||!upper||!['id','x','z','rotation','type','placement'].every(key=>lower[key]===upper[key]))return fail(state,"DisplayText0690, DisplayText0691.");
   const changed=lower.type!=='elevator',amount=changed?ELEVATOR_UPGRADE_PRODUCT.price:0;
   const quote={type:'elevator',id,storey,lowerStorey,upperStorey,skuId:ELEVATOR_UPGRADE_PRODUCT.skuId,
     amount,total:amount,changed,balanceAfter:state.wallet.balance-amount};
   if(!changed)return pass(state,{quote,lowerHome,upperHome});
-  const lowerStairs={...lower,type:'elevator'},upperStairs={...upper,type:'elevator'};
-  for(const [index,floor,proposed] of [[lowerStorey,lowerHome,lowerStairs],[upperStorey,upperHome,upperStairs]]) {
-    const collision=getStaircaseCollision(floor,proposed);
-    if(collision)return fail(state,`${index+1}DisplayText0692${collision.label??"DisplayText0695"}DisplayText0693, DisplayText0694; DisplayText0583.`);
-  }
-  if(!elevatorDoorIsClear(lowerHome,lowerStairs,getStaircaseEntrances(lowerStairs).lower,1)
-    ||!elevatorDoorIsClear(upperHome,upperStairs,getStaircaseEntrances(upperStairs).upper,-1))
-    return fail(state,"DisplayText0696, DisplayText0697, DisplayText0698; DisplayText0583.");
   if(state.wallet.balance<amount)return fail(state,"DisplayText0579, DisplayText0699.");
-  const lowerResult=applyChange(lowerHome,{type:'stairs',stairs:lowerStairs}),upperResult=applyChange(upperHome,{type:'stairs',stairs:upperStairs});
-  if(!lowerResult.ok||!upperResult.ok)return fail(state,lowerResult.error??upperResult.error);
-  return pass(state,{quote,lowerHome:lowerResult.state,upperHome:upperResult.state});
+  const candidate=copy(state);
+  for(const [floor,direction]of [[lowerStorey,'up'],[upperStorey,'down']]){
+    const target=getFloorHome(candidate,floor),record=getHomeStairs(target).find(row=>row.id===id&&row.direction===direction);
+    Object.assign(record,{type:'elevator',...getExteriorElevatorPose()});
+  }
+  const conflicts=relocateExteriorElevatorConflicts(candidate);
+  if(!conflicts.ok)return fail(state,conflicts.error);
+  return pass(state,{quote,lowerHome:getFloorHome(candidate,lowerStorey),upperHome:getFloorHome(candidate,upperStorey),commerce:candidate,conflicts:conflicts.report});
 }
 /** One paid installation updates both records of one adjacent-floor link. */
 export function quoteStaircaseUpgrade(state,id,options) {
@@ -1069,13 +1098,54 @@ export function upgradeStaircase(state,id,transactionId,options) {
   const prepared=prepareStaircaseUpgrade(state,id,options);if(!prepared.ok)return prepared;
   if(!prepared.quote.changed)return pass(state,{quote:prepared.quote});
   if(state.constructionLedger.length>=10000)return fail(state,"DisplayText0702, DisplayText0643.");
-  const next=copy(state),{quote}=prepared;
+  const next=copy(prepared.commerce??state),{quote}=prepared;
   writeFloorHome(next,quote.lowerStorey,prepared.lowerHome);writeFloorHome(next,quote.upperStorey,prepared.upperHome);
   let serial=next.constructionLedger.length+1;while(next.constructionLedger.some(row=>row.id===`elevator-${serial}`))serial++;
   const construction={type:'elevator-upgrade',id:`elevator-${serial}`,transactionId,lowerStorey:quote.lowerStorey,upperStorey:quote.upperStorey,
     stairId:id,skuId:ELEVATOR_UPGRADE_PRODUCT.skuId,unitPrice:quote.amount,total:quote.amount};
   next.constructionLedger.push(construction);next.wallet.balance=quote.balanceAfter;
-  return finish(next,state,{quote,construction});
+  return finish(next,state,{quote,construction,conflicts:prepared.conflicts});
+}
+/** Explicit maintenance operation for the historical "lift, then stairs"
+ * construction bug. Not called by loading, migration or normal user commands.
+ * Original receipts/ownership/wallet stay byte-for-byte unchanged. The caller
+ * must back up and version the owning record before persisting this result. */
+export function repairElevatorContinuity(state) {
+  const error=editable(state);if(error)return fail(state,error);
+  const next=copy(state),repairs=[],changedFloors=new Set();
+  const replace=(storey,replacement)=>{
+    const home=getFloorHome(next,storey),rows=getHomeStairs(home).map(row=>row.id===replacement.id?{...replacement}:row);
+    if(home.staircases)home.staircases=rows;else home.stairs=rows[0];changedFloors.add(storey);
+  };
+  // Plan every affected pair before checking geometry. An obsolete outgoing
+  // stair on a later floor may occupy the shaft we are about to extend; that
+  // exact pair is replaced atomically too, not ignored as a live obstacle.
+  for(let storey=1;storey<getFloorHomes(next).length-1;storey++) {
+    const rows=getHomeStairs(getFloorHome(next,storey)),incoming=rows.find(row=>row.direction==='down'&&row.type==='elevator'),outgoing=rows.find(row=>row.direction==='up');
+    if(!incoming||!outgoing||outgoing.type==='elevator')continue;
+    const peer=getHomeStairs(getFloorHome(next,storey+1)).find(row=>row.id===outgoing.id&&row.direction==='down');
+    if(!peer)return fail(state,`${storey+1}DisplayText4781${storey+2}DisplayText4782, DisplayText4783.`);
+    const up={...incoming,id:outgoing.id,direction:'up'};
+    replace(storey,up);replace(storey+1,{...up,direction:'down'});
+    repairs.push({id:outgoing.id,fromStorey:storey,toStorey:storey+1,
+      fromPose:{x:outgoing.x,z:outgoing.z,rotation:outgoing.rotation},toPose:{x:up.x,z:up.z,rotation:up.rotation}});
+  }
+  if(!repairs.length)return pass(state,{changed:false,repairs});
+  for(const storey of changedFloors) {
+    const home=getFloorHome(next,storey);
+    for(const proposed of getHomeStairs(home)) {
+      const collision=getStaircaseCollision(home,proposed);
+      if(collision)return fail(state,`${storey+1}DisplayText4784${collision.label??"DisplayText0695"}DisplayText4785, DisplayText4783.`);
+    }
+    home.revision++;
+  }
+  for(const row of repairs) {
+    const lower=getFloorHome(next,row.fromStorey),upper=getFloorHome(next,row.toStorey),up=getHomeStairs(lower).find(stair=>stair.id===row.id),down=getHomeStairs(upper).find(stair=>stair.id===row.id);
+    if(!elevatorDoorIsClear(lower,up,'lower')
+      ||!elevatorDoorIsClear(upper,down,'upper'))
+      return fail(state,`${row.fromStorey+1}DisplayText4781${row.toStorey+1}DisplayText4786, DisplayText4783.`);
+  }
+  return finish(next,state,{changed:true,repairs});
 }
 /** Honor already-paid legacy kits; newly purchased floors use the measured-area API. */
 export function placeOwnedStorey(state,id) {
@@ -1096,4 +1166,66 @@ export function getStoredRoomQuantities(state) {
     counts.set(owned.item.kind, (counts.get(owned.item.kind) ?? 0) + 1);
   }
   return counts;
+}
+
+/** Move only goods intersecting the new E1 volumes. Ownership, purchase
+ * provenance and financial ledgers are never rewritten by this migration. */
+function relocateExteriorElevatorConflicts(next){
+  const report={furnitureMoved:0,furnitureStored:0,outdoorMoved:0,outdoorStored:0,items:[]};
+  for(const [storey,home]of getFloorHomes(next).entries()){
+    const stair=getHomeStairs(home).find(isExteriorElevator);if(!stair)continue;
+    const reservation=getExteriorElevatorDoorBounds(stair),pending=new Set();
+    for(const item of home.furniture){
+      const volume=getHomeCandidateVolume(home,{id:`furniture:${item.id}`,item,x:item.x,z:item.z});
+      if(volume&&overlapBuildingVolume(volume,reservation,.025))pending.add(item.id);
+    }
+    let changed=true;
+    while(changed){changed=false;for(const item of home.furniture)if(item.mount?.type==='table'&&pending.has(item.mount.parentId)&&!pending.has(item.id)){pending.add(item.id);changed=true;}}
+    const removed=home.furniture.filter(item=>pending.has(item.id));home.furniture=home.furniture.filter(item=>!pending.has(item.id));
+    // Table parents must be restored before their mounted decorations.
+    removed.sort((a,b)=>Number(!!a.mount)-Number(!!b.mount));
+    for(const original of removed){
+      const owned=next.owned.find(row=>row.id===original.id);if(!owned)return {ok:false,error:"DisplayText4787, DisplayText0522."};
+      const bounds=getFloorBounds(home),sites=[{}],origin=getFurniturePose(home,original);
+      if(!original.mount)for(let z=bounds.minZ;z<=bounds.minZ+bounds.depth;z+=.2)for(let x=bounds.minX;x<=bounds.minX+bounds.width;x+=.2)
+        sites.push({x:Number(x.toFixed(4)),z:Number(z.toFixed(4))});
+      else {
+        const mounts=original.mount.type==='wall'?getWallMountTargets(home).map(target=>({...original.mount,wallId:target.wallId})):[original.mount];
+        for(const mount of mounts){
+          const range=getFurnitureMountBounds(home,{...original,mount});if(!range)continue;
+          for(let i=0;i<=20;i++)for(let j=0;j<=20;j++)sites.push({mount:{...mount,u:range.minU+(range.maxU-range.minU)*i/20,v:range.minV+(range.maxV-range.minV)*j/20}});
+        }
+      }
+      const distance=site=>{const at=getFurniturePose(home,{...original,...site});return (at.x-origin.x)**2+(at.y-origin.y)**2+(at.z-origin.z)**2;};
+      sites.sort((a,b)=>distance(a)-distance(b));
+      let found=null;
+      for(const site of sites){
+        const result=applyChange(home,{type:'furniture',...copy(original),...site});
+        if(result.ok&&!getHomeStairs(result.state).some(stair=>getStaircaseCollision(result.state,stair))){found=result.state.furniture.find(row=>row.id===original.id);break;}
+      }
+      if(found){home.furniture.push(copy(found));owned.item=copy(found);report.furnitureMoved++;}
+      else {owned.status='stored';owned.storey=null;report.furnitureStored++;}
+      report.items.push({id:original.id,kind:'furniture',storey,result:found?'moved':'stored',from:{x:original.x,z:original.z},...found?{to:{x:found.x,z:found.z}}:{}});
+    }
+  }
+  const shaft=getFloorHomes(next).flatMap(getHomeStairs).map(getExteriorElevatorShaftBounds).find(Boolean);
+  const overlap=(a,b)=>a&&a.minX<b.maxX-1e-7&&a.maxX>b.minX+1e-7&&a.minZ<b.maxZ-1e-7&&a.maxZ>b.minZ+1e-7;
+  for(const row of next.owned)if(shaft&&row.status==='placed'&&getOutdoorProduct(row.item.kind)&&overlap(getOutdoorItemBounds(row.item),shaft)){
+    const from={x:row.item.x,z:row.item.z},result=suggestOutdoorPlacement(next,row.id,row.item);
+    if(result.ok){Object.assign(row.item,result.pose);report.outdoorMoved++;}
+    else {row.status='stored';row.storey=null;report.outdoorStored++;}
+    report.items.push({id:row.id,kind:'outdoor',result:result.ok?'moved':'stored',from,...result.ok?{to:result.pose}:{}});
+  }
+  return {ok:true,report};
+}
+/** E1 is recognized by the per-link installation identity; repeated calls are
+ * byte-stable. Input is validated using the still-supported indoor schema. */
+export function migrateExteriorElevators(state){
+  if(!validateCommerceState(state))return fail(state,"DisplayText4788, DisplayText0516.");
+  if(!getFloorHomes(state).some(home=>getHomeStairs(home).some(row=>row.type==='elevator'&&!isExteriorElevator(row))))return pass(state,{migrated:false,report:null});
+  const next=copy(state);
+  for(const home of getFloorHomes(next))for(const stair of getHomeStairs(home))if(stair.type==='elevator')Object.assign(stair,getExteriorElevatorPose());
+  const result=relocateExteriorElevatorConflicts(next);if(!result.ok)return fail(state,result.error);
+  if(!validateCommerceState(next))return fail(state,"DisplayText4789, DisplayText0516.");
+  return pass(next,{migrated:true,report:result.report});
 }

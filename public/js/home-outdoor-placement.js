@@ -1,6 +1,7 @@
 /** Pure ground-plane placement. Outdoor ownership is held only by commerce.owned. */
 import { getFloorBounds, getFloorRects } from './home-layout.js';
 import { getOutdoorProduct } from './home-outdoor-catalog.js';
+import {getHomeStairs,getExteriorElevatorShaftBounds} from './home-staircase-shape.js';
 import { getManorEntranceStepBounds } from './home-manor-layout.js';
 
 const finite = value => typeof value === 'number' && Number.isFinite(value);
@@ -27,6 +28,8 @@ export function getOutdoorItemBounds(item) {
 export function validateOutdoorPlacement(state,item,{excludeId=item?.id,checkEntrance=true}={}) {
   const product=getOutdoorProduct(item?.kind), bounds=getOutdoorItemBounds(item);
   if (!state?.home || !product || !bounds) return {ok:false,error:"DisplayText2221.",code:'invalid'};
+  const shaft=[state.home,...state.upperFloors??[]].flatMap(getHomeStairs).map(getExteriorElevatorShaftBounds).find(Boolean);
+  if(shaft&&overlaps(bounds,shaft))return {ok:false,error:"DisplayText4877, DisplayText4878.",code:'elevator-shaft'};
   const land=getOutdoorLandBounds(state);
   if (bounds.minX<land.minX-epsilon || bounds.maxX>land.maxX+epsilon || bounds.minZ<land.minZ-epsilon || bounds.maxZ>land.maxZ+epsilon)
     return {ok:false,error:"DisplayText2222, DisplayText2223.",code:'land'};

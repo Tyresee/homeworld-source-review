@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {ROBOT_CLOTHING_PRODUCTS} from './robot-wardrobe-catalog.js';
+import {mapRobotProportionY} from './robot-proportions.js';
 
 const bySku=new Map(ROBOT_CLOTHING_PRODUCTS.map(product=>[product.skuId,product]));
 const SLOTS=['outfit','headwear','footwear'];
@@ -17,7 +18,7 @@ export function createRobotWardrobe(robot) {
   const active=new Map();let disposed=false;
 
   function build(product) {
-    const attachments=[],geometries=new Set(),materials=new Map();
+    const attachments=[],geometries=new Set(),materials=new Map(),fittedShells=new WeakSet(),rigidDetails=new WeakSet();
     const id=product.skuId.slice(5),color=product.color;
     const pale=new THREE.Color(color).lerp(new THREE.Color(CREAM),.45);
     const dark=new THREE.Color(color).multiplyScalar(.68);
@@ -37,8 +38,12 @@ export function createRobotWardrobe(robot) {
       mesh.userData={surfaceId:'avatar',avatar:true,robotWardrobe:true,skuId:product.skuId,slot:product.slot};
       mesh.castShadow=false;mesh.receiveShadow=true;parent.add(mesh);return mesh;
     }
-    const box=(p,size,pos,c,part,r=.025,metal=0)=>add(p,new RoundedBoxGeometry(...size,2,Math.min(r,Math.min(...size)*.4)),pos,c,part,metal);
-    function ball(p,size,pos,c,part) {const mesh=add(p,new THREE.SphereGeometry(1,16,10),pos,c,part);mesh.scale.set(...size);return mesh;}
+    const box=(p,size,pos,c,part,r=.025,metal=0)=>{
+      const mesh=add(p,new RoundedBoxGeometry(...size,2,Math.min(r,Math.min(...size)*.4)),pos,c,part,metal);
+      if(/^(?:rolled-hem-|cuff-|collar-|apron-belt$|satchel$|chef-neckerchief$)/.test(part))rigidDetails.add(mesh);
+      return mesh;
+    };
+    function ball(p,size,pos,c,part) {const mesh=add(p,new THREE.SphereGeometry(1,16,10),pos,c,part);mesh.scale.set(...size);rigidDetails.add(mesh);return mesh;}
     const cylinder=(p,rt,rb,h,pos,c,part)=>add(p,new THREE.CylinderGeometry(rt,rb,h,20),pos,c,part);
     function line(p,points,r,c,part) {
       return add(p,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(point=>new THREE.Vector3(...point))),12,r,6,false),[0,0,0],c,part);
@@ -54,7 +59,7 @@ export function createRobotWardrobe(robot) {
       const geometry=shell.geometry.clone();geometry.computeBoundingBox();
       const centre=geometry.boundingBox.getCenter(new THREE.Vector3()),size=geometry.boundingBox.getSize(new THREE.Vector3());
       geometry.translate(-centre.x,-centre.y,-centre.z);geometry.scale(1+.008/size.x,1+.004/size.y,1+.008/size.z);geometry.translate(centre.x,centre.y,centre.z);
-      return add(attach(joint),geometry,[0,0,0],c,part);
+      const mesh=add(attach(joint),geometry,[0,0,0],c,part);fittedShells.add(mesh);return mesh;
     }
     const torso=()=>attach('Torso');
     function shirt(c= color) {
@@ -194,6 +199,25 @@ export function createRobotWardrobe(robot) {
           ball(p,[.014,.011,.009],[0,-.025,.204],INK,`bear-nose-${side}`);
         }
       }
+    }
+    // Fit owned clothing only after all authored mesh rotations/scales exist.
+    // The shell copies already contain the body's final leg/torso geometry;
+    // applying the profile twice would make sleeves and trousers overshoot.
+    // Buttons and cuffs move with their anchor while retaining their shape.
+    const inverse=new THREE.Matrix4(),matrix=new THREE.Matrix4(),vertex=new THREE.Vector3();
+    for(const {joint,group}of attachments){
+      group.updateWorldMatrix(true,true);const groupInverse=group.matrixWorld.clone().invert();
+      group.traverse(mesh=>{
+        if(!mesh.isMesh||fittedShells.has(mesh))return;
+        if(rigidDetails.has(mesh)){mesh.position.y=mapRobotProportionY(robot,joint.name,mesh.position.y);return;}
+        matrix.multiplyMatrices(groupInverse,mesh.matrixWorld);inverse.copy(matrix).invert();
+        const positions=mesh.geometry.getAttribute('position');let changed=false;
+        for(let i=0;i<positions.count;i++){
+          vertex.fromBufferAttribute(positions,i).applyMatrix4(matrix);const y=mapRobotProportionY(robot,joint.name,vertex.y);
+          if(Math.abs(y-vertex.y)<1e-12)continue;changed=true;vertex.y=y;vertex.applyMatrix4(inverse);positions.setXYZ(i,vertex.x,vertex.y,vertex.z);
+        }
+        if(changed){positions.needsUpdate=true;mesh.geometry.computeVertexNormals();mesh.geometry.computeBoundingBox();mesh.geometry.computeBoundingSphere();}
+      });
     }
     } catch(error) {
       for(const geometry of geometries)geometry.dispose();

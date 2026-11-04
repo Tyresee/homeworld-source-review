@@ -155,3 +155,16 @@ test('disposing restores every original transform, material reference and parent
     assert.equal(controller.tick(.1),false);assert.equal(controller.activate(controller.targets[0]),false);assert.equal(controller.getState().disposed,true);
   }finally{release(root);}
 });
+
+test('every purchasable toilet tier flushes its actual open bowl at arbitrary rotations and upper-floor offsets',()=>{
+  for(const kind of ['compactToilet','bdSplitToilet','bdMonoblocToilet','bdSmartToilet'])for(const rotation of [0,Math.PI/2]){
+    const root=new THREE.Group();root.position.y=3.15;const model=createLuxuryItem({kind});model.position.set(2,.06,-1);model.rotation.y=rotation;root.add(model);
+    const c=createHomeRoamInteractions({root,audio:quietAudio(),storey:1}),target=c.targets.find(row=>row.type==='toilet');
+    try{
+      assert.ok(target,`${kind} has a real flush target`);root.updateMatrixWorld(true);const original=target.water.position.clone(),scale=target.water.scale.clone();
+      const waterY=target.water.getWorldPosition(new THREE.Vector3()).y;assert.ok(waterY>3.4&&waterY<3.9,`${kind} water is inside the upper-floor bowl, not on ground`);
+      assert.equal(c.activate(target),true);assert.equal(c.activate(target),false,'a running flush cannot pile up effects');step(c,1);assert.ok(target.water.position.y<original.y);assert.ok(target.water.scale.x<scale.x);
+      step(c,2);assert.equal(target.busy,false);assert.ok(target.water.position.distanceTo(original)<1e-8);assert.ok(target.water.scale.distanceTo(scale)<1e-8);assert.equal(c.tick(.1),false);
+    }finally{c.dispose();release(root);}
+  }
+});

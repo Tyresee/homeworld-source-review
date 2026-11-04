@@ -5,7 +5,9 @@ import {runInNewContext} from 'node:vm';
 import {getFloorRects,getFloorBounds} from '../public/js/home-layout.js';
 import {CONSTRUCTION_GRID_ORIGIN,getUnionArea,rectDifferenceArea,subtractRectangles} from '../public/js/home-construction-grid.js';
 import {getPlanOutlineSegments} from '../public/js/home-plan-outline.js';
-import {createCommerceState,getFloorHomes,quoteFloorConstruction,purchaseFloorConstruction} from '../public/js/home-commerce.js';
+import {createAccountCommerce} from '../server/student-homes/commerce.mjs';
+import {getHomeStairs} from '../public/js/home-staircase-shape.js';
+import {createCommerceState,getFloorHomes,quoteFloorConstruction,purchaseFloorConstruction,upgradeStaircase} from '../public/js/home-commerce.js';
 
 const source=await readFile(new URL('../public/js/home-floor-planner.js',import.meta.url),'utf8');
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -138,4 +140,13 @@ test('upper-storey selection clips to the lower footprint and deducts its own al
   assert.equal(f.metrics()["DisplayText0958"],"36 sqm");assert.equal(f.metrics()["DisplayText0959"],"100 sqm");
   assert.equal(f.metrics()["DisplayText0960"],"10,800 DisplayText0920");assert.equal(f.metrics()["DisplayText0961"],"0 DisplayText0920");
   assert.equal(f.cell(10,10).getAttribute('aria-pressed'),'false');assert.deepEqual(f.state(),before);
+});
+
+test('new floor checkout identifies existing lift extension and does not describe a second staircase or upgrade purchase',()=>{
+ let state=createAccountCommerce();state.wallet={balance:1000000,initialBalance:1000000};const rect={minX:-5,minZ:-5,width:10,depth:10};
+ for(const storey of[0,1]){const r=purchaseFloorConstruction(state,{storey,rects:[rect]},`ui-lift-floor-${storey}`);assert.equal(r.ok,true,r.error);state=r.state;}
+ const id=getHomeStairs(state.home).find(row=>row.direction==='up').id,upgraded=upgradeStaircase(state,id,'ui-lift-upgrade',{storey:0});assert.equal(upgraded.ok,true,upgraded.error);
+ const f=fixture(upgraded.state);f.planner.open(2);f.quick(20,20);
+ assert.equal(f.buy().disabled,false,f.report());assert.equal(f.metrics()["DisplayText4865"],"6,000 DisplayText0920");assert.equal(f.metrics()["DisplayText0961"],undefined);
+ assert.match(f.report(),/DisplayText5046.*DisplayText4867/);assert.equal(f.purchaseCalls.length,0,'reading the quote never charges or changes the house');
 });

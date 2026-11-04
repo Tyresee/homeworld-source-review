@@ -21,7 +21,7 @@ function contextFor(state,options={}){
   const nav=navigationFor(options),land=getOutdoorLandBounds(state),bounds=expand(land,-nav.radius-.02);
   const obstacles=[...getFloorRects(state.home).map(r=>expand(r,OUTDOOR_HOUSE_CLEARANCE+nav.radius)),
     ...getManorEntranceStepBounds(state.home).map(r=>expand(r,nav.radius+.04)),
-    ...(state.owned??[]).filter(row=>row.status==='placed').map(row=>getOutdoorItemBounds(row.item)).filter(Boolean).map(r=>expand(r,nav.radius+.03))];
+    ...(state.owned??[]).filter(row=>row.status==='placed'&&row.id!==options.excludeId).map(row=>getOutdoorItemBounds(row.item)).filter(Boolean).map(r=>expand(r,nav.radius+.03))];
   const clear=p=>finitePoint(p)&&within(p,bounds)&&!obstacles.some(r=>p.x>r.minX+E&&p.x<r.maxX-E&&p.z>r.minZ+E&&p.z<r.maxZ-E);
   return{...nav,bounds,obstacles,clear};
 }
@@ -96,49 +96,86 @@ function measuredPool(item){
   const key=JSON.stringify([item.kind,item.legacyIncludedExtras,item.legacyFootprint,item.legacyPlans]);if(geometryCache.has(key))return geometryCache.get(key);
   const model=createOutdoorProductModel(product,item);model.updateMatrixWorld(true);
   const boxFor=name=>{const box=new THREE.Box3();model.traverse(node=>{if(node.isMesh&&node.name===name)box.union(new THREE.Box3().setFromObject(node));});return box.isEmpty()?null:box;};
-  const water=boxFor('pool-water'),coping=boxFor('pool-coping'),deck=boxFor('pool-deck');
+  const water=boxFor('pool-water'),coping=boxFor('pool-coping'),deck=boxFor('pool-deck'),spa=boxFor('pool-spa-water'),spaCoping=boxFor('pool-spa-coping');
+  const blockers=[];model.traverse(node=>{if(!node.isMesh)return;const b=new THREE.Box3().setFromObject(node);if(node.name==='pool-handrail'||!node.name&&b.max.y>.65&&b.max.y-b.min.y>.15)blockers.push({name:node.name,minX:b.min.x,maxX:b.max.x,minZ:b.min.z,maxZ:b.max.z,minY:b.min.y,maxY:b.max.y});});
+  const rect=box=>box?{minX:box.min.x,maxX:box.max.x,minZ:box.min.z,maxZ:box.max.z}:null;
   let result=null;
   if(water&&coping&&deck){
     const w=water.max.x-water.min.x,d=water.max.z-water.min.z;
-    result={water:{minX:water.min.x,maxX:water.max.x,minZ:water.min.z,maxZ:water.max.z,y:water.max.y,width:w,depth:d,x:(water.min.x+water.max.x)/2,z:(water.min.z+water.max.z)/2},copingY:coping.max.y,deckY:deck.max.y,deckMinZ:deck.min.z,shape:product.level===1&&!item.legacyIncludedExtras?'ellipse':'rectangle'};
+    result={water:{minX:water.min.x,maxX:water.max.x,minZ:water.min.z,maxZ:water.max.z,y:water.max.y,width:w,depth:d,x:(water.min.x+water.max.x)/2,z:(water.min.z+water.max.z)/2},blockers,mainBounds:rect(coping),spaBounds:rect(spaCoping),copingY:coping.max.y,deckY:deck.max.y,deckMinZ:deck.min.z,deck:{minX:deck.min.x,maxX:deck.max.x,minZ:deck.min.z,maxZ:deck.max.z},spa:spa?{minX:spa.min.x,maxX:spa.max.x,minZ:spa.min.z,maxZ:spa.max.z,y:spa.max.y,width:spa.max.x-spa.min.x,depth:spa.max.z-spa.min.z,x:(spa.min.x+spa.max.x)/2,z:(spa.min.z+spa.max.z)/2,copingY:spaCoping.max.y}:null,shape:product.level===1&&!item.legacyIncludedExtras?'ellipse':'rectangle'};
   }
   model.dispose();if(geometryCache.size>=64)geometryCache.delete(geometryCache.keys().next().value);geometryCache.set(key,result);return result;
 }
 function worldPoint(item,local){const a=radians(item.rotation??0);return{x:item.x+local.x*Math.cos(a)+local.z*Math.sin(a),y:local.y??FLOOR_Y,z:item.z-local.x*Math.sin(a)+local.z*Math.cos(a)};}
 /** The approach is on clear grass; only these measured entry steps cross the
  * selected pool footprint. Ordinary walking always treats every pool as solid. */
-export function getRobotPoolDescriptor(state,targetId,{navigation={},from}={}){
+export function getRobotPoolDescriptor(state,targetId,{navigation={},from,entryIndex,variant='swim'}={}){
   const id=String(targetId??'').replace(/^outdoor:/,''),owned=state?.owned?.find(row=>row.id===id&&row.status==='placed'),item=owned?.item;
-  if(!item||!getOutdoorItemBounds(item))return null;const measured=measuredPool(item);if(!measured)return null;
-  const nav=navigationFor(navigation),w=measured.water,margin=Math.max(.88,nav.radius+.55),rx=Math.max(.16,w.width/2-margin),rz=Math.max(.25,w.depth/2-margin);
-  const approach=worldPoint(item,{x:w.x,y:FLOOR_Y,z:Math.min(measured.deckMinZ,-(item.legacyFootprint?.depth??getOutdoorProduct(item.kind).depth)/2)-nav.radius-.14});
-  if(!isOutdoorRobotPositionWalkable(state,approach,navigation)||finitePoint(from)&&!planOutdoorRobotWalk(state,from,approach,navigation).ok)return null;
-  const pool={ownedId:owned.id,itemId:owned.id,rotation:item.rotation??0,waterY:w.y,water:{...w},shape:measured.shape,
-    transform:{x:item.x,z:item.z,rotation:item.rotation??0},loop:{x:w.x,z:w.z,rx,rz,duration:Math.max(7,Math.PI*(rx+rz)/.75)},
-    approach,deck:worldPoint(item,{x:w.x,y:measured.deckY,z:measured.deckMinZ+.20}),
-    edge:worldPoint(item,{x:w.x,y:measured.copingY,z:w.minZ-.10}),
-    shallow:worldPoint(item,{x:w.x,y:w.y,z:w.minZ+.38}),
-    swimStart:worldPoint(item,{x:w.x,y:w.y,z:w.z-rz})};
-  return{id:'swim',kind:'swim',targetId:`outdoor:${owned.id}`,label:"DisplayText4141",approach,pool};
+  if(!item||!getOutdoorItemBounds(item)||!['swim','ring','spa'].includes(variant))return null;
+  const measured=measuredPool(item);if(!measured||variant==='spa'&&!measured.spa)return null;
+  const nav=navigationFor(navigation),spa=variant==='spa',w=spa?measured.spa:measured.water,margin=spa?.55:Math.max(.88,nav.radius+.55);
+  const rx=spa?0:Math.max(.16,w.width/2-margin),rz=spa?0:Math.max(.25,w.depth/2-margin),size=item.legacyFootprint??getOutdoorProduct(item.kind);
+  const external=contextFor(state,{...navigation,excludeId:owned.id});
+  // Twelve perimeter contacts replace a single hardcoded ladder. Choosing the
+  // nearest reachable edge avoids unnecessary laps around a clear pool.
+  const candidates=Array.from({length:12},(_,index)=>{
+    const theta=(measured.shape==='rectangle'&&!spa?[-90,-50,-40,0,40,50,90,130,140,180,220,230][index]*Math.PI/180:-Math.PI/2+index*Math.PI/6),c=Math.cos(theta),s=Math.sin(theta),ellipse=spa||measured.shape==='ellipse';
+    const factor=ellipse?1:1/Math.max(Math.abs(c),Math.abs(s));
+    const edgeLocal={x:w.x+w.width/2*c*factor,y:spa?w.copingY:measured.copingY,z:w.z+w.depth/2*s*factor};
+    const outward={x:edgeLocal.x-w.x,z:edgeLocal.z-w.z},length=Math.hypot(outward.x,outward.z);outward.x/=length;outward.z/=length;
+    // Intersection with the own footprint: ordinary paths stop on clear grass,
+    // then only this measured activity may cross its decking and coping.
+    const ray=Math.min((outward.x>=0?size.width/2-w.x:-size.width/2-w.x)/(outward.x||1e-8),(outward.z>=0?size.depth/2-w.z:-size.depth/2-w.z)/(outward.z||1e-8));
+    const approachLocal={x:w.x+outward.x*(ray+nav.radius+.16),y:FLOOR_Y,z:w.z+outward.z*(ray+nav.radius+.16)};
+    const deckLocal={x:edgeLocal.x+outward.x*.32,y:measured.deckY,z:edgeLocal.z+outward.z*.32};
+    const shallowLocal={x:edgeLocal.x-outward.x*.38,y:w.y,z:edgeLocal.z-outward.z*.38};
+    const loopPoint={x:w.x+rx*c,y:w.y,z:w.z+rz*s},approach=worldPoint(item,approachLocal);
+    const inward=rotationBetween({x:0,z:0},{x:-outward.x,z:-outward.z})+(item.rotation??0);
+    return{index,theta,approach,deck:worldPoint(item,deckLocal),edge:worldPoint(item,edgeLocal),shallow:worldPoint(item,shallowLocal),swimStart:worldPoint(item,loopPoint),inward,
+      locals:[approachLocal,deckLocal,edgeLocal,shallowLocal,loopPoint]};
+  });
+  if(Number.isSafeInteger(entryIndex))candidates.sort((a,b)=>Number(b.index===entryIndex)-Number(a.index===entryIndex));
+  else if(finitePoint(from))candidates.sort((a,b)=>distance(a.approach,from)-distance(b.approach,from));
+  const candidate=candidates.find(row=>{
+    if(Number.isSafeInteger(entryIndex)&&row.index!==entryIndex)return false;
+    if(!isOutdoorRobotPositionWalkable(state,row.approach,navigation))return false;
+    // A different basin is real geometry, not a shortcut to the selected one.
+    const other=spa?measured.mainBounds:measured.spaBounds;
+    for(let i=1;i<row.locals.length;i++)for(let n=0;n<=20;n++){
+      const a=row.locals[i-1],b=row.locals[i],u=n/20,p={x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u,z:a.z+(b.z-a.z)*u};
+      if(other&&p.x>other.minX-nav.radius&&p.x<other.maxX+nav.radius&&p.z>other.minZ-nav.radius&&p.z<other.maxZ+nav.radius)return false;
+      if(measured.blockers.some(r=>p.x>r.minX-nav.radius&&p.x<r.maxX+nav.radius&&p.z>r.minZ-nav.radius&&p.z<r.maxZ+nav.radius&&r.maxY>p.y+.08&&r.minY<p.y+(navigation.height??1.55)))return false;
+      if(!external?.clear(worldPoint(item,p)))return false;
+    }
+    return !finitePoint(from)||planOutdoorRobotWalk(state,from,row.approach,navigation).ok;
+  });
+  if(!candidate)return null;
+  const {approach,deck,edge,shallow,swimStart,inward}=candidate;
+  const tangent=spa?inward:rotationBetween({x:0,z:0},{x:-rx*Math.sin(candidate.theta),z:rz*Math.cos(candidate.theta)})+(item.rotation??0);
+  const pool={ownedId:owned.id,itemId:owned.id,rotation:item.rotation??0,waterY:w.y,water:{...w},shape:spa?'ellipse':measured.shape,variant,entryIndex:candidate.index,inward,tangent,
+    transform:{x:item.x,z:item.z,rotation:item.rotation??0},loop:{x:w.x,z:w.z,rx,rz,theta:candidate.theta,duration:spa?8:Math.max(7,Math.PI*(rx+rz)/.75)},approach,deck,edge,shallow,swimStart};
+  return{id:spa?'soak':variant==='ring'?'swim-ring':'swim',kind:'swim',variant,targetId:`outdoor:${owned.id}`,label:spa?"DisplayText4969":variant==='ring'?"DisplayText4970":"DisplayText4141",approach,pool};
 }
-export function listOutdoorRobotInteractions(state,targetId,options={}){const d=getRobotPoolDescriptor(state,targetId,options);return d?[d]:[];}
+export function listOutdoorRobotInteractions(state,targetId,options={}){
+  return ['swim','ring','spa'].map(variant=>getRobotPoolDescriptor(state,targetId,{...options,variant})).filter(Boolean);
+}
 const frame=(point,rotation,swimBlend=0)=>({point:{x:point.x,y:point.y??FLOOR_Y,z:point.z},rotation,swimBlend});
 const step=(phase,label,duration,from,to,gait=false)=>({phase,label,duration,from,to,gait});
 const durationFor=(a,b,speed=.85)=>Math.max(.45,Math.hypot(a.x-b.x,(a.y??0)-(b.y??0),a.z-b.z)/speed);
 export function createRobotPoolEntry(descriptor,{point=descriptor.approach,rotation=descriptor.pool.rotation,time=0}={}){
-  const pool=descriptor.pool,inward=pool.rotation,along=pool.rotation+90,start=frame(point,rotation),aligned=frame(pool.approach,inward),deck=frame(pool.deck,inward),edge=frame(pool.edge,inward),shallow=frame(pool.shallow,inward,.5),swim=frame(pool.swimStart,along,1);
-  return[step('pool-align',"DisplayText4142, DisplayText4143",.45,start,aligned),
+  const pool=descriptor.pool,inward=pool.inward??pool.rotation,along=pool.tangent??pool.rotation+90,start=frame(point,rotation),aligned=frame(pool.approach,inward),deck=frame(pool.deck,inward),edge=frame(pool.edge,inward),shallow=frame(pool.shallow,inward,.5),swim=frame(pool.swimStart,along,1);
+  return[step('pool-align',"DisplayText4142, DisplayText4971",.45,start,aligned),
     step('pool-deck',"DisplayText4144",durationFor(pool.approach,pool.deck),aligned,deck,true),
-    step('pool-edge',"DisplayText4145",durationFor(pool.deck,pool.edge,.55),deck,edge,true),
+    step('pool-edge',"DisplayText4972, DisplayText4973",durationFor(pool.deck,pool.edge,.55),deck,edge,true),
     step('pool-wade',"DisplayText4146, DisplayText4147",1.25,edge,shallow),
     step('pool-push',"DisplayText4148, DisplayText4149",1.35,shallow,swim)];
 }
 export function createRobotPoolExit(value,{point,rotation=0,swimBlend=1}={}){
-  const pool=value.pool??value,outward=pool.rotation+180,start=frame(point??pool.swimStart,rotation,swimBlend),lane=frame(pool.swimStart,outward,1),shallow=frame(pool.shallow,outward,.5),edge=frame(pool.edge,outward),deck=frame(pool.deck,outward),ground=frame(pool.approach,outward);
+  const pool=value.pool??value,outward=(pool.inward??pool.rotation)+180,start=frame(point??pool.swimStart,rotation,swimBlend),lane=frame(pool.swimStart,outward,1),shallow=frame(pool.shallow,outward,.5),edge=frame(pool.edge,outward),deck=frame(pool.deck,outward),ground=frame(pool.approach,outward);
   if(swimBlend<1-E){
     // A cancelled entrance reverses only the already travelled contacts. In
     // particular a robot still on dry decking must never detour into water.
-    const localZ=p=>{const a=radians(pool.rotation);return(p.x-pool.transform.x)*Math.sin(a)+(p.z-pool.transform.z)*Math.cos(a);};
+    const localZ=p=>{const a=radians(pool.inward??pool.rotation);return(p.x-pool.approach.x)*Math.sin(a)+(p.z-pool.approach.z)*Math.cos(a);};
     const contacts=[{phase:'pool-rise',label:"DisplayText4150, DisplayText4151",value:edge},
       {phase:'pool-step-out',label:"DisplayText4152",value:deck},
       {phase:'pool-ground',label:"DisplayText4153, DisplayText4154",value:ground}];
@@ -159,7 +196,8 @@ export function sampleRobotPoolMotionStep(step,progress,time=0){
   return{point:{x:a.point.x+(b.point.x-a.point.x)*t,y:a.point.y+(b.point.y-a.point.y)*t,z:a.point.z+(b.point.z-a.point.z)*t},rotation:a.rotation+delta*t,swimBlend:a.swimBlend+(b.swimBlend-a.swimBlend)*t,phase:step.phase,phaseLabel:step.label,gait:step.gait?Math.sin(Math.PI*p):0,time};
 }
 export function sampleRobotPoolLoop(value,time=0){
-  const pool=value.pool??value,loop=pool.loop,theta=-Math.PI/2+time/loop.duration*Math.PI*2;
+  const pool=value.pool??value,loop=pool.loop,theta=(loop.theta??-Math.PI/2)+time/loop.duration*Math.PI*2;
+  if(pool.variant==='spa')return{point:worldPoint(pool.transform,{x:loop.x,y:pool.waterY+Math.sin(time*1.6)*.012,z:loop.z}),rotation:pool.inward,swimBlend:1,phase:'soaking',phaseLabel:"DisplayText4974",time};
   const point=worldPoint(pool.transform,{x:loop.x+loop.rx*Math.cos(theta),y:pool.waterY,z:loop.z+loop.rz*Math.sin(theta)}),tangent={x:-loop.rx*Math.sin(theta),z:loop.rz*Math.cos(theta)};
   return{point,rotation:rotationBetween({x:0,z:0},tangent)+pool.rotation,swimBlend:1,phase:'swimming',phaseLabel:"DisplayText3735",time};
 }

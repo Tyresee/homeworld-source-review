@@ -14,7 +14,7 @@ function fixture(){
   const document={getElementById:$,createElement:()=>new Element(),createTextNode:text=>text,addEventListener(){},querySelectorAll:()=>[]};
   const calls={camera:0,stand:0,dance:0};let view='interior';
   const scene={getView:()=>view,toggleStageCamera(){calls.camera++;return {ok:true};},standAvatar(){calls.stand++;},toggleStage(){calls.dance++;}};
-  const context={document,applyHomeTheme,preserveHomeTheme,addEventListener(){},createStudentHomeContextMenu:()=>({close(){}})};
+  const context={document,window:{},applyHomeTheme,preserveHomeTheme,addEventListener(){},createStudentHomeShareDialog:()=>({refresh(){},dispose(){}}),createStudentHomeContextMenu:()=>({close(){}})};
   const executable=source.replace(/^import[^\n]+\n/gm,'').replace(/\nboot\(\);\s*$/,'');
   runInNewContext(executable+`\nglobalThis.ui={syncStageCamera,syncView,busy,bind:(value,renderer)=>{home=value;scene=renderer;syncStageCamera();}};`,context);
   return {$,calls,scene,ui:context.ui,setView:value=>{view=value;context.ui.syncView(value);},bind:value=>context.ui.bind(value?{id:'isolated-home'}:null,scene)};

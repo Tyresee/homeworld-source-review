@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import {createStageCamera} from '../public/js/student-home-stage-camera.js';
 import {createStageFraming} from '../public/js/student-home-stage-framing.js';
 import {frameHomeCamera,panHomeCamera} from '../public/js/home-scene-framing.js';
+import {STOREY_HEIGHT,getHomeStairs} from '../public/js/home-staircase-shape.js';
 
 const source=await readFile(new URL('../public/js/home-scene.js',import.meta.url),'utf8');
 function sceneFunction(name,next){
@@ -34,7 +35,8 @@ function fixture(){
   const context={
     scheduled:false,renderFrame:0,disposed:false,presentationPaused:false,view:'interior',document:{hidden:false},
     stageCameraTime:0,lastStageCameraFrame:null,stageFacingBound:false,facingCalls:[],performance:{now:()=>now},
-    scene:new THREE.Scene(),camera,selection:{visible:true},container:{dataset:{}},
+    elevatorTransit:null,elevatorCamera:null,elevatorStack:null,elevatorStackVisible:false,elevatorViewExit:{hidden:true},staircase:null,floorHomes:[],STOREY_HEIGHT,getHomeStairs,freezeElevatorSettle(){},clearElevatorTransit(){},
+    scene:new THREE.Scene(),root:new THREE.Group(),camera,selection:{visible:true},container:{dataset:{}},
     stage:{active:true,requested:true,point:{x:point.x,y:.08,z:point.z},time:0,storey:0},
     renderer:{render(){draws++;},domElement:{setPointerCapture(){}}},
     stageLighting:{update:()=>false,getState:()=>({amount:1}),reset(){lightingResets++;}},

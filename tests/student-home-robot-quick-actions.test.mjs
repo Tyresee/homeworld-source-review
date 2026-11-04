@@ -86,3 +86,11 @@ test('football moves actual leg/foot before ball contact, restores exact loop an
  c.stand();assert.equal(c.captureActivity({emit:false}).exitRequested,true);until(c,s=>s.action==='idle'&&!s.scheduled);assert.equal(c.group.getObjectByName('robot-practice-football').visible,false);assert.equal(isOutdoorRobotPositionWalkable(state,c.getState().point,c.getState().navigation),true);
  fresh.clearAccountBinding();assert.equal(fresh.getState().scheduled,false);assert.equal(fresh.group.getObjectByName('robot-practice-football').visible,false);
 });
+
+for(const kind of ['lcCurvedSofa','diningChair','lcRecliner'])test(`${kind} quick watch launches from the selected real seat and restores its saved target`,t=>{
+ const home=world([{id:'tv',kind:'ipWideTelevision',x:0,z:-3,rotation:0},{id:'selected-seat',kind,x:0,z:1.3,rotation:180}]),c=actor(t,home);
+ const watch=c.interactions('furniture:selected-seat').find(row=>row.id==='watch');assert.ok(watch,'every supported television seat has its own watch entry');assert.equal(watch.disabled,false,watch.reason);
+ assert.equal(c.interact('furniture:selected-seat','watch').ok,true);until(c,state=>state.phase==='watch'&&!state.scheduled);
+ assert.equal(c.getState().television.seatId,'selected-seat');const saved=c.captureActivity({emit:false});assert.equal(isRobotActivityTargetValid(record(home),saved),true);
+ const fresh=actor(t,home);fresh.setAvatar({activity:saved,equipped:{}});assert.equal(fresh.getState().phase,'watch');assert.equal(fresh.getState().television.seatId,'selected-seat');
+});

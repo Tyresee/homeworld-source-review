@@ -1,0 +1,982 @@
+{
+  "share": {
+    "id": "sample",
+    "publishedAt": "2026-10-31T00:00:00.000Z",
+    "snapshot": {
+      "schemaVersion": 1,
+      "gameId": "homeworld",
+      "theme": "warm",
+      "title": "Sample Learner Home",
+      "floors": [
+        {
+          "version": 3,
+          "sandbox": false,
+          "paint": 0,
+          "profile": "account",
+          "slab": {
+            "rects": [
+              {
+                "minX": -2.8,
+                "minZ": -3.8,
+                "width": 11.2,
+                "depth": 11.6
+              }
+            ]
+          },
+          "rooms": [
+            {
+              "id": "living",
+              "kind": "living",
+              "cx": -1,
+              "cz": -1
+            },
+            {
+              "id": "room-1",
+              "kind": "kitchen",
+              "cx": 1,
+              "cz": -1,
+              "bounds": {
+                "minX": 2.8,
+                "minZ": -3.8,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#e3e6da",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#f2efe3",
+                "material": "ceramic"
+              }
+            },
+            {
+              "id": "room-2",
+              "kind": "playroom",
+              "cx": -1,
+              "cz": 1,
+              "bounds": {
+                "minX": -2.8,
+                "minZ": 2.6,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#f5e7c6",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#dfeaf2",
+                "material": "ceramic"
+              }
+            }
+          ],
+          "surfaces": {
+            "wall.inner": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "wall.outer": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "table.top": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.edge": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.legs": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "floor.main": {
+              "color": "#e7cfaa",
+              "material": "oak"
+            },
+            "wall.side": {
+              "color": "#d0dcca",
+              "material": "ceramic"
+            },
+            "window.frame": {
+              "color": "#faf0d7",
+              "material": "oak"
+            },
+            "shelf.main": {
+              "color": "#cda67c",
+              "material": "oak"
+            },
+            "stool.main": {
+              "color": "#daae87",
+              "material": "oak"
+            },
+            "plant.pot": {
+              "color": "#d79d7c",
+              "material": "ceramic"
+            },
+            "toy.body": {
+              "color": "#f8e4c9",
+              "material": "ceramic"
+            },
+            "rug.main": {
+              "color": "#d9e3d3",
+              "material": "ceramic"
+            }
+          },
+          "decals": [],
+          "props": [],
+          "furniture": [
+            {
+              "id": "item-1",
+              "kind": "ipRetroTelevision",
+              "x": 0,
+              "z": 3.45,
+              "rotation": 0,
+              "color": "#c99563",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-2",
+              "kind": "sofa",
+              "x": 0,
+              "z": 6.6,
+              "rotation": 180,
+              "color": "#f7ead7",
+              "material": "velvet",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-6",
+              "kind": "bdSmartToilet",
+              "x": 7.1,
+              "z": -2.8,
+              "rotation": 0,
+              "color": "#91b7b8",
+              "material": "ceramic",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-7",
+              "kind": "loungeChair",
+              "x": 4,
+              "z": 0.2,
+              "rotation": 180,
+              "color": "#eeaaa4",
+              "material": "velvet",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-8",
+              "kind": "lcRockingChair",
+              "x": 6.4,
+              "z": 0.2,
+              "rotation": 0,
+              "color": "#bf976b",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            }
+          ],
+          "upgrades": {
+            "wall": 1,
+            "sidewall": 1,
+            "floor": 1,
+            "table": 1,
+            "window": 1,
+            "shelf": 1,
+            "stool": 1,
+            "plant": 1,
+            "toy": 1,
+            "rug": 1
+          },
+          "plans": {
+            "wall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "sidewall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "floor": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "table": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "window": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "shelf": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "stool": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "plant": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "toy": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "rug": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            }
+          },
+          "placements": {
+            "plant": {
+              "x": -2.15,
+              "z": 2.1
+            },
+            "toy": {
+              "x": 2.02,
+              "z": -1.44
+            },
+            "rug": {
+              "x": 0.28,
+              "z": 0.58
+            },
+            "stool": {
+              "x": 2.2,
+              "z": 2.1
+            }
+          },
+          "table": {
+            "x": 0,
+            "z": 0,
+            "rotation": 0
+          },
+          "revision": 0,
+          "stairs": {
+            "id": "stairs-1",
+            "x": 0,
+            "z": 0,
+            "rotation": 0,
+            "direction": "up",
+            "type": "elevator"
+          }
+        },
+        {
+          "version": 3,
+          "sandbox": false,
+          "paint": 0,
+          "profile": "upper",
+          "slab": {
+            "rects": [
+              {
+                "minX": -2.8,
+                "minZ": -3.8,
+                "width": 11.2,
+                "depth": 11.6
+              }
+            ]
+          },
+          "rooms": [
+            {
+              "id": "room-3",
+              "kind": "bedroom",
+              "cx": 1,
+              "cz": -1,
+              "bounds": {
+                "minX": 2.8,
+                "minZ": -3.8,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#f2e0dc",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#f5e9ea",
+                "material": "ceramic"
+              }
+            },
+            {
+              "id": "room-4",
+              "kind": "study",
+              "cx": 1,
+              "cz": 1,
+              "bounds": {
+                "minX": 2.8,
+                "minZ": 1.4,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#e7d2ae",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#e8e4d2",
+                "material": "ceramic"
+              }
+            }
+          ],
+          "surfaces": {
+            "wall.inner": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "wall.outer": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "table.top": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.edge": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.legs": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "floor.main": {
+              "color": "#e7cfaa",
+              "material": "oak"
+            },
+            "wall.side": {
+              "color": "#d0dcca",
+              "material": "ceramic"
+            },
+            "window.frame": {
+              "color": "#faf0d7",
+              "material": "oak"
+            },
+            "shelf.main": {
+              "color": "#cda67c",
+              "material": "oak"
+            },
+            "stool.main": {
+              "color": "#daae87",
+              "material": "oak"
+            },
+            "plant.pot": {
+              "color": "#d79d7c",
+              "material": "ceramic"
+            },
+            "toy.body": {
+              "color": "#f8e4c9",
+              "material": "ceramic"
+            },
+            "rug.main": {
+              "color": "#d9e3d3",
+              "material": "ceramic"
+            }
+          },
+          "decals": [],
+          "props": [],
+          "furniture": [
+            {
+              "id": "item-9",
+              "kind": "ipRetroTelevision",
+              "x": 5.6,
+              "z": 2.25,
+              "rotation": 0,
+              "color": "#c99563",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-10",
+              "kind": "sofa",
+              "x": 5.6,
+              "z": 5.3999999999999995,
+              "rotation": 180,
+              "color": "#f7ead7",
+              "material": "velvet",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-11",
+              "kind": "bedTimber",
+              "x": 5.6,
+              "z": -1.2,
+              "rotation": 0,
+              "color": "#c99362",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-12",
+              "kind": "bed",
+              "x": 0,
+              "z": 5.1,
+              "rotation": 0,
+              "color": "#c6b6d9",
+              "material": "linen",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            }
+          ],
+          "upgrades": {
+            "wall": 1,
+            "sidewall": 1,
+            "floor": 1,
+            "table": 1,
+            "window": 1,
+            "shelf": 1,
+            "stool": 1,
+            "plant": 1,
+            "toy": 1,
+            "rug": 1
+          },
+          "plans": {
+            "wall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "sidewall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "floor": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "table": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "window": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "shelf": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "stool": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "plant": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "toy": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "rug": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            }
+          },
+          "placements": {
+            "plant": {
+              "x": -2.15,
+              "z": 2.1
+            },
+            "toy": {
+              "x": 2.02,
+              "z": -1.44
+            },
+            "rug": {
+              "x": 0.28,
+              "z": 0.58
+            },
+            "stool": {
+              "x": 2.2,
+              "z": 2.1
+            }
+          },
+          "table": {
+            "x": 0,
+            "z": 0,
+            "rotation": 0
+          },
+          "revision": 0,
+          "stairs": {
+            "id": "stairs-1",
+            "x": 0,
+            "z": 0,
+            "rotation": 0,
+            "direction": "down",
+            "type": "elevator"
+          }
+        }
+      ],
+      "outdoor": {
+        "home": {
+          "version": 3,
+          "sandbox": false,
+          "paint": 0,
+          "profile": "account",
+          "slab": {
+            "rects": [
+              {
+                "minX": -2.8,
+                "minZ": -3.8,
+                "width": 11.2,
+                "depth": 11.6
+              }
+            ]
+          },
+          "rooms": [
+            {
+              "id": "living",
+              "kind": "living",
+              "cx": -1,
+              "cz": -1
+            },
+            {
+              "id": "room-1",
+              "kind": "kitchen",
+              "cx": 1,
+              "cz": -1,
+              "bounds": {
+                "minX": 2.8,
+                "minZ": -3.8,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#e3e6da",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#f2efe3",
+                "material": "ceramic"
+              }
+            },
+            {
+              "id": "room-2",
+              "kind": "playroom",
+              "cx": -1,
+              "cz": 1,
+              "bounds": {
+                "minX": -2.8,
+                "minZ": 2.6,
+                "width": 5.6,
+                "depth": 5.2
+              },
+              "floor": {
+                "color": "#f5e7c6",
+                "material": "oak"
+              },
+              "wall": {
+                "color": "#dfeaf2",
+                "material": "ceramic"
+              }
+            }
+          ],
+          "surfaces": {
+            "wall.inner": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "wall.outer": {
+              "color": "#f7ead7",
+              "material": "ceramic"
+            },
+            "table.top": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.edge": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "table.legs": {
+              "color": "#c99362",
+              "material": "oak"
+            },
+            "floor.main": {
+              "color": "#e7cfaa",
+              "material": "oak"
+            },
+            "wall.side": {
+              "color": "#d0dcca",
+              "material": "ceramic"
+            },
+            "window.frame": {
+              "color": "#faf0d7",
+              "material": "oak"
+            },
+            "shelf.main": {
+              "color": "#cda67c",
+              "material": "oak"
+            },
+            "stool.main": {
+              "color": "#daae87",
+              "material": "oak"
+            },
+            "plant.pot": {
+              "color": "#d79d7c",
+              "material": "ceramic"
+            },
+            "toy.body": {
+              "color": "#f8e4c9",
+              "material": "ceramic"
+            },
+            "rug.main": {
+              "color": "#d9e3d3",
+              "material": "ceramic"
+            }
+          },
+          "decals": [],
+          "props": [],
+          "furniture": [
+            {
+              "id": "item-1",
+              "kind": "ipRetroTelevision",
+              "x": 0,
+              "z": 3.45,
+              "rotation": 0,
+              "color": "#c99563",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-2",
+              "kind": "sofa",
+              "x": 0,
+              "z": 6.6,
+              "rotation": 180,
+              "color": "#f7ead7",
+              "material": "velvet",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-6",
+              "kind": "bdSmartToilet",
+              "x": 7.1,
+              "z": -2.8,
+              "rotation": 0,
+              "color": "#91b7b8",
+              "material": "ceramic",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-7",
+              "kind": "loungeChair",
+              "x": 4,
+              "z": 0.2,
+              "rotation": 180,
+              "color": "#eeaaa4",
+              "material": "velvet",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            },
+            {
+              "id": "item-8",
+              "kind": "lcRockingChair",
+              "x": 6.4,
+              "z": 0.2,
+              "rotation": 0,
+              "color": "#bf976b",
+              "material": "oak",
+              "level": 1,
+              "plans": {
+                "structure": 1,
+                "material": 1,
+                "decor": 1,
+                "detail": 1
+              }
+            }
+          ],
+          "upgrades": {
+            "wall": 1,
+            "sidewall": 1,
+            "floor": 1,
+            "table": 1,
+            "window": 1,
+            "shelf": 1,
+            "stool": 1,
+            "plant": 1,
+            "toy": 1,
+            "rug": 1
+          },
+          "plans": {
+            "wall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "sidewall": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "floor": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "table": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "window": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "shelf": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "stool": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "plant": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "toy": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            },
+            "rug": {
+              "structure": 1,
+              "material": 1,
+              "decor": 1,
+              "detail": 1
+            }
+          },
+          "placements": {
+            "plant": {
+              "x": -2.15,
+              "z": 2.1
+            },
+            "toy": {
+              "x": 2.02,
+              "z": -1.44
+            },
+            "rug": {
+              "x": 0.28,
+              "z": 0.58
+            },
+            "stool": {
+              "x": 2.2,
+              "z": 2.1
+            }
+          },
+          "table": {
+            "x": 0,
+            "z": 0,
+            "rotation": 0
+          },
+          "revision": 0,
+          "stairs": {
+            "id": "stairs-1",
+            "x": 0,
+            "z": 0,
+            "rotation": 0,
+            "direction": "up",
+            "type": "elevator"
+          }
+        },
+        "owned": [
+          {
+            "id": "outdoor-1",
+            "status": "placed",
+            "item": {
+              "id": "outdoor-1",
+              "kind": "outdoor-bench",
+              "x": -9,
+              "z": 6,
+              "rotation": 0,
+              "color": "#b79068"
+            }
+          },
+          {
+            "id": "outdoor-2",
+            "status": "placed",
+            "item": {
+              "id": "outdoor-2",
+              "kind": "outdoor-football-3",
+              "x": 5,
+              "z": 17,
+              "rotation": 0,
+              "color": "#477b4b"
+            }
+          },
+          {
+            "id": "outdoor-3",
+            "status": "placed",
+            "item": {
+              "id": "outdoor-3",
+              "kind": "outdoor-garden-2",
+              "x": -9,
+              "z": 0,
+              "rotation": 0,
+              "color": "#eaa8a4"
+            }
+          },
+          {
+            "id": "outdoor-4",
+            "status": "placed",
+            "item": {
+              "id": "outdoor-4",
+              "kind": "outdoor-pool-3",
+              "x": 14,
+              "z": 0,
+              "rotation": 0,
+              "color": "#f4e9cd"
+            }
+          }
+        ]
+      },
+      "avatar": {
+        "kind": "robot",
+        "modelId": "robot-companion",
+        "modelVersion": "v4",
+        "colors": {
+          "shell": "#e9dfc9",
+          "accent": "#869779"
+        },
+        "equipped": {
+          "outfit": null,
+          "headwear": null,
+          "footwear": null
+        }
+      }
+    }
+  }
+}

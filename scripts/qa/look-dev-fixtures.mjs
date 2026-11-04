@@ -74,11 +74,11 @@ function bathroom() {
 function exterior() {
   const slab={rects:[{minX:-2.8,minZ:-2.6,width:8.4,depth:5.2}]},right={minX:2.8,minZ:-2.6,width:2.8,depth:5.2};
   let home=createHomeState({sandbox:false,profile:'account',slab,rooms:[room('living'),room('kitchen-compact',right,'lookdev-kitchen')]}),upper=createHomeState({sandbox:false,profile:'upper',slab,rooms:[room('bedroom'),room('bathroom',right,'lookdev-bathroom')]});
-  const stair={id:'lookdev-stairs',x:-.9,z:0,rotation:0};
+  const stair={id:'lookdev-stairs',x:-.1,z:-.4,rotation:0};
   const lower=applyChange(home,{type:'stairs',stairs:{...stair,direction:'up'}}),higher=applyChange(upper,{type:'stairs',stairs:{...stair,direction:'down'}});
   if(!lower.ok||!higher.ok)throw new Error('Illegal two-storey fixture: '+(lower.error??higher.error));
-  home=place(lower.state,'exterior-sofa','sofa',1.6,1.5);
-  upper=place(higher.state,'upper-bed','bedTimber',1.5,-.2);
+  home=place(lower.state,'exterior-sofa','sofa',1.6,1.7);
+  upper=place(higher.state,'upper-bed','bedTimber',1.6,-.2);
   return {home,upperFloors:[upper],robotPoint:{x:0,z:5.5}};
 }
 const HOUSE_LIVING_ITEMS=new Set(['h-sofa','h-table','h-rug','h-lamp'].map(id=>'lookdev:'+id));
@@ -97,8 +97,8 @@ function house() {
   ]});
   for(const [id,kind,x,z]of [
     ['h-sofa','sofa',0,-1.1],['h-table','lcCoffeeTable',0,.2],['h-rug','rug',0,.2],
-    ['h-lamp','hhTripodLamp',-1.8,-1.15],['h-cooker','mkDoubleGas',3.4,-1.65],
-    ['h-sink','mkSingleSink',4.35,-1.65],['h-dining','hhDropLeafTable',4.2,.9],
+    ['h-lamp','hhTripodLamp',-1.8,-1.15],['h-cooker','mkDoubleGas',3.4,-1.95],
+    ['h-sink','mkSingleSink',3.75,-.65],['h-dining','hhDropLeafTable',4.2,.9],
     ['h-bed','bedTimber',-.9,4.3],['h-bedside','bedsideCabinet',.3,3.4],
     ['h-bedrug','rug',-.6,6.4],['h-toilet','compactToilet',3.5,3.5],
     ['h-vanity','bathroomVanity',4.7,3.4],

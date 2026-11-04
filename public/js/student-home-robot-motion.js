@@ -19,8 +19,32 @@ export function createRobotFurnitureEntry(descriptor,poses,{point:start,rotation
     step('back-step',"DisplayText4099",Math.max(.4,Math.hypot(approach.x-m.alignment.x,approach.z-m.alignment.z)/.62),turned,standing,{gait:true}),
     step('sit-down',"DisplayText4100, DisplayText4101",.95,standing,seated,{feetFrom,feetTo}),
   ];
+  if(descriptor.compactPath?.length){
+    steps.originTime=time;steps.originRotation=rotation*Math.PI/180;
+    const route=descriptor.compactPath,approachSteps=[];let previous=startFrame;
+    for(let i=1;i<route.length;i++){
+      const a=route[i-1],b=route[i],angle=Math.atan2(b.x-a.x,b.z-a.z)*180/Math.PI;
+      const turned=frame({...a,rotation:angle},{action:'walk',compact:1,time:time+i*.3}),next=frame({...b,rotation:angle},{action:'walk',compact:1,time:time+i*.3+.3});
+      approachSteps.push(step('compact-turn',"DisplayText4947, DisplayText4948",.35,previous,turned),step('compact-step',"DisplayText4949",Math.max(.3,Math.hypot(b.x-a.x,b.z-a.z)/.65),turned,next));previous=next;
+    }
+    steps[0].from=previous;steps[0].phase='compact-align';steps[1].phase='compact-seat-turn';steps.unshift(...approachSteps);
+  }
+  if(m.ladder){
+    steps.splice(2);
+    const foot=frame({...m.ladder.base,rotation:m.ladder.rotation});
+    steps.push(step('ladder-board',"DisplayText4950, DisplayText4951",.65,turned,foot,{gait:true}));
+    let prior=foot;
+    for(let i=1;i<=5;i++){
+      const next=frame({...m.ladder.base,y:FLOOR_Y+i*.23,rotation:m.ladder.rotation},{action:'stairs',ladder:1,time:(i+.5)*Math.PI/6.8});
+      steps.push(step('ladder-step',"DisplayText4952, DisplayText4953",.48,prior,next));prior=next;
+    }
+    const facingOut=frame({...m.ladder.base,y:prior.point.y,rotation:m.ladder.rotation+180},{action:'stairs',ladder:1,time:5.5*Math.PI/6.8});
+    steps.push(step('ladder-turn',"DisplayText4954, DisplayText4955",.65,prior,facingOut));
+    const perch=frame({...m.ladder.perch,rotation:m.ladder.rotation+180},{action:'sit',tuck:1,ladder:1}),cross=frame({...m.edge,y:m.ladder.perch.y},{action:'sit',tuck:1,ladder:1});
+    steps.push(step('ladder-sit',"DisplayText4956, DisplayText4103",.95,facingOut,perch),step('ladder-cross',"DisplayText4957",.8,perch,cross),step('ladder-settle',"DisplayText4958",.65,cross,seated));
+  }
   if(descriptor.kind==='lie'){
-    const lifted=frame(m.edge,{action:'sit',tuck:1}),centred=frame(m.centre,{action:'sit',tuck:1}),lying=frame(m.final,{action:'lie'});
+    const lifted=frame(m.edge,{action:'sit',tuck:1}),centred=frame(m.centre,{action:'sit',tuck:1}),lying=frame(m.final,{action:'lie',curl:m.curl??0});
     steps.push(step('bed-edge',"DisplayText4102",.35,seated,seated),
       step('leg-lift',"DisplayText4103, DisplayText4104",.85,seated,lifted,{supportTarget:m.edge.y}),
       step('bed-turn',"DisplayText4105, DisplayText4106",1.15,lifted,centred,{supportTarget:m.edge.y}),
@@ -29,12 +53,15 @@ export function createRobotFurnitureEntry(descriptor,poses,{point:start,rotation
   return steps;
 }
 const exitNames={
+  'compact-align':['compact-reset',"DisplayText4959"],'compact-seat-turn':['compact-turn-out',"DisplayText4960"],
+  'compact-step':['compact-retreat',"DisplayText4947, DisplayText4961"],'compact-turn':['compact-face-out',"DisplayText4962"],
   'lie-down':['lie-rise',"DisplayText4109, DisplayText4110"],'bed-turn':['bed-turn-out',"DisplayText4111"],'leg-lift':['legs-down',"DisplayText4112"],
+  'ladder-turn':['ladder-turn-back',"DisplayText4963"],'ladder-cross':['ladder-cross-out',"DisplayText4964"],'ladder-settle':['ladder-lift',"DisplayText4956, DisplayText4103"],'ladder-sit':['ladder-rise',"DisplayText4965, DisplayText4966"],'ladder-step':['ladder-descend',"DisplayText4952, DisplayText4967"],'ladder-board':['ladder-away',"DisplayText4968"],
   'bed-edge':['bed-edge',"DisplayText4113"],'sit-down':['stand-up',"DisplayText4114, DisplayText4115"],'back-step':['step-away',"DisplayText4116"],
 };
-export function reverseRobotFurnitureSteps(steps){return steps.filter(s=>exitNames[s.phase]).slice().reverse().map(s=>{
+export function reverseRobotFurnitureSteps(steps){const result=steps.filter(s=>exitNames[s.phase]).slice().reverse().map(s=>{
   const[phase,label]=exitNames[s.phase];return {...s,phase,label,from:s.to,to:s.from,feetFrom:s.feetTo,feetTo:s.feetFrom};
-});}
+});if(Number.isFinite(steps.originTime)){result.originTime=steps.originTime;result.originRotation=steps.originRotation;}return result;}
 export function sampleRobotMotionStep(step,progress,time=0){
   const p=Math.max(0,Math.min(1,progress)),t=step.gait?p:p*p*(3-2*p),a=step.from,b=step.to;
   let delta=((b.rotation-a.rotation+540)%360)-180;

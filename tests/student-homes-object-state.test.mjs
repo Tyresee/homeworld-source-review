@@ -73,10 +73,23 @@ for(const kind of OBJECT_CAPABILITY_KINDS.television)test(`${kind} is purchasabl
   await f.command({type:'placeItem',id,pose:{x:0,z:0,rotation:90},storey:0});const money={...f.payments.control};
   const result=await f.command(settings(id,{power:true,channel:3,volume:0}));
   assert.deepEqual(getObjectState(result.home.commerce,id),{power:true,channel:3,volume:0});assert.equal(result.receipt.amount,0);assert.deepEqual(f.payments.control,money);
-  await assert.rejects(f.command(settings(id,{channel:4})),e=>e.status===422);
+  await assert.rejects(f.command(settings(id,{channel:12})),e=>e.status===422);
   await assert.rejects(f.command(settings(id,{brightness:3})),e=>e.status===422);
   await f.restart();const restored=await f.store.get(TENANT,A);assert.deepEqual(restored.commerce.objectStates[id],{power:true,channel:3,volume:0});
   assert.equal(validateStudentHome(restored,A),true);assert.deepEqual(f.payments.control,money);
+});
+
+test('the rollback-compatible reader accepts the expanded channel range without changing wallet or inventory',async t=>{
+  const f=await fixture(t),{id}=await f.buy('ipRetroTelevision-classic');
+  await f.command({type:'placeItem',id,pose:{x:0,z:0,rotation:0},storey:0});
+  const before=await f.store.get(TENANT,A),money={...f.payments.control};
+  await f.command(settings(id,{power:true,channel:11}));await f.restart();
+  const restored=await f.store.get(TENANT,A);
+  assert.equal(getObjectState(restored.commerce,id).channel,11);
+  assert.equal(validateStudentHome(restored,A),true);
+  assert.deepEqual(restored.commerce.owned,before.commerce.owned);
+  assert.deepEqual(f.payments.control,money);
+  for(const channel of [-1,12,1.5,'11'])await assert.rejects(f.command(settings(id,{channel})),e=>e.status===422);
 });
 
 test('settings reject wrong floors, unknown objects, furniture capabilities, and injected fields',async t=>{
@@ -109,7 +122,7 @@ test('bounded television fields and cross-type patches cannot forge object media
   const owned={id:'owned-tv',source:'purchase',status:'placed',storey:0,item:{id:'owned-tv',kind:'ipWideTelevision'}},base={version:6,owned:[owned]};
   const result=applyOwnedObjectState(base,owned.id,{power:true,channel:3,volume:2},{storey:0});assert.equal(result.ok,true);
   assert.deepEqual(getObjectState(result.state,owned.id),{power:true,channel:3,volume:2});assert.equal(validateObjectStates(result.state),true);
-  for(const patch of [{channel:4},{channel:-1},{volume:3},{volume:.5},{brightness:1},{url:'https://untrusted.invalid/media'},JSON.parse('{"__proto__":{}}')])
+  for(const patch of [{channel:12},{channel:-1},{volume:3},{volume:.5},{brightness:1},{url:'https://untrusted.invalid/media'},JSON.parse('{"__proto__":{}}')])
     assert.equal(applyOwnedObjectState(base,owned.id,patch,{storey:0}).ok,false);
   for(const map of [[],null,{absent:{power:true,channel:0,volume:1}},JSON.parse('{"__proto__":{"power":true}}'),{'owned-tv':{power:true,channel:0,volume:1,extra:0}}])
     assert.equal(validateObjectStates({...base,objectStates:map}),false);

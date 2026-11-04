@@ -2,15 +2,17 @@ import {isRobotBedKind} from '../../public/js/home-furniture-capabilities.js';
 import {getFloorHome,getFloorHomes} from '../../public/js/home-commerce.js';
 import {isAvatarPositionWalkable,listAvatarInteractions} from '../../public/js/home-avatar-navigation.js';
 import {isOutdoorRobotPositionWalkable,getRobotPoolDescriptor} from '../../public/js/student-home-robot-swimming.js';
-import {getHomeStairs,STAIR_DEPTH} from '../../public/js/home-staircase-shape.js';
+import {getHomeStairs,getStaircaseEntrances} from '../../public/js/home-staircase-shape.js';
+import {planRobotElevator} from '../../public/js/student-home-robot-elevator.js';
 import {planRobotTelevision,sampleTelevisionRemoteReach,planRobotSofaTidy,planRobotTableWipe} from '../../public/js/student-home-robot-interactions.js';
 import {isRobotActivityShape,normalizeRobotActivity,sameRobotActivity} from '../../public/js/student-home-robot-state.js';
 import {getRobotFootballDescriptor} from '../../public/js/student-home-robot-football.js';
 import {DANCE_CLEARANCE_RADIUS} from '../../public/js/student-home-robot-dance.js';
 import {exactKeys,invalid} from './errors.mjs';
 
-// Base v4 asset's measured walking envelope, including its backpack and 2 cm
-// clearance. The renderer additionally checks the equipped outfit's envelope.
+// Historical v4 validation envelope, including backpack and 2 cm clearance.
+// Keep this stable: replaying a pending resale recomputes receipt detail hashes.
+// The renderer measures the fitted body and outfit for current physical checks.
 const navigation=Object.freeze({radius:.4485902240491439,height:1.50377153758785});
 const toiletKinds=new Set(['compactToilet','bdSplitToilet','bdMonoblocToilet','bdSmartToilet']);
 const clone=value=>structuredClone(value);
@@ -41,24 +43,30 @@ export function isRobotActivityTargetValid(home,activity){
     if(['stairs','elevator'].includes(activity.kind)){
       const stair=getHomeStairs(floor).find(row=>row.id===activity.itemId),floors=getFloorHomes(commerce);
       if(!stair||(activity.kind==='elevator')!==(stair.type==='elevator')||activity.kind==='elevator'&&activity.step>8)return false;
+      if(Object.hasOwn(activity,'targetStorey')&&activity.targetStorey>=floors.length)return false;
+      const entrances=getStaircaseEntrances(stair),margin=navigation.radius+.08;
+      const at=side=>{const point=entrances[side],dx=point.x-stair.x,dz=point.z-stair.z,length=Math.hypot(dx,dz);return {x:point.x+dx/length*margin,z:point.z+dz/length*margin};};
+      if(activity.kind==='elevator'&&Object.hasOwn(activity,'targetStorey'))return planRobotElevator(floor,floors,activity.storey,stair.id,at(stair.direction==='up'?'lower':'upper'),navigation,activity.targetStorey).ok;
       const other=floors[activity.storey+(stair.direction==='up'?1:-1)];
       const peer=getHomeStairs(other).find(row=>row.id===stair.id&&row.direction!==stair.direction);
       if(!peer||!['x','z','rotation','type'].every(key=>peer[key]===stair[key]))return false;
-      const angle=stair.rotation*Math.PI/180,margin=STAIR_DEPTH/2+navigation.radius+.08;
-      const at=sign=>({x:stair.x+Math.sin(angle)*margin*sign,z:stair.z+Math.cos(angle)*margin*sign});
-      return isAvatarPositionWalkable(floor,at(stair.direction==='up'?1:-1),navigation)
-        &&isAvatarPositionWalkable(other,at(stair.direction==='up'?-1:1),navigation);
+      return isAvatarPositionWalkable(floor,at(stair.direction==='up'?'lower':'upper'),navigation)
+        &&isAvatarPositionWalkable(other,at(stair.direction==='up'?'upper':'lower'),navigation);
     }
     const owned=commerce?.owned?.find(row=>row.id===activity.itemId);
     if(!owned||!['purchase','gift'].includes(owned.source)||owned.status!=='placed')return false;
-    if(activity.kind==='football')return owned.storey===null&&!!getRobotFootballDescriptor(commerce,`outdoor:${owned.id}`,{navigation});
-    if(activity.kind==='swim')return owned.storey===null&&!!getRobotPoolDescriptor(commerce,`outdoor:${owned.id}`,{navigation});
+    if(activity.kind==='football')return owned.storey===null&&!!getRobotFootballDescriptor(commerce,`outdoor:${owned.id}`,{navigation,entryIndex:activity.entryIndex});
+    if(activity.kind==='swim')return owned.storey===null&&!!getRobotPoolDescriptor(commerce,`outdoor:${owned.id}`,{navigation,entryIndex:activity.entryIndex,variant:activity.variant??'swim'});
     if(owned.storey!==activity.storey)return false;
     if(!floor.furniture?.some(item=>item.id===activity.itemId&&item.kind===owned.item.kind))return false;
     if(activity.kind==='sleep')return owned.source==='purchase'&&isRobotBedKind(owned.item?.kind);
     if(activity.action==='wipe')return !!planRobotTableWipe(floor,`furniture:${owned.id}`,{navigation,approachIndex:activity.approachIndex});
     if(activity.action==='tidy')return !!planRobotSofaTidy(floor,`furniture:${owned.id}`,{navigation,approachIndex:activity.approachIndex});
-    const choices=listAvatarInteractions(floor,`furniture:${owned.id}`,{...navigation,approachIndex:activity.approachIndex});
+    let choices=listAvatarInteractions(floor,`furniture:${owned.id}`,{...navigation,approachIndex:activity.approachIndex});
+    // A short, reversible furniture transition may use the robot's measured
+    // folded-arm posture. The client checks the dressed per-mesh sweep; the
+    // server retains ownership, floor, action and a bounded passage check.
+    if(!choices.some(row=>row.kind===activity.action)&&['sit','lie'].includes(activity.action))choices=listAvatarInteractions(floor,`furniture:${owned.id}`,{...navigation,radius:.32,approachIndex:activity.approachIndex});
     return choices.some(row=>row.kind===activity.action)
       ||activity.action==='sit'&&toiletKinds.has(owned.item.kind)&&choices.some(row=>row.kind==='admire');
   }catch{return false;}

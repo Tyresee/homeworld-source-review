@@ -120,7 +120,7 @@ test('disposed world ignores late view-control changes',async()=>{
 
 test('Warm roaming suspends the object runtime and returns to the exact prior view without resetting its camera',async()=>{
   const {world,calls}=await fixture({warmUI:true});const home=createStudentHome('11111111-1111-4111-8111-111111111111');world.setCommerce(home.commerce,home.avatar);world.setView('estate');const before=JSON.stringify(home);
-  assert.equal(await world.enterRoam(),true);assert.equal(world.getView(),'roam');assert.equal(world.isRoaming(),true);assert.equal(calls.runtimeVisible.at(-1),false);assert.equal(calls.notifications.at(-1),'roam');
+  assert.equal(await world.enterRoam(),true);assert.deepEqual(calls.roamOptions.at(-1),{enterDoor:false,enterOutdoor:true},'Visit from the estate directly enters the real garden');assert.equal(world.getView(),'roam');assert.equal(world.isRoaming(),true);assert.equal(calls.runtimeVisible.at(-1),false);assert.equal(calls.notifications.at(-1),'roam');
   world.exitRoam();assert.equal(world.getView(),'estate');assert.deepEqual(calls.views,['estate'],'Exit must not call the normal camera-resetting setView');assert.equal(calls.runtimeVisible.at(-1),false);assert.equal(calls.notifications.at(-1),'estate');assert.equal(JSON.stringify(home),before);
   world.setView('interior');await world.enterRoam();world.exitRoam();assert.equal(calls.runtimeVisible.at(-1),true);world.dispose();
 });

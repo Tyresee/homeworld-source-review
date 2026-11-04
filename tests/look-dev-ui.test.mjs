@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {zipFiles} from '../scripts/qa/look-dev-zip.mjs';
 import {LOOK_DEV_VIEWS} from '../scripts/qa/look-dev-fixtures.mjs';
 import {HOME_THEMES} from '../public/js/home-theme.js';
@@ -18,12 +19,11 @@ test('look-development default keeps original per-part colors and sun direction 
   assert.equal(value.render.sun.azimuth,null);assert.equal(value.render.sun.altitude,null);
   assert.deepEqual(value.build.furniture,{mode:'default',examples:{}});
 });
-test('toy-v1 starts with the exact existing toy colors and lights, without inventing material changes',async()=>{
+test('the immutable toy-v1 review fixture retains its original palette alongside the newer L1 runtime',async()=>{
   const value=await preset('toy-v1'),theme=value.build.theme;
-  for(const[id,room]of Object.entries(HOME_THEMES.toy.rooms)){
-    assert.equal(theme.rooms[id].floor,room.floor);assert.equal(theme.rooms[id].wall,room.wall);assert.equal(theme.rooms[id].trim,room.trim);
-    assert.equal(theme.rooms[id].floorMaterial,null);assert.equal(theme.rooms[id].wallMaterial,null);
-  }
+  assert.equal(createHash('sha256').update(JSON.stringify(value)).digest('hex'),'f70fb78260e3dadd24454cf815695fef58bd9b8250171d0f9ae6ac397de2fdab');
+  assert.notEqual(theme.rooms.living.floor,HOME_THEMES.toy.rooms.living.floor,'L1 desaturates runtime wood without overwriting the historical review preset');
+  for(const room of Object.values(theme.rooms)){assert.equal(room.floorMaterial,null);assert.equal(room.wallMaterial,null);}
   assert.deepEqual(theme.shell,HOME_THEMES.toy.shell);
   for(const key of ['hemisphere','fill'])assert.deepEqual(value.render[key],HOME_THEMES.toy.lighting.editor[key]);
   assert.equal(value.render.sun.color,HOME_THEMES.toy.lighting.editor.sun.color);

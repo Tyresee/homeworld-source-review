@@ -85,5 +85,5 @@ test('real purchase-history renderer distinguishes a paid elevator from ordinary
   assert.match(records[0].textContent,/1 ↔ 2 DisplayText0931 · DisplayText0747/);assert.match(records[0].textContent,/DisplayText3484 12,000 DisplayText0920/);
   assert.doesNotMatch(records[0].textContent,/NaN|DisplayText3485|DisplayText0949 0|sqm/);
   assert.match(records[1].textContent,/2 DisplayText0931 · DisplayText3485/);assert.match(records[1].textContent,/DisplayText0949 14.56 sqm/);
-  assert.match(records[1].textContent,/DisplayText3486 6,000 DisplayText0920/);assert.match(records[1].textContent,/DisplayText3484 10,368 DisplayText0920/);
+  assert.match(records[1].textContent,/DisplayText4908 6,000 DisplayText0920/);assert.match(records[1].textContent,/DisplayText3484 10,368 DisplayText0920/);
 });

@@ -41,7 +41,7 @@ export function createMultiFloorUIReviewFixture(studentId,{now='2026-10-30T00:00
     const area=seatingRooms[storey],x=area.x,tv=stock('ipRetroTelevision-classic');
     apply({type:'placeItem',id:tv.id,pose:{x,z:area.minZ+.85,rotation:0},storey});
     apply({type:'setObjectState',id:tv.id,patch:{power:true,channel:storey},storey});televisions.push(tv.id);
-    apply({type:'placeItem',id:stock('sofa-classic').id,pose:{x,z:area.maxZ-1.2,rotation:180},storey});
+    apply({type:'placeItem',id:stock('sofa-classic').id,pose:{x:x+(storey===0?.1:0),z:area.maxZ-1.2,rotation:180},storey});
   }
   apply({type:'placeItem',id:stock('bedTimber-classic').id,pose:{x:bedroom.x,z:bedroom.z,rotation:0},storey:1});
   return {home,summary:{id:'multi-floor',floors:getFloorHomes(home.commerce).length,connectionId:connection.id,transport:'elevator',televisions,commands:commands.length,simulatedSpend:commands.reduce((sum,row)=>sum+row.amount,0)},commands};

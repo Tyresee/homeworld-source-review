@@ -316,3 +316,11 @@ The accompanying PDF and `references` folder contain only standalone art and an 
 3. `cushion-tidy-sequence.png`: existing isolated implementation frames showing contact and rebound. This is evidence of an implemented sequence, not proof of aesthetic acceptance.
 
 The selected D remote remains a toy-like object-specific action panel with substantial colored buttons, a robot display/header and a distinct leave/get-up command. Full interface screenshots are not included in this edition. The control contract and implementation status above remain the source for behavior.
+
+
+## Implemented snapshot refresh, 2026-11-04
+
+The current source includes read-only share navigation with exploded floors, camera-facing wall lowering, room hotspots and existing sightseeing elevators. It also handles the authenticated publisher's own background checkpoint race by retrying only explicit revision conflicts against a freshly read home. Ownership, save schemas, authoritative spending and the public snapshot privacy boundary remain separate. The read-only preview and focused reviewer guide are described in `docs/SHARE_VIEW_HANDOFF.md`. Historical proposals in earlier sections are context, not proof that every proposal is implemented.
+
+
+Current share clarification (2026-11-04): the standalone viewer is exterior-only (`ORBIT`/`SPOT`/`EXPLODED`/`FOCUS`). Room labels do not enter first person; elevator entry/ride APIs are unavailable. New snapshots freeze only the authorized roster display name in their title. `home-share-copy.js` and server `share-document.mjs` keep the minimal page and WeChat metadata consistent. See `docs/SHARE_VIEW_HANDOFF.md`; earlier room/elevator visit specifications are historical.

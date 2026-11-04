@@ -36,7 +36,7 @@ test('all four existing toilets retain their SKU and tier with the classroom pri
   let state = checkout.commerce;
   for (const [index, owned] of state.owned.entries()) {
     const result = prepareCommerceCommand(state, {
-      type:'placeItem', id:owned.id, pose:{x:index % 2 ? 1 : -1, z:index < 2 ? -1.1 : 1.1, rotation:0}, storey:0,
+      type:'placeItem', id:owned.id, pose:{x:index % 2 ? 1.1 : -.4, z:index < 2 ? -1.1 : 1.1, rotation:0}, storey:0,
     }, `qa-toilet-place-${index}`);
     assert.equal(result.amount, 0);
     state = result.commerce;

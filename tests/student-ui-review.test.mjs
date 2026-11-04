@@ -8,9 +8,10 @@ import {createServer} from 'node:http';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {createMultiFloorUIReviewFixture} from '../scripts/qa/student-ui-multi-floor-fixture.mjs';
+import {createElevatorCommandUIReviewFixture,createElevatorSingleEntryUIReviewFixture} from '../scripts/qa/student-ui-elevator-command-fixture.mjs';
 import {validateStudentHome} from '../server/student-homes/profile.mjs';
 import {getFloorHomes} from '../public/js/home-commerce.js';
-import {getHomeStairs} from '../public/js/home-staircase-shape.js';
+import {getHomeStairs,areElevatorsAligned} from '../public/js/home-staircase-shape.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const api='/games/homeworld/api/v1',A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222';
@@ -88,6 +89,41 @@ test('explicit multi-floor lab serves legal Sam data, keeps Robin starter-only a
   const traffic=(await readFile(lab.audit,'utf8')).trim().split('\n').map(line=>JSON.parse(line));assert.ok(traffic.every(row=>['127.0.0.1','localhost','::1'].includes(row.host)));await lab.stop();
 });
 
+test('elevator command fixture is deterministic legal paid3F with a middle-floor up/down choice and zero spendable account bookkeeping',()=>{
+  const fixture=createElevatorCommandUIReviewFixture(A),again=createElevatorCommandUIReviewFixture(A),home=fixture.home,floors=getFloorHomes(home.commerce);
+  assert.deepEqual(fixture,again);assert.equal(validateStudentHome(home,A),true);assert.equal(floors.length,3);
+  const connections=floors.flatMap(floor=>getHomeStairs(floor).filter(row=>row.direction==='up'));assert.equal(connections.length,2);assert.ok(connections.every(row=>row.type==='elevator'));assert.equal(areElevatorsAligned(connections[0],connections[1]),true);assert.notEqual(connections[0].id,connections[1].id);
+  assert.deepEqual(getHomeStairs(floors[1]).map(row=>row.direction).sort(),['down','up']);assert.equal(home.commerce.constructionLedger.filter(row=>row.type==='elevator-upgrade').length,1);
+  assert.equal(fixture.commands.at(-1).type,'constructFloor');assert.ok(fixture.commands.at(-1).amount>0);assert.equal(home.commerce.wallet.balance,0);assert.equal(fixture.robotActivity.storey,1);assert.equal(fixture.robotActivity.kind,'stand');
+});
+
+test('elevator command lab opens fictional Sam on2F with three floors, keeps Robin and wallets isolated, then removes its temporary saves',async t=>{
+  const lab=await startLab(t,{fixture:'elevator-command'});assert.equal(lab.info.fixture,'elevator-command');assert.equal(lab.info.fixtureSummary.floors,3);assert.equal(lab.info.fixtureSummary.recommendedStorey,1);
+  const sam=(await lab.call('/students/'+A+'/home')).data,robin=(await lab.call('/students/'+B+'/home')).data;
+  assert.equal(validateStudentHome(sam.home,A),true);assert.equal(getFloorHomes(sam.home.commerce).length,3);assert.equal(sam.robotActivity.storey,1);assert.equal(sam.robotActivity.environment,'interior');
+  assert.equal(robin.home.revision,0);assert.equal(robin.robotActivity,null);assert.equal(getFloorHomes(robin.home.commerce).length,1);
+  const wallet=(await lab.call('/students/'+A+'/wallet')).data.wallet;assert.equal(wallet.balance,150000);assert.equal(wallet.reserved,0);assert.equal(wallet.totalEarned-wallet.totalSpent,150000);assert.ok(wallet.totalSpent>0);
+  const scratch=join(lab.directory,'tmp'),children=await readdir(scratch);assert.equal(children.length,1);const dataDir=join(scratch,children[0]);assert.ok(relative(root,dataDir).startsWith('..'));
+  const traffic=(await readFile(lab.audit,'utf8')).trim().split('\n').map(JSON.parse);assert.ok(traffic.every(row=>['127.0.0.1','localhost','::1'].includes(row.host)));assert.equal(lab.getErrors(),'');await lab.stop();assert.equal(await exists(dataDir),false);
+});
+
+test('single-entry fixture reuses the legal three-floor account but starts Sam standing on3F for a3-to2-to1 trip',()=>{
+  const fixture=createElevatorSingleEntryUIReviewFixture(A),again=createElevatorSingleEntryUIReviewFixture(A),middle=createElevatorCommandUIReviewFixture(A),floors=getFloorHomes(fixture.home.commerce);
+  assert.deepEqual(fixture,again);assert.deepEqual(fixture.home,middle.home);assert.deepEqual(fixture.commands,middle.commands);assert.equal(validateStudentHome(fixture.home,A),true);assert.equal(floors.length,3);
+  assert.deepEqual(fixture.robotActivity,{...middle.robotActivity,storey:2});assert.equal(fixture.summary.id,'elevator-single-entry');assert.equal(fixture.summary.recommendedStorey,2);assert.equal(fixture.summary.connectionIds.length,2);assert.equal(middle.robotActivity.storey,1);
+  assert.deepEqual(createElevatorCommandUIReviewFixture(A,{startingStorey:2}).robotActivity,fixture.robotActivity);assert.throws(()=>createElevatorCommandUIReviewFixture(A,{startingStorey:3}),/not walkable/);
+});
+
+test('single-entry lab starts3F without credentials, keeps its mock wallet and Robin isolated, and cleans up all temporary data',async t=>{
+  const lab=await startLab(t,{fixture:'elevator-single-entry'});assert.equal(lab.info.fixture,'elevator-single-entry');assert.equal(lab.info.fixtureSummary.floors,3);assert.equal(lab.info.fixtureSummary.recommendedStorey,2);
+  const session=(await lab.call('/session')).data,sam=(await lab.call('/students/'+A+'/home')).data,robin=(await lab.call('/students/'+B+'/home')).data;
+  assert.equal(session.authenticated,true);assert.equal(session.actor.id,'fictional-ui-teacher');assert.equal(validateStudentHome(sam.home,A),true);assert.equal(getFloorHomes(sam.home.commerce).length,3);assert.equal(sam.robotActivity.storey,2);assert.equal(sam.robotActivity.kind,'stand');
+  assert.equal(robin.home.revision,0);assert.equal(robin.robotActivity,null);assert.equal(getFloorHomes(robin.home.commerce).length,1);
+  const wallet=(await lab.call('/students/'+A+'/wallet')).data.wallet;assert.equal(wallet.balance,150000);assert.equal(wallet.totalEarned-wallet.totalSpent,150000);assert.equal(wallet.reserved,0);
+  const scratch=join(lab.directory,'tmp'),children=await readdir(scratch);assert.equal(children.length,1);const dataDir=join(scratch,children[0]);assert.ok(relative(root,dataDir).startsWith('..'));
+  const traffic=(await readFile(lab.audit,'utf8')).trim().split('\n').map(JSON.parse);assert.ok(traffic.every(row=>['127.0.0.1','localhost','::1'].includes(row.host)));assert.equal(lab.getErrors(),'');await lab.stop();assert.equal(await exists(dataDir),false);
+});
+
 test('an occupied review port closes the upstream service and removes its temporary fixture store',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'homeworld-ui-startup-test-')),scratch=join(directory,'tmp');await mkdir(scratch);const blocker=createServer();await new Promise(done=>blocker.listen(0,'127.0.0.1',done));
   t.after(async()=>{await new Promise(done=>blocker.close(done));await rm(directory,{recursive:true,force:true});});
@@ -97,12 +133,12 @@ test('an occupied review port closes the upstream service and removes its tempor
 
 test('viewport review embeds the real local Warm application at only approved dimensions and never accepts writes',async t=>{
   const lab=await startLab(t,{fixture:'multi-floor'}),before=(await lab.call('/students/'+A+'/home')).data.home;
-  for(const[width,height]of[[1440,900],[1280,720],[1024,600]]){
+  for(const[width,height]of[[1920,1080],[1440,900],[1280,720],[1024,600]]){
     const response=await fetch(lab.origin+`/qa/viewport?width=${width}&height=${height}`),html=await response.text();assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/);assert.match(response.headers.get('content-security-policy'),/frame-src 'self'/);
     assert.ok(html.includes(`width:${width}px;height:${height}px`));assert.ok(html.includes(`title="Classroom viewport" width="${width}" height="${height}"`));assert.ok(html.includes('src="/games/homeworld/student-homes.html?theme=warm"'));assert.doesNotMatch(html,/<script|https?:\/\//i);
     const real=await fetch(lab.origin+'/games/homeworld/student-homes.html?theme=warm');assert.equal(real.status,200);assert.match(await real.text(),/student-homes\.js/);
   }
-  for(const query of['width=1279&height=720','width=1280&height=600','width=1280','width=1280&height=720&width=1440','width=1280&height=720&src=https://outside.invalid','width=1280.0&height=720']){
+  for(const query of['width=1920&height=900','width=1920.0&height=1080','width=1920&height=1080&height=900','width=1279&height=720','width=1280&height=600','width=1280','width=1280&height=720&width=1440','width=1280&height=720&src=https://outside.invalid','width=1280.0&height=720']){
     assert.equal((await fetch(lab.origin+'/qa/viewport?'+query)).status,400);
   }
   const denied=await fetch(lab.origin+'/qa/viewport?width=1280&height=720',{method:'POST'});assert.equal(denied.status,405);assert.equal(denied.headers.get('allow'),'GET');assert.deepEqual((await lab.call('/students/'+A+'/home')).data.home,before);await lab.stop();

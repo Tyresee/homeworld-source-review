@@ -30,7 +30,7 @@ function geometry(item){
     if(mesh.name==='football-foundation')foundation.union(b);
     if(/football-(?:goal-|backstop-|perimeter-board|light-)/.test(mesh.name))blockers.push({name:mesh.name,minX:b.min.x,maxX:b.max.x,minZ:b.min.z,maxZ:b.max.z,minY:b.min.y,maxY:b.max.y});
   });
-  const result=pitch.isEmpty()?null:{pitch:{minX:pitch.min.x,maxX:pitch.max.x,minZ:pitch.min.z,maxZ:pitch.max.z},surfaceY:pitch.max.y+.022,foundationY:foundation.max.y,foundationMinZ:foundation.min.z,blockers};
+  const result=pitch.isEmpty()?null:{pitch:{minX:pitch.min.x,maxX:pitch.max.x,minZ:pitch.min.z,maxZ:pitch.max.z},surfaceY:pitch.max.y+.022,foundationY:foundation.max.y,foundationMinZ:foundation.min.z,foundation:{minX:foundation.min.x,maxX:foundation.max.x,minZ:foundation.min.z,maxZ:foundation.max.z},blockers};
   model.dispose();if(cache.size>=16)cache.delete(cache.keys().next().value);cache.set(key,result);return result;
 }
 
@@ -54,31 +54,44 @@ function buildSteps(field){
 
 /** Returns null rather than offering a fake action on non-football facilities,
  * unplaced inventory, sealed entrances or overlapping old/invalid layouts. */
-export function getRobotFootballDescriptor(state,targetId,{navigation={},from}={}){
+export function getRobotFootballDescriptor(state,targetId,{navigation={},from,entryIndex}={}){
   const id=String(targetId??'').replace(/^outdoor:/,''),owned=state?.owned?.find(row=>row.id===id&&row.status==='placed'),item=owned?.item,product=getOutdoorProduct(item?.kind);
   if(!item||product?.feature!=='football'||!validateOutdoorPlacement(state,item,{excludeId:id}).ok)return null;
   const shape=geometry(item);if(!shape)return null;
   const radius=Math.max(.08,Math.min(1,navigation.radius??.46)),height=navigation.height??1.7;
   if(shape.pitch.minX>-1.05-radius||shape.pitch.maxX<2.45+radius||shape.pitch.minZ>-.85-radius)return null;
-  const pitchWidth=shape.pitch.maxX-shape.pitch.minX,depth=item.legacyFootprint?.depth??product.depth;
-  // The top-tier boards stop before the corner. Use this measured open lane,
-  // staying between board ends and the lighting columns rather than crossing it.
-  const entryX=product.level===3?-pitchWidth*.45:-1.05;
-  const field={x:item.x,z:item.z,rotation:item.rotation,surfaceY:shape.surfaceY,foundationY:shape.foundationY,foundationMinZ:shape.foundationMinZ,
-    pitch:shape.pitch,entry:{x:entryX,y:FLOOR_Y,z:-depth/2-radius-.18},corner:{x:entryX,y:shape.surfaceY,z:shape.pitch.minZ+.55},blockers:shape.blockers};
-  const approach=world(field,field.entry);
-  if(!isOutdoorRobotPositionWalkable(state,approach,navigation)||from&&!planOutdoorRobotWalk(state,from,approach,navigation).ok)return null;
-  field.steps=buildSteps(field);
-  const descriptor={id:'football',kind:'football',targetId:`outdoor:${id}`,label:"DisplayText4080",approach,field};
+  const pitchWidth=shape.pitch.maxX-shape.pitch.minX,depth=item.legacyFootprint?.depth??product.depth,width=item.legacyFootprint?.width??product.width;
   const external=[...getFloorRects(state.home).map(r=>({...r,minX:r.minX-OUTDOOR_HOUSE_CLEARANCE,maxX:r.maxX+OUTDOOR_HOUSE_CLEARANCE,minZ:r.minZ-OUTDOOR_HOUSE_CLEARANCE,maxZ:r.maxZ+OUTDOOR_HOUSE_CLEARANCE})),...getManorEntranceStepBounds(state.home),...(state.owned??[]).filter(row=>row.id!==id&&row.status==='placed').map(row=>getOutdoorItemBounds(row.item)).filter(Boolean)],land=getOutdoorLandBounds(state);
-  // Check the full swept body, including entrance/exit outside the own field.
-  for(let n=0;n<=600;n++){
-    const sample=sampleRobotFootballMotion(descriptor,FOOTBALL_PERIOD*n/600),p=sample.point;
-    if(p.x-radius<land.minX||p.x+radius>land.maxX||p.z-radius<land.minZ||p.z+radius>land.maxZ||external.some(r=>inside(p,r,radius+.025)))return null;
-    const local=rotate({x:p.x-item.x,y:p.y,z:p.z-item.z},-item.rotation);
-    if(shape.blockers.some(r=>r.maxY>p.y+.04&&r.minY<p.y+height&&inside(local,r,radius+.025)))return null;
+  // Try perimeter points on every side. Real boards/goals/posts are checked
+  // against the entire swept motion, so an open edge is usable without a magic
+  // gate while an actual solid fence remains solid.
+  const contacts=[];
+  for(const side of[0,1,2,3])for(const offset of[0,-.45,.45]){
+    const index=contacts.length,axis=side%2?'x':'z',sign=side<2?-1:1;
+    const entry=axis==='z'?{x:pitchWidth*offset,y:FLOOR_Y,z:sign*(depth/2+radius+.18)}:{x:sign*(width/2+radius+.18),y:FLOOR_Y,z:(shape.pitch.maxZ-shape.pitch.minZ)*offset};
+    const corner={x:Math.max(shape.pitch.minX+radius+.12,Math.min(shape.pitch.maxX-radius-.12,entry.x)),y:shape.surfaceY,z:Math.max(shape.pitch.minZ+radius+.12,Math.min(shape.pitch.maxZ-radius-.12,entry.z))};
+    const field={x:item.x,z:item.z,rotation:item.rotation,surfaceY:shape.surfaceY,foundationY:shape.foundationY,foundationMinZ:shape.foundationMinZ,foundation:shape.foundation,
+      pitch:shape.pitch,entry,corner,entryAxis:axis,entrySign:sign,blockers:shape.blockers};
+    contacts.push({index,field,approach:world(field,entry)});
   }
-  return descriptor;
+  if(Number.isSafeInteger(entryIndex))contacts.sort((a,b)=>Number(b.index===entryIndex)-Number(a.index===entryIndex));
+  else if(from)contacts.sort((a,b)=>Math.hypot(a.approach.x-from.x,a.approach.z-from.z)-Math.hypot(b.approach.x-from.x,b.approach.z-from.z));
+  for(const candidate of contacts){
+    if(Number.isSafeInteger(entryIndex)&&candidate.index!==entryIndex)continue;
+    const{field,approach}=candidate;
+    if(!isOutdoorRobotPositionWalkable(state,approach,navigation)||from&&!planOutdoorRobotWalk(state,from,approach,navigation).ok)continue;
+    field.steps=buildSteps(field);
+    const descriptor={id:'football',kind:'football',entryIndex:candidate.index,targetId:`outdoor:${id}`,label:"DisplayText4080",approach,field};
+    let blocked=false;
+    for(let n=0;n<=600;n++){
+      const sample=sampleRobotFootballMotion(descriptor,FOOTBALL_PERIOD*n/600),p=sample.point;
+      if(p.x-radius<land.minX||p.x+radius>land.maxX||p.z-radius<land.minZ||p.z+radius>land.maxZ||external.some(r=>inside(p,r,radius+.025))){blocked=true;break;}
+      const local=rotate({x:p.x-item.x,y:p.y,z:p.z-item.z},-item.rotation);
+      if(shape.blockers.some(r=>r.maxY>p.y+.04&&r.minY<p.y+height&&inside(local,r,radius+.025))){blocked=true;break;}
+    }
+    if(!blocked)return descriptor;
+  }
+  return null;
 }
 
 /** No mutable animation state: a timestamp is enough to restore the exact pose,
@@ -89,9 +102,12 @@ export function sampleRobotFootballMotion(descriptor,time){
   const local={x:mix(step.from.x,step.to.x,blend),y:mix(step.from.y,step.to.y,blend),z:mix(step.from.z,step.to.z,blend)};
   // Rise at the shallow edge, not while still walking across the grass. The
   // two small thresholds follow the foundation and the playing surface.
-  if(step.phase==='entry'||step.phase==='exit')local.y=FLOOR_Y
-    +(field.foundationY-FLOOR_Y)*smooth((local.z-field.foundationMinZ+.10)/.24)
-    +(field.surfaceY-field.foundationY)*smooth((local.z-field.pitch.minZ+.24)/.30);
+  if(step.phase==='entry'||step.phase==='exit'){
+    const axis=field.entryAxis??'z',sign=field.entrySign??-1,key=(sign<0?'min':'max')+axis.toUpperCase(),coordinate=-sign*local[axis];
+    const foundationEdge=-sign*(field.foundation?.[key]??field.foundationMinZ),pitchEdge=-sign*field.pitch[key];
+    local.y=FLOOR_Y+(field.foundationY-FLOOR_Y)*smooth((coordinate-foundationEdge+.10)/.24)
+      +(field.surfaceY-field.foundationY)*smooth((coordinate-pitchEdge+.24)/.30);
+  }
   const moving=Math.hypot(step.to.x-step.from.x,step.to.z-step.from.z)>.001;
   const first=field.steps.find(row=>row.phase==='kick-out'),second=field.steps.find(row=>row.phase==='kick-back');
   const travel=kick=>smooth((t-kick.start-kick.duration*.38)/(kick.duration*1.02));

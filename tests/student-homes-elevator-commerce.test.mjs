@@ -8,7 +8,7 @@ import {validateStudentHome} from '../server/student-homes/profile.mjs';
 import {createAccountCommerce,prepareCommerceCommand,validateAccountCommerce,accountCatalog} from '../server/student-homes/commerce.mjs';
 import {quoteStaircaseUpgrade,upgradeStaircase,validateCommerceState,migrateCommerceState,purchaseFloorConstruction,placeOwnedStorey,ELEVATOR_UPGRADE_PRODUCT} from '../public/js/home-commerce.js';
 import {applyChange} from '../public/js/home-engine.js';
-import {getHomeStairs,getStaircaseVolume,isStaircaseValid,FLOOR_Y,STOREY_HEIGHT} from '../public/js/home-staircase-shape.js';
+import {getHomeStairs,getStaircaseVolume,isStaircaseValid,FLOOR_Y,STOREY_HEIGHT,getExteriorElevatorPose} from '../public/js/home-staircase-shape.js';
 
 const STUDENT='11111111-1111-4111-8111-111111111111',TENANT='fictional-elevator-project',ACTOR='fictional-elevator-teacher';
 const rect={minX:-2.8,minZ:-3.8,width:5.6,depth:7.8};
@@ -64,13 +64,13 @@ test('dedicated transport product does not become an ordinary account inventory 
   assert.equal(accountCatalog().some(row=>row.skuId===ELEVATOR_UPGRADE_PRODUCT.skuId),false);
   assert.throws(()=>prepareCommerceCommand(createAccountCommerce(),{type:'checkout',lines:[{skuId:ELEVATOR_UPGRADE_PRODUCT.skuId,quantity:1}]},'isolated-buy-elevator'),e=>e.status===422);
 });
-test('quote and paid installation update a single pair atomically, preserve its pose, and record actual spending',()=>{
+test('quote and paid installation move a single pair to the fixed left exterior atomically and record actual spending',()=>{
   const before=payable(readyCommerce()),original=structuredClone(before),stair=upperLink(before);
   const quote=quoteStaircaseUpgrade(before,stair.id,{storey:1});assert.equal(quote.ok,true);assert.equal(quote.quote.lowerStorey,0);assert.equal(quote.quote.upperStorey,1);assert.equal(quote.quote.amount,12000);
   assert.deepEqual(before,original);
   const result=upgradeStaircase(before,stair.id,'isolated-upgrade-first',{storey:1});assert.equal(result.ok,true,result.error);assert.equal(validateCommerceState(result.state),true);
   assert.equal(result.state.wallet.balance,before.wallet.balance-12000);assert.equal(result.state.revision,before.revision+1);
-  for(const [index,direction] of [[0,'up'],[1,'down']])assert.deepEqual(getHomeStairs(floors(result.state)[index])[0],{...stair,direction,type:'elevator'});
+  for(const [index,direction] of [[0,'up'],[1,'down']])assert.deepEqual(getHomeStairs(floors(result.state)[index])[0],{...stair,direction,type:'elevator',...getExteriorElevatorPose()});
   assert.equal(result.state.constructionLedger.at(-1).type,'elevator-upgrade');assert.equal(result.state.constructionLedger.at(-1).total,12000);
   const noOp=upgradeStaircase(result.state,stair.id,'isolated-already-upgraded',{storey:0});assert.equal(noOp.ok,true);assert.equal(noOp.quote.amount,0);assert.equal(noOp.state,result.state);
   const replay=upgradeStaircase(result.state,stair.id,'isolated-upgrade-first',{storey:1});assert.equal(replay.repeated,true);assert.equal(replay.quote.amount,0);assert.equal(replay.state,result.state);
@@ -90,24 +90,23 @@ test('missing floors, mismatched peer records, forged upgrade charges and invali
   const duplicate=structuredClone(done),entry=structuredClone(duplicate.constructionLedger.at(-1));entry.id='another-upgrade';entry.transactionId='another-upgrade-payment';
   duplicate.constructionLedger.push(entry);duplicate.wallet.initialBalance+=entry.total;assert.equal(validateAccountCommerce(duplicate),false);
 });
-test('full-height upper cabin rejects an existing chandelier without charging or moving any goods',()=>{
+test('outdoor cabin releases indoor shaft space and preserves its chandelier',()=>{
   let state=readyCommerce();state=prepareCommerceCommand(state,{type:'checkout',lines:[{skuId:'chandelier-classic',quantity:1}]},'isolated-buy-lamp').commerce;
   state=prepareCommerceCommand(state,{type:'placeItem',id:state.owned[0].id,pose:{x:0,z:0,rotation:0},storey:1},'isolated-place-lamp').commerce;
   assert.equal(validateAccountCommerce(state),true);const before=structuredClone(state),result=upgradeStaircase(payable(state),upperLink(state).id,'isolated-lamp-conflict',{storey:0});
-  assert.equal(result.ok,false);assert.match(result.error,/DisplayText4639.*DisplayText0783/);assert.deepEqual(state,before);
+  assert.equal(result.ok,true,result.error);assert.deepEqual(result.state.upperFloors[0].furniture,state.upperFloors[0].furniture);assert.deepEqual(state,before);
 });
-test('doorway clearance covers both landings and refuses a furnishing outside the old reserved footprint',()=>{
+test('old indoor entrance furnishings no longer obstruct the fixed exterior lift',()=>{
   for(const storey of [0,1]){
     let state=readyCommerce();state=prepareCommerceCommand(state,{type:'checkout',lines:[{skuId:'plant-classic',quantity:1}]},`isolated-buy-plant-${storey}`).commerce;
-    state=prepareCommerceCommand(state,{type:'placeItem',id:state.owned[0].id,pose:{x:0,z:storey===0?2.35:-2.35,rotation:0},storey},`isolated-place-plant-${storey}`).commerce;
+    state=prepareCommerceCommand(state,{type:'placeItem',id:state.owned[0].id,pose:{x:0,z:2.35,rotation:0},storey},`isolated-place-plant-${storey}`).commerce;
     assert.equal(validateAccountCommerce(state),true);const result=upgradeStaircase(payable(state),upperLink(state).id,`isolated-blocked-door-${storey}`,{storey:0});
-    assert.equal(result.ok,false);assert.match(result.error,/DisplayText4640.*DisplayText4641/);
+    assert.equal(result.ok,true,result.error);assert.deepEqual(floors(result.state)[storey].furniture,floors(state)[storey].furniture);
   }
 });
-test('middle-floor connections upgrade independently and later floor construction retains the installed elevator',()=>{
-  const area={minX:-5.6,minZ:-3.8,width:11.2,depth:7.8};let state=readyCommerce(2,area),first=upperLink(state);
+test('historical independently placed middle-floor connections can still upgrade without moving the paid lower elevator',()=>{
+  const area={minX:-5.6,minZ:-3.8,width:11.2,depth:7.8};let state=readyCommerce(3,area),first=upperLink(state);
   state=prepareCommerceCommand(state,{type:'upgradeStaircase',id:first.id,storey:0},'isolated-elevator-lower').commerce;
-  state=prepareCommerceCommand(state,construct(2,area),'isolated-third-floor').commerce;
   assert.equal(upperLink(state,0).type,'elevator');assert.equal(upperLink(state,1).type,undefined);
   assert.equal(getHomeStairs(state.upperFloors[0]).find(row=>row.direction==='down').type,'elevator');
   // Isolated geometry fixture: move the new, ordinary pair to clear landings.
@@ -165,4 +164,19 @@ for(const method of ['reserve','commit'])for(const when of ['before','after'])te
   assert.equal(f.payments.control.balance,balance-12000);assert.equal(restored.commerce.constructionLedger.filter(row=>row.type==='elevator-upgrade').length,1);
   assert.equal((await f.store.readRecord(TENANT,STUDENT)).pending,null);
   assert.equal((await f.command(command,'isolated-lost-elevator-reply',f.revision)).duplicate,true);
+});
+
+test('account floor payments extend the installed elevator through 3F and 4F once, without another installation charge, across restart',async t=>{
+  const f=await fixture(t);let result=await f.command({type:'upgradeStaircase',id:f.id,storey:0},'extension-account-install',f.revision);
+  const paid=result.home.commerce.constructionLedger.filter(row=>row.type==='elevator-upgrade'),balance=f.payments.control.balance,reserves=f.payments.control.reserves,connectionAmount=Math.round(rect.width*rect.depth*300)+6000;
+  for(const storey of[2,3]){
+    const expected=result.home.revision,command=construct(storey),id=`extension-account-floor-${storey}`;
+    const rows=await Promise.all(Array.from({length:4},()=>f.command(command,id,expected)));assert.equal(rows.filter(row=>!row.duplicate).length,1);result=rows[0];
+    assert.equal(result.receipt.amount,connectionAmount);assert.equal(result.receipt.detail.quote.transportType,'elevator');assert.equal(result.receipt.detail.quote.extendsElevator,true);assert.equal(result.receipt.detail.quote.stairCost,6000);
+    assert.equal(validateStudentHome(result.home,STUDENT),true);assert.deepEqual(result.home.commerce.constructionLedger.filter(row=>row.type==='elevator-upgrade'),paid);
+    const home=result.home.commerce,lower=upperLink(home,storey-1),incoming=getHomeStairs(floors(home)[storey-1]).find(row=>row.direction==='down'),upper=getHomeStairs(floors(home)[storey]).find(row=>row.direction==='down');
+    assert.deepEqual(upper,{...lower,direction:'down'});assert.equal(lower.type,'elevator');assert.deepEqual([lower.x,lower.z,lower.rotation],[incoming.x,incoming.z,incoming.rotation]);
+    await f.restart();const restored=await f.store.get(TENANT,STUDENT);assert.deepEqual(restored.commerce,result.home.commerce);const retry=await f.command(command,id,expected);assert.equal(retry.duplicate,true);assert.equal(retry.home.revision,result.home.revision);
+  }
+  assert.equal(f.payments.control.balance,balance-2*connectionAmount);assert.equal(f.payments.control.reserves,reserves+2);
 });

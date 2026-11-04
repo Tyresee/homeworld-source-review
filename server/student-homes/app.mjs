@@ -6,6 +6,8 @@ import {PlatformClient,trustedOrigin} from './platform-client.mjs';
 import {StudentHomeStore} from './store.mjs';
 import {HomeServiceError,invalid,isStudentId,exactKeys} from './errors.mjs';
 import {createStaticAssetResponder} from './static-assets.mjs';
+import {StudentHomeShareStore,isHomeShareId} from './shares.mjs';
+import {renderHomeShareDocument} from './share-document.mjs';
 
 export const API_PREFIX='/games/homeworld/api/v1';
 export const ENTRY='/games/homeworld/student-homes.html';
@@ -44,10 +46,14 @@ function verifyWrite(request,publicOrigin,body,actorId,keys) {
   if(!exactKeys(body,keys))throw invalid("DisplayText4479.");
   if(body.expectedUserId!==actorId)throw new HomeServiceError(409,'identity_changed',"DisplayText4268, DisplayText4480.");
 }
-async function serveStatic(request,response,path,{publicRoot,projectRoot,isDist,sendStaticAsset}) {
+async function serveStatic(request,response,path,{publicRoot,projectRoot,isDist,sendStaticAsset,shares,publicOrigin},search='') {
   if(!['GET','HEAD'].includes(request.method))return json(response,405,{error:{code:'method_not_allowed',message:'Method not allowed'}},{allow:'GET, HEAD'});
-  if(path==='/'||path==='/games/homeworld'||path==='/games/homeworld/'){
-    response.writeHead(302,{location:ENTRY,'cache-control':'no-store'});response.end();return;
+  const query=new URLSearchParams(search);
+  // Keep the lobby and existing bookmarks stable. Only the formal document's
+  // implicit presentation changes; explicit review themes and assets stay put.
+  if(path==='/'||path==='/games/homeworld'||path==='/games/homeworld/'||path===ENTRY&&!query.has('theme')){
+    if(!query.has('theme'))query.set('theme','warm');
+    response.writeHead(302,{location:ENTRY+'?'+query.toString(),'cache-control':'no-store'});response.end();return;
   }
   const prefix='/games/homeworld/';if(!path.startsWith(prefix)||path.includes('\\')||path.includes('\0')||path.split('/').some(part=>part.startsWith('.')))throw new HomeServiceError(404,'not_found',"DisplayText4481.");
   const suffix=path.slice(prefix.length);let base=publicRoot,file;
@@ -60,7 +66,16 @@ async function serveStatic(request,response,path,{publicRoot,projectRoot,isDist,
     const canonical=await realpath(file),canonicalBase=await realpath(base);
     if(relative(canonicalBase,canonical).startsWith('..'))throw new Error('outside');
     const info=await stat(canonical);if(!info.isFile())throw new Error('not file');
-    await sendStaticAsset(request,response,{canonical,canonicalBase,info,contentType:TYPES[extname(canonical)]??'application/octet-stream'});
+    if(suffix==='home-share.html'){
+      let title,link='';const id=query.get('share');
+      if(query.getAll('share').length===1&&!query.has('sample')&&isHomeShareId(id)){
+        try{title=(await shares.getPublic(id)).share.snapshot.title;link=publicOrigin+'/games/homeworld/home-share.html?share='+id;}catch{/* An unavailable capability receives generic metadata; the page shows its public error state. */}
+      }
+      const html=renderHomeShareDocument(await readFile(canonical,'utf8'),{title,canonical:link});
+      response.writeHead(200,{'content-type':'text/html; charset=utf-8','content-length':Buffer.byteLength(html),'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','x-robots-tag':'noindex, nofollow, noarchive'});
+      response.end(request.method==='HEAD'?'':html);return;
+    }
+    await sendStaticAsset(request,response,{canonical,canonicalBase,info,contentType:TYPES[extname(canonical)]??'application/octet-stream',responseHeaders:suffix==='home-share.html'?{'referrer-policy':'no-referrer','x-robots-tag':'noindex, nofollow, noarchive'}:{}});
   }catch(error){if(response.headersSent){response.destroy();return;}throw new HomeServiceError(404,'not_found',"DisplayText4481.");}
 }
 
@@ -76,12 +91,36 @@ export async function createStudentHomesService({platformOrigin,publicOrigin,dat
     if(within(resolve(servedRoot),homes.dir)||within(await canonicalDestination(resolve(servedRoot)),canonicalData))throw new TypeError('Student home data must be outside all static release/public directories.');
   }
   await homes.initialize();
+  const shares=new StudentHomeShareStore({dataDir:homes.dir});
+  try{await shares.initialize();}catch(error){await homes.close();throw error;}
   const server=createServer(async(request,response)=>{
     try {
       let url,path;try{url=new URL(request.url,browserOrigin);path=decodeURIComponent(url.pathname);}catch{throw invalid("DisplayText4482.");}
       if(path==='/health'&&['GET','HEAD'].includes(request.method))return json(response,200,{service:'homeworld-student-homes',version:releaseVersion,mode:'platform-student-homes',auth:'platform-session-required'});
-      if(!path.startsWith(`${API_PREFIX}/`))return await serveStatic(request,response,path,staticOptions);
+      if(!path.startsWith(`${API_PREFIX}/`))return await serveStatic(request,response,path,{...staticOptions,shares,publicOrigin:browserOrigin},url.search);
       if(url.search)throw invalid("DisplayText4483.");
+      const sharedRoute=/^\/shares\/([^/]+)$/.exec(path.slice(API_PREFIX.length));
+      if(sharedRoute){
+        if(!['GET','HEAD'].includes(request.method))return json(response,405,{error:{code:'method_not_allowed',message:"DisplayText5038."}},{allow:'GET, HEAD','referrer-policy':'no-referrer'});
+        return json(response,200,await shares.getPublic(sharedRoute[1]),{'referrer-policy':'no-referrer','x-robots-tag':'noindex, nofollow, noarchive'});
+      }
+      const teacherShare=/^\/students\/([^/]+)\/shares(?:\/([^/]+)\/revoke)?$/.exec(path.slice(API_PREFIX.length));
+      if(teacherShare){
+        const [,studentId,shareId]=teacherShare,method=shareId?'POST':request.method==='GET'?'GET':'POST';
+        if(request.method!==method)return json(response,405,{error:{code:'method_not_allowed',message:'Method not allowed'}},{allow:shareId?'POST':'GET, POST'});
+        if(method==='POST'&&(request.headers.origin!==browserOrigin||request.headers['sec-fetch-site']==='cross-site'))throw new HomeServiceError(403,'origin_forbidden',"DisplayText4478.");
+        const cookie=request.headers.cookie??'',session=await upstream.session(cookie),students=await upstream.students(cookie);
+        if(!isStudentId(studentId))throw invalid("DisplayText3785 ID DisplayText4486 UUID.");
+        const student=students.find(student=>student.id===studentId);if(!student)throw new HomeServiceError(404,'student_not_found',"DisplayText4487.");
+        const owner={tenantId:session.tenantId,studentId,actorUserId:session.actor.id},withURL=share=>({...share,url:`${browserOrigin}/games/homeworld/home-share.html?share=${share.id}`});
+        if(method==='GET'){const result=await shares.list(owner);return json(response,200,{shares:result.shares.map(withURL)});}
+        const body=await readBody(request);verifyWrite(request,browserOrigin,body,session.actor.id,shareId?['expectedUserId']:['expectedUserId','expectedRevision','commandId']);
+        if(shareId)return json(response,200,await shares.revoke({...owner,id:shareId}));
+        if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<0)throw invalid("DisplayText4485.");
+        const snapshot=await homes.getSnapshot(session.tenantId,studentId,upstream.paymentAdapter(cookie,session.tenantId,studentId,session.actor.id));
+        const result=await shares.create({...owner,home:snapshot.home,displayName:student.displayName,expectedRevision:body.expectedRevision,commandId:body.commandId});
+        return json(response,result.duplicate?200:201,{...result,share:withURL(result.share)});
+      }
       const route=path.slice(API_PREFIX.length),studentRoute=/^\/students\/([^/]+)\/(home(?:\/init|\/avatar|\/commands)?|wallet(?:\/starter-grant)?)$/.exec(route);
       const validRoute=route==='/session'||route==='/students'||studentRoute;
       if(!validRoute)throw new HomeServiceError(404,'not_found',"DisplayText4484.");
@@ -118,6 +157,6 @@ export async function createStudentHomesService({platformOrigin,publicOrigin,dat
     }
   });
   let closing;
-  async function close(){return closing??=(async()=>{if(server.listening)await new Promise((resolve,reject)=>{server.close(error=>error?reject(error):resolve());server.closeIdleConnections();});await homes.close();})();}
-  return {server,store:homes,close,platform:upstream};
+  async function close(){return closing??=(async()=>{if(server.listening)await new Promise((resolve,reject)=>{server.close(error=>error?reject(error):resolve());server.closeIdleConnections();});await shares.close();await homes.close();})();}
+  return {server,store:homes,shares,close,platform:upstream};
 }

@@ -51,7 +51,7 @@ test('blocked, unowned, non-football, overlapping and removed fields cannot star
   state.owned[0].item.kind='outdoor-tennis-1';assert.equal(getRobotFootballDescriptor(state,'outdoor:field'),null);state.owned[0].item.kind='outdoor-football-1';
   const descriptor=getRobotFootballDescriptor(state,'outdoor:field');
   state.owned.push({id:'blocked',status:'placed',item:{kind:'outdoor-storage',x:descriptor.approach.x,z:descriptor.approach.z,rotation:0}});
-  assert.equal(getRobotFootballDescriptor(state,'outdoor:field'),null,'a blocked grass entry is unavailable');state.owned.pop();
+  assert.ok(getRobotFootballDescriptor(state,'outdoor:field')?.entryIndex!==descriptor.entryIndex,'blocking the former gate selects another clear perimeter contact');state.owned.pop();
   state.owned.push({id:'intruder',status:'placed',item:{kind:'outdoor-storage',x:10,z:10,rotation:0}});assert.equal(getRobotFootballDescriptor(state,'outdoor:field'),null,'old invalid overlaps are not traversable');
   state.owned.pop();state.owned[0].item.x=0;state.owned[0].item.z=0;assert.equal(getRobotFootballDescriptor(state,'outdoor:field'),null,'a field overlapping the house is refused');
   state.owned[0].item.x=10;state.owned[0].item.z=10;state.owned[0].item.legacyFootprint={width:3,depth:2};
@@ -65,4 +65,13 @@ test('semantic time sampling is deterministic over pauses, repeated cycles and m
   state.owned[0].item.x+=.5;const moved=sampleRobotFootballMotion(getRobotFootballDescriptor(state,'outdoor:field'),6.2);
   assert.ok(Math.abs(moved.point.x-one.point.x-.5)<1e-7,'restoration reconstructs from current owned placement');
   assert.ok(getOutdoorItemBounds(state.owned[0].item));
+});
+
+for(const level of[1,2,3])test(`football ${level} supports reachable entries on all four sides`,()=>{
+  const state=fixture(level),item=state.owned[0].item;
+  for(const[dx,dz]of[[0,-6],[8,0],[0,6],[-8,0]]){
+    const from={x:item.x+dx,z:item.z+dz},d=getRobotFootballDescriptor(state,'field',{from,navigation:{radius:.46,height:1.7}});assert.ok(d);
+    const p=local(item,d.approach);assert.ok(dx===0?p.z*dz>0:p.x*dx>0,'robot uses the facing side, avoiding real goal posts and boards');
+    assert.deepEqual(getRobotFootballDescriptor(state,'field',{navigation:{radius:.46,height:1.7},entryIndex:d.entryIndex}),d);
+  }
 });

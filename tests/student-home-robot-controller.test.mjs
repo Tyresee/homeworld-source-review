@@ -1,10 +1,13 @@
+import {isRobotActivityShape} from '../public/js/student-home-robot-state.js';
+import {isRobotActivityTargetValid} from '../server/student-homes/robot-activity.mjs';
+import {ROBOT_SEAT_KINDS,isRobotBedKind} from '../public/js/home-furniture-capabilities.js';
 import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {createStudentHomeRobotController} from '../public/js/student-home-robot-controller.js';
-import {createHomeState,applyChange,getHomeCandidateVolume,getFurniturePose} from '../public/js/home-engine.js';
+import {createHomeState,createFurnitureItem,FURNITURE_ITEMS,applyChange,getHomeCandidateVolume,getFurniturePose} from '../public/js/home-engine.js';
 import {isAvatarPositionWalkable} from '../public/js/home-avatar-navigation.js';
 import {getHomeBuildingVolumes} from '../public/js/home-building-collision.js';
 import {createLuxuryItem} from '../public/js/home-luxury-models.js';
@@ -48,7 +51,7 @@ test('switching floors keeps independent positions and hiding/disposal cancels a
   controller.setVisible(true);controller.wave();controller.dispose();assert.equal(controller.getState().scheduled,false);assert.equal(controller.group.parent,null);
 });
 
-function furnished(kind,rotation=0){const result=applyChange(createHomeState({profile:'account'}),{type:'furniture',id:'use-me',kind,x:0,z:0,rotation});assert.equal(result.ok,true,result.error);return result.state;}
+function furnished(kind,rotation=0,options={}){const result=applyChange(createHomeState({profile:'account',...options}),{type:'furniture',id:'use-me',kind,x:0,z:0,rotation});assert.equal(result.ok,true,result.error);return result.state;}
 function runUntil(controller,action,limit=400){for(let n=0;n<limit;n++){advance(1);if(controller.getState().action===action&&(action==='stairs'||!controller.getState().inTransition))return;}assert.fail(`Expected ${action}, saw ${JSON.stringify(controller.getState())}`);}
 function meshWorldBounds(robot,name){robot.updateMatrixWorld(true);return new THREE.Box3().setFromObject(robot.getObjectByName(name));}
 
@@ -77,11 +80,11 @@ test('bed and four toilet models have real contact poses; cancellation never lea
 
 test('reading, cooking and washing animate the real arms with visible props, then stop their frame loop',t=>{
   const c=actor(t),robot=c.group.getObjectByName('robot-avatar');
-  for(const[kind,id,prop]of[['bookcase','read','robot-open-book'],['rangeCooker','cook','robot-cooking-bowl'],['kitchenSink','wash','robot-washing-water']]){
+  for(const[kind,id,prop]of[['bookcase','read','robot-open-book'],['rangeCooker','cook','robot-stirring-spoon'],['kitchenSink','wash','robot-washing-water']]){
     c.setWorld(furnished(kind));assert.equal(c.interact('furniture:use-me',id).ok,true);runUntil(c,id);assert.equal(robot.getObjectByName(prop).visible,true);
     const first=meshWorldBounds(robot,'WristR').getCenter(new THREE.Vector3());advance(8);const next=meshWorldBounds(robot,'WristR').getCenter(new THREE.Vector3());
     if(id!=='read')assert.ok(first.distanceTo(next)>.005,`${id} moves the arm, not only a floating prop`);
-    assert.ok(robot.getObjectByName(prop).children.length>0);advance(140);assert.equal(c.getState().action,'idle');assert.equal(c.getState().scheduled,false);assert.equal(robot.getObjectByName(prop).visible,false);
+    assert.ok(robot.getObjectByName(prop).children.length>0);if(id==='cook')assert.equal(robot.getObjectByName('robot-cooking-bowl'),undefined);advance(140);assert.equal(c.getState().action,'idle');assert.equal(c.getState().scheduled,false);assert.equal(robot.getObjectByName(prop).visible,false);
   }
 });
 
@@ -113,12 +116,12 @@ test('blocked stair exits reject before walking and hiding mid-flight cancels wi
   c.setVisible(true);assert.equal(c.getState().action,'stairs');c.stand();const result=applyChange(floors[1],{type:'furniture',id:'exit-blocker',kind:'cabinet',x:0,z:-2.2,rotation:0});assert.equal(result.ok,true,result.error);c.setWorld(floors[0],0,{floors:[floors[0],result.state]});assert.equal(c.useStairs('main-stairs').ok,false);assert.equal(c.getState().scheduled,false);
 });
 
-test('a blocked sofa front and a physically short toy bed do not offer clipping poses',t=>{
+test('a blocked sofa front rejects backrest entry while a short toy bed uses a fitting across-bed curled pose',t=>{
   const c=actor(t),base=furnished('sofa');
   const blocked=applyChange(base,{type:'furniture',id:'front-cabinet',kind:'cabinet',x:0,z:1.15,rotation:0});assert.equal(blocked.ok,true,blocked.error);c.setWorld(blocked.state);
   assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='sit'),false,'walking around to the back must not allow sitting through the backrest');
   assert.equal(c.interact('furniture:use-me','sit').ok,false);assert.equal(c.getState().scheduled,false);
-  c.setWorld(furnished('bed'));assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='lie'),false,'1.46 m lying robot cannot fit a 1.15 m toy mattress');
+  c.setWorld(furnished('bed'));const short=c.interactions('furniture:use-me').find(row=>row.kind==='lie');assert.ok(short,'the robot can curl across the 1.39m wide mattress');assert.equal(short.motion.curl,1);assert.equal(short.pose.rotation,90);
   c.setWorld(furnished('bedTimber',90));assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='lie'),true,'an appropriately sized rotated mattress remains usable');
 });
 
@@ -275,15 +278,17 @@ function obstacleCheck(controller,home){
     for(const obstacle of obstacles)assert.equal(boxesOverlap(box,obstacle),false,`${state.phase}: ${mesh.name} intersects ${obstacle.id}`);
   });};
 }
-test('a blocked bed side selects the open side, all blocked sides disable lying, and intermediate poses avoid nearby furniture and walls',t=>{
-  const c=actor(t),base=furnished('bedTimber'),blockedLeft=withSideCabinet(base,-1.2,'left-blocker');
+test('a blocked bedside selects the other side, then a free foot entry, while a fully blocked bed rejects entry',t=>{
+  const c=actor(t),base=furnished('bedTimber',0,{slab:{rects:[{minX:-5,minZ:-5,width:10,depth:10}]}}),blockedLeft=withSideCabinet(base,-1.2,'left-blocker');
   c.setWorld(blockedLeft);const descriptor=c.interactions('furniture:use-me').find(row=>row.kind==='lie');assert.ok(descriptor,'right side remains usable');
   assert.ok(descriptor.approach.x>.5,'enter from the clear right side, not the bed head or foot');
   assert.equal(c.interact('furniture:use-me','lie').ok,true);const entering=collectUntil(c,'lie',{check:obstacleCheck(c,blockedLeft)});assertContinuous(entering,'one clear bedside entry');
   c.stand();collectUntil(c,'idle',{check:obstacleCheck(c,blockedLeft)});
   const blockedBoth=withSideCabinet(blockedLeft,1.2,'right-blocker');c.setWorld(blockedBoth);
-  assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='lie'),false,'no route through the headboard or footboard when both bed sides are blocked');
-  assert.equal(c.interact('furniture:use-me','lie').ok,false);assert.equal(c.getState().scheduled,false);
+  const foot=c.interactions('furniture:use-me').find(row=>row.kind==='lie');assert.ok(foot,'an open foot remains a usable route when both sides are blocked');assert.equal(foot.footEntry,true);
+  assert.equal(c.interact('furniture:use-me','lie').ok,true);assertContinuous(collectUntil(c,'lie',{check:obstacleCheck(c,blockedBoth)}),'clear foot entry');c.stand();collectUntil(c,'idle',{check:obstacleCheck(c,blockedBoth)});
+  const shut=applyChange(blockedBoth,{type:'furniture',id:'foot-blocker',kind:'cabinet',x:0,z:1.65,rotation:0});assert.equal(shut.ok,true,shut.error);c.setWorld(shut.state);
+  assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='lie'),false,'real furniture blocks all remaining bed entries');assert.equal(c.interact('furniture:use-me','lie').ok,false);assert.equal(c.getState().scheduled,false);
 });
 
 test('a completed sleep announces once, and hide, backgrounding, account switching and fresh loading restore only that account bed',t=>{
@@ -349,4 +354,85 @@ test('changing clothes or repainting a sleeping robot recalibrates contact witho
   c.setAvatar({activity,equipped:{outfit:'wear-cozy-pajamas',headwear:'wear-pom-beanie',footwear:'wear-bear-slippers'},colors:{shell:'#aabbcc',accent:'#ddaabb'}});
   assert.equal(c.getState().action,'lie');assert.equal(c.getState().scheduled,false);assert.deepEqual(events,[]);
   c.setAvatar({colors:{shell:'#bbccdd',accent:'#ccbbaa'}});assert.equal(c.getState().action,'lie');assert.deepEqual(events,[]);
+});
+
+function openCatalogHome(kind,rotation=0){const home=createHomeState({profile:'upper',rooms:[],slab:{rects:[{minX:-5,minZ:-5,width:10,depth:10}]}});home.furniture=[createFurnitureItem({id:'use-me',kind,x:0,z:0,rotation})];return home;}
+test('every sold bed and everyday seat has a genuine robot contact at all four furniture orientations',t=>{
+  const c=actor(t),beds=FURNITURE_ITEMS.filter(row=>isRobotBedKind(row.id)).map(row=>row.id);assert.equal(beds.length,23);assert.ok(ROBOT_SEAT_KINDS.length>=22);
+  for(const rotation of[0,90,180,270])for(const kind of[...ROBOT_SEAT_KINDS,...beds]){
+    c.setWorld(openCatalogHome(kind,rotation));const action=isRobotBedKind(kind)?'lie':'sit',descriptor=c.interactions('furniture:use-me').find(row=>row.kind===action);
+    assert.ok(descriptor,`${kind} ${rotation} has a real ${action} contact`);
+    assert.ok(descriptor.motion&&Number.isFinite(descriptor.pose.y));
+    if(['lcBunkBed','lcLoftBed'].includes(kind)){assert.ok(descriptor.motion.ladder,'high sleeping decks are reached by their actual side ladder');assert.ok(descriptor.pose.y>1.4);}
+    if(kind==='lcDayBed')assert.equal((descriptor.pose.rotation-rotation)%180,90,'the long sleep direction follows the real sideways mattress');
+  }
+});
+
+test('short and sideways beds visibly enter their fitting pose, restore it, and reverse back to safe floor space',t=>{
+  const c=actor(t);
+  for(const kind of['bed','lcDayBed']){
+    const home=openCatalogHome(kind,90);c.setWorld(home);assert.equal(c.interact('furniture:use-me','lie').ok,true);
+    const entering=collectUntil(c,'lie');assertContinuous(entering,`${kind} fitting entry`);const final=motionSample(c),activity=c.captureActivity({emit:false});
+    const fresh=actor(t);fresh.setWorld(home);fresh.setAvatar({activity});const restored=motionSample(fresh);
+    assert.ok(final.root.distanceTo(restored.root)<1e-6);assert.ok(final.rotation.angleTo(restored.rotation)<1e-6);
+    for(const name of TRACKED_JOINTS)assert.ok(final.joints[name].angleTo(restored.joints[name])<1e-6,`${kind} restores ${name}`);
+    fresh.setVisible(false);c.stand();assertContinuous(collectUntil(c,'idle'),`${kind} fitting exit`);assert.ok(isAvatarPositionWalkable(home,c.getState().point,c.getState().navigation));
+  }
+});
+
+test('high beds use successive visible ladder rungs and a raised guard crossing instead of a vertical seated teleport',t=>{
+  const c=actor(t);
+  for(const kind of['lcBunkBed','lcLoftBed']){
+    const home=openCatalogHome(kind);c.setWorld(home);assert.equal(c.interact('furniture:use-me','lie').ok,true);
+    const robot=c.group.getObjectByName('robot-avatar'),target=createLuxuryItem(home.furniture[0]),guards=[];target.updateMatrixWorld(true);target.traverse(mesh=>{if(mesh.isMesh&&/guard/.test(mesh.userData.part??'')){const box=new THREE.Box3().setFromObject(mesh);box.translate(new THREE.Vector3(0,.08,0));guards.push(box);}});
+    const check=sample=>{robot.updateWorldMatrix(true,true);const full=new THREE.Box3();robot.traverseVisible(mesh=>{if(mesh.isMesh&&!mesh.userData.robotActionProp)full.union(new THREE.Box3().setFromObject(mesh));});assert.ok(full.max.y<=2.91+.005,`${kind} ${sample.phase}: head remains below the actual 2.85m ceiling, got ${full.max.y}`);
+      for(const name of ['HeadShell','TorsoShell','ThighShellL','ThighShellR','ShinShellL','ShinShellR','FootShellL','FootShellR']){const part=robot.getObjectByName(name);if(!part)continue;const box=new THREE.Box3().setFromObject(part);for(const g of guards)assert.equal(boxesOverlap(box,{minX:g.min.x,maxX:g.max.x,minY:g.min.y,maxY:g.max.y,minZ:g.min.z,maxZ:g.max.z}),false,`${kind} ${sample.phase}: ${name} crosses a solid guard`);}
+    };
+    const entering=collectUntil(c,'lie',{limit:1000,check});hasOrderedPhases(entering,['ladder-board','ladder-step','ladder-sit','ladder-cross','ladder-settle','bed-edge','lie-down','lying']);assertContinuous(entering,`${kind} ladder entry`);
+    const climb=entering.filter(row=>row.phase==='ladder-step');assert.ok(new Set(climb.map(row=>row.root.y.toFixed(2))).size>20);assert.ok(climb.at(-1).root.y-climb[0].root.y>1,'height is gained over real intermediate frames');
+    assert.ok(new Set(climb.map(row=>row.joints.HipL.toArray().map(n=>n.toFixed(3)).join(','))).size>12,'the real legs articulate on the ladder');
+    const activity=c.captureActivity({emit:false}),fresh=actor(t);fresh.setWorld(home);fresh.setAvatar({activity});assert.equal(fresh.getState().action,'lie');assert.ok(Math.abs(fresh.getState().point.y-c.getState().point.y)<1e-6);fresh.setVisible(false);
+    c.stand();const leaving=collectUntil(c,'idle',{limit:1000,check});hasOrderedPhases(leaving,['ladder-cross-out','ladder-descend','ladder-away','idle']);assertContinuous(leaving,`${kind} ladder exit`);assert.ok(isAvatarPositionWalkable(home,c.getState().point,c.getState().navigation));const geometries=new Set(),materials=new Set();target.traverse(n=>{if(n.geometry)geometries.add(n.geometry);for(const m of[].concat(n.material??[]))materials.add(m);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());
+  }
+});
+
+test('a physical 0.8m chair aisle uses a bounded folded-arm entry and returns to a normal walkable safe point',t=>{
+  const home=tightChairHome(.8);
+  const c=actor(t);c.setWorld(home);const globalRadius=c.getState().navigation.radius,choice=c.interactions('furniture:use-me').find(row=>row.kind==='sit');
+  assert.ok(choice,'the real body fits even when the ordinary walking circle is too conservative');assert.ok(choice.compactOrigin&&choice.compactPath,'a short reversible folded-arm path is explicit');
+  assert.equal(isAvatarPositionWalkable(home,choice.approach,c.getState().navigation),false,'the standard global walking envelope really rejects this aisle');
+  assert.ok(isAvatarPositionWalkable(home,choice.compactOrigin,c.getState().navigation));
+  assert.equal(c.interact('furniture:use-me','sit').ok,true);const entering=collectUntil(c,'sit',{check:obstacleCheck(c,home)});hasOrderedPhases(entering,['compact-turn','compact-step','sit-down','seated']);assertContinuous(entering,'compact chair entry');
+  assert.equal(c.getState().navigation.radius,globalRadius,'ordinary navigation is unchanged');const activity=c.captureActivity({emit:false});
+  const fresh=actor(t);fresh.setWorld(home);fresh.setAvatar({activity});assert.equal(fresh.getState().action,'sit');fresh.setVisible(false);
+  c.stand();const leaving=collectUntil(c,'idle',{check:obstacleCheck(c,home)});hasOrderedPhases(leaving,['stand-up','compact-retreat','idle']);assertContinuous(leaving,'compact chair retreat');assert.ok(isAvatarPositionWalkable(home,c.getState().point,c.getState().navigation));
+});
+
+function tightChairHome(gap){
+  const home=openCatalogHome('loungeChair'),cabinet=createFurnitureItem({id:'aisle-cabinet',kind:'wideDresser',x:0,z:0,rotation:0}),seat=getHomeCandidateVolume(home,{id:'furniture:use-me',item:home.furniture[0]}),box=getHomeCandidateVolume(home,{id:'furniture:aisle-cabinet',item:cabinet});
+  cabinet.z=seat.maxZ-box.minZ+gap;home.furniture.push(cabinet);const actual=getHomeCandidateVolume(home,{id:'furniture:aisle-cabinet',item:cabinet});assert.ok(Math.abs(actual.minZ-seat.maxZ-gap)<1e-6);return home;
+}
+test('compact entry and exit checkpoints restore the exact dressed rig and remain valid owned-furniture records',t=>{
+  const home=tightChairHome(.8),c=actor(t),avatar={equipped:{headwear:'wear-chef-toque',outfit:'wear-little-chef',footwear:'wear-puddle-boots'}};c.setWorld(home);c.setAvatar(avatar);
+  const record={commerce:{home,upperFloors:[],owned:home.furniture.map(item=>({id:item.id,item,source:'purchase',status:'placed',storey:0}))}};
+  assert.equal(c.interact('furniture:use-me','sit').ok,true);
+  for(const phase of['compact-step','compact-retreat']){
+    if(phase==='compact-retreat'){collectUntil(c,'sit');c.stand();}
+    for(let n=0;n<800&&c.getState().phase!==phase;n++)advance(1);assert.equal(c.getState().phase,phase);advance(3);
+    const saved=c.captureActivity({emit:false}),before=motionSample(c);assert.equal(saved.kind,'furniture');assert.ok(isRobotActivityShape(saved));assert.ok(saved.step<=16);assert.equal(isRobotActivityTargetValid(record,saved),true,'formal server accepts the owned short approach');
+    const fresh=actor(t);fresh.setWorld(home);fresh.setAvatar({...avatar,activity:saved});const after=motionSample(fresh);assert.equal(after.phase,before.phase);assert.ok(after.root.distanceTo(before.root)<1e-6);assert.ok(after.rotation.angleTo(before.rotation)<1e-6);
+    for(const name of TRACKED_JOINTS)assert.ok(after.joints[name].angleTo(before.joints[name])<1e-6,`${phase} restores ${name}`);fresh.setVisible(false);
+  }
+  collectUntil(c,'idle');assert.ok(isAvatarPositionWalkable(home,c.getState().point,c.getState().navigation));
+});
+test('a genuinely body-blocking chair gap still rejects interaction rather than disabling its walls or neighbours',t=>{
+  const home=tightChairHome(.54),c=actor(t);c.setWorld(home);assert.equal(c.interactions('furniture:use-me').some(row=>row.kind==='sit'),false);assert.equal(c.interact('furniture:use-me','sit').ok,false);assert.equal(c.getState().scheduled,false);
+});
+
+test('planning true intermediate mesh poses restores the visible robot without changing its running action or save checkpoint',t=>{
+  const c=actor(t),home=furnished('bedTimber');c.setWorld(home);c.wave();advance(5);
+  const robot=c.group.getObjectByName('robot-avatar'),saved=c.captureActivity({emit:false}),before=[];robot.traverse(node=>before.push({node,position:node.position.toArray(),quaternion:node.quaternion.toArray(),scale:node.scale.toArray(),visible:node.visible}));
+  assert.ok(c.interactions('furniture:use-me').some(row=>row.kind==='lie'));
+  for(const row of before){assert.deepEqual(row.node.position.toArray(),row.position);assert.deepEqual(row.node.quaternion.toArray(),row.quaternion);assert.deepEqual(row.node.scale.toArray(),row.scale);assert.equal(row.node.visible,row.visible);}
+  assert.deepEqual(c.captureActivity({emit:false}),saved);assert.equal(c.getState().action,'wave');
 });

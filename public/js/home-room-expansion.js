@@ -1,5 +1,8 @@
 import * as THREE from 'three';
+import {applyL1Surface} from './home-interior-lighting.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {exteriorElevatorDoorOnEdge} from './home-exterior-elevator-door.js';
+import {isExteriorElevator} from './home-staircase-shape.js';
 import { ROOM_KINDS, getRoomKind, roomRect, roomEdges, roomOuterFaces, layoutBounds, resolveRooms, LAYOUT_PRESETS, LAYOUT_GRID, CELL, getFloorRects, getFloorBounds, getFloorBoundarySegments, hasStarterRoom } from './home-layout.js';
 import { getHomeTheme, getRoomTheme } from './home-theme.js';
 import {resolveHomeFloorFinish} from './home-floor-finishes.js';
@@ -10,10 +13,11 @@ import {clipWallGeometryInterval,createSharedWallFaceMeshes} from './home-wall-g
 import {createHomeFloorTextureManager} from './home-floor-textures.js';
 import { splitFloorAroundOpening, clipFloorMeshToOpening, getHomeStairs } from './home-staircase.js';
 import {getHomeRoamEntrance,createRoamWallGeometry,entryMatchesEdge,ROAM_WALL_THICKNESS,ROAM_FLOOR_Y} from './home-roam-geometry.js';
+import {getHomeInteriorPartitions,getPartitionSolidIntervals,clearStairAccessIntervals,HOME_PARTITION_HEIGHT,getRetainedStarterWallRuns,STARTER_WALL_BLOCKS} from './home-architecture-layout.js';
 
 export { ROOM_KINDS, getRoomKind, roomRect, layoutBounds };
 export const WALL_HEIGHT = 2.85;
-export const PARTITION_HEIGHT = .98;
+export const PARTITION_HEIGHT = HOME_PARTITION_HEIGHT;
 export const CUTAWAY_WALL_HEIGHT = .5;
 export const CUTAWAY_CAP_HEIGHT = .04;
 export const CUTAWAY_CAP_COLOR = '#4a3f37';
@@ -58,9 +62,9 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   const ownsWallTextures=!!wallTextures&&!wallTextureManager;
   // Keep the empty fixtures bucket for callers that inspect older roomParts.
   const parts = { floor: [], walls: [], border: [], zones: [], columns: [], accents: [], windows: [], fixtures: [] };
-  let definition, disposed = false, currentRoom = null, boundarySkinRoom = null;
+  let definition, disposed = false, currentRoom = null, boundarySkinRoom = null, architectureHome = null;
   const roamCeilings=[];
-  const usesRoam = () => theme.id === 'warm' && roam === true;
+  const usesRoam = () => ['warm','toy'].includes(theme.id) && roam === true;
   // This is a render-only choice. Collision/placement callers deliberately keep
   // the original shell even when their surrounding page uses the Warm theme.
   const usesCutaway = () => theme.id === 'warm' && cutaway === true && !usesRoam();
@@ -100,9 +104,9 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     for (const hole of holes) s.holes.push(roundedOpening(...hole)); return s;
   }
   /** A solid full-height wall slab with optional window holes, centred on `center`, running along `axis`. */
-  function fullWall(length, center, axis, color, holes) {
-    const geometry = new THREE.ExtrudeGeometry(wallShape(length, WALL_HEIGHT, holes), { depth: .22, bevelEnabled: false, curveSegments: 12 });
-    geometry.translate(0, 0, -.11);
+  function fullWall(length, center, axis, color, holes, opening=null) {
+    const geometry = opening?createRoamWallGeometry({length,height:WALL_HEIGHT,thickness:.22,opening,holes:holes.map(hole=>roundedOpening(...hole))}):new THREE.ExtrudeGeometry(wallShape(length, WALL_HEIGHT, holes), { depth: .22, bevelEnabled: false, curveSegments: 12 });
+    if(!opening)geometry.translate(0, 0, -.11);
     const m = add(geometry, color, center, 'walls', { roughness: .86 });
     if (axis === 'z') m.rotation.y = Math.PI / 2;
     if(theme.id==='warm')m.userData.wallTextureAxis='x';
@@ -144,7 +148,13 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     const rect = roomRect(room), segments = [];
     // A neighbouring compact room may cover only part of an edge. Keep the
     // remaining exposed intervals rather than treating the whole side as shared.
-    for (const edge of roomOuterFaces(rooms, room).filter(edge => edge.side === 'front' || edge.side === 'right')) {
+    const exposed=starter&&architectureHome?.slab?getFloorBoundarySegments(architectureHome).flatMap(edge=>{
+      const alongX=edge.side==='front',at=alongX?rect.maxZ:rect.maxX;
+      if(!['front','right'].includes(edge.side)||Math.abs(edge.at-at)>1e-6)return[];
+      const from=Math.max(edge.from,alongX?rect.minX:rect.minZ),to=Math.min(edge.to,alongX?rect.maxX:rect.maxZ);
+      return to-from>1e-6?[{...edge,from,to}]:[];
+    }):roomOuterFaces(rooms,room).filter(edge=>edge.side==='front'||edge.side==='right');
+    for (const edge of exposed) {
       const last = segments.at(-1);
       if(last?.side === edge.side && Math.abs(last.to - edge.from) < 1e-6)last.to = edge.to;
       else segments.push({...edge});
@@ -158,12 +168,12 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
   /** Shared edges become a knee wall with a wide doorway so every floor stays visible from the isometric camera. */
   function partition(from, to, fixed, axis, color) {
     const length = to - from, door = Math.min(1.45, length * .5), stub = (length - door) / 2;
-    if (stub > .12) for (const [start, end] of [[from, from + stub], [to - stub, to]]) {
+    for (const {from:start,to:end} of getPartitionSolidIntervals(architectureHome,{from,to,at:fixed,axis})) {
       const mid = (start + end) / 2;
       const wall=lowWall(end - start, axis === 'x' ? [mid, 0, fixed] : [fixed, 0, mid], axis, color);
       if(theme.id==='warm')wall.userData.sharedPartitionAxis=axis;
     }
-    for (const edge of [from + stub, to - stub]) post(axis === 'x' ? [edge, 0, fixed] : [fixed, 0, edge]);
+    for (const edge of [from + stub, to - stub]) if(clearStairAccessIntervals(architectureHome,edge-.12,edge+.12,fixed,axis).some(run=>run.to-run.from>.239))post(axis === 'x' ? [edge, 0, fixed] : [fixed, 0, edge]);
     const mid = (from + to) / 2;
     const sill = box(axis === 'x' ? [door, .05, .22] : [.22, .05, door], axis === 'x' ? [mid, .08, fixed] : [fixed, .08, mid], trimColor(), 'accents', .012); sill.castShadow = false;
   }
@@ -243,10 +253,12 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
         const mid = (seg.from + seg.to) / 2, len = seg.to - seg.from;
         if (seg.shared) partition(seg.from, seg.to, rect.minX + .085, 'z', wallColor);
         else if (leftColumn) {
-          const holes = len > 2 ? [[0, 1.77, 1.25, 1.35, .21]] : [];
-          fullWall(len, [rect.minX - .03, .06, mid], 'z', wallColor, holes);
-          for (const [x] of holes) windowAt([rect.minX + .1, 0, mid + x], 'z');
-          box([.11, .14, len], [rect.minX + .14, .16, mid], trimColor(PALETTE.frame), 'border', .02);
+          const opening=exteriorElevatorDoorOnEdge(architectureHome,{...seg,side:'left',at:rect.minX});
+          const holes = len > 2 ? [[opening?mid+.9:0, 1.77, 1.25, 1.35, .21]] : [];
+          fullWall(len, [rect.minX - .03, .06, mid], 'z', wallColor, holes,opening);
+          for (const [x] of holes) windowAt([rect.minX + .1, 0, opening?-.9:mid + x], 'z');
+          if(opening){for(const run of[{from:seg.from,to:opening.coordinate-opening.width/2},{from:opening.coordinate+opening.width/2,to:seg.to}])box([.11,.09,run.to-run.from],[rect.minX+.14,.105,(run.from+run.to)/2],trimColor(PALETTE.frame),'border',.008);}
+          else box([.11, .14, len], [rect.minX + .14, .16, mid], trimColor(PALETTE.frame), 'border', .02);
           box([.29, .11, len + .1], [rect.minX - .03, WALL_HEIGHT + .12, mid], shellColor('wallCap', PALETTE.trim), 'border', .025);
         } else lowWall(len, [rect.minX + .085, 0, mid], 'z', wallColor, .72);
       }
@@ -273,7 +285,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       if(x1<=x0+1e-7||z1<=z0+1e-7)return[r];
       return [{minX:r.minX,maxX:x0,minZ:r.minZ,maxZ:r.maxZ},{minX:x1,maxX:r.maxX,minZ:r.minZ,maxZ:r.maxZ},{minX:x0,maxX:x1,minZ:r.minZ,maxZ:z0},{minX:x0,maxX:x1,minZ:z1,maxZ:r.maxZ}].filter(p=>p.maxX-p.minX>1e-6&&p.maxZ-p.minZ>1e-6);
     };
-    const outer=getFloorBoundarySegments(home);
+    const outer=getFloorBoundarySegments(home),interiorPartitions=getHomeInteriorPartitions(home);
     const shell=outer.flatMap(edge=>{
       if(!legacy)return[edge];
       const horizontal=edge.side==='back'||edge.side==='front',full=edge.side==='back'||edge.side==='left';
@@ -316,14 +328,16 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       const center=alongX?[mid,.06,edge.at-.03]:[edge.at-.03,.06,mid];
       const before=new Set(Object.values(parts).flat());
       if (full) {
-        const holes=length>2.1?[[0,1.77,Math.min(1.25,length-.65),1.35,.21]]:[];
+        const opening=exteriorElevatorDoorOnEdge(home,edge);
+        const holes=length>2.1?[[opening?mid+.9:0,1.77,Math.min(1.25,length-.65),1.35,.21]]:[];
         // The historical slab fallback differs from room-kind defaults. Keep
         // it byte-for-byte in default; only the candidate resolves room color.
         const wallColor = theme.id === 'default' ? edge.owner?.wall?.color ?? '#efe6cc' : getRoomTheme(edge.owner?.kind ?? 'living', edge.owner, theme).wall;
-        fullWall(length,center,axis,wallColor,holes);
-        if(holes.length)windowAt(alongX?[mid,0,edge.at+.1]:[edge.at+.1,0,mid],axis,holes[0][2]);
+        fullWall(length,center,axis,wallColor,holes,opening);
+        if(holes.length)windowAt(alongX?[mid,0,edge.at+.1]:[edge.at+.1,0,opening?-.9:mid],axis,holes[0][2]);
         box(alongX?[length,.11,.29]:[.29,.11,length],alongX?[mid,WALL_HEIGHT+.12,edge.at-.03]:[edge.at-.03,WALL_HEIGHT+.12,mid],shellColor('wallCap', PALETTE.trim),'border',.025);
-        box(alongX?[length,.14,.11]:[.11,.14,length],alongX?[mid,.16,edge.at+.14]:[edge.at+.14,.16,mid],trimColor(PALETTE.frame),'border',.02);
+        if(opening){for(const [from,to]of[[edge.from,opening.coordinate-opening.width/2],[opening.coordinate+opening.width/2,edge.to]])box([.11,.09,to-from],[edge.at+.14,.105,(from+to)/2],trimColor(PALETTE.frame),'border',.008);}
+        else box(alongX?[length,.14,.11]:[.11,.14,length],alongX?[mid,.16,edge.at+.14]:[edge.at+.14,.16,mid],trimColor(PALETTE.frame),'border',.02);
       } else if (usesCutaway()) {
         lowWall(length, center, axis, getRoomTheme(edge.owner?.kind ?? boundarySkinRoom?.kind ?? 'living', edge.owner ?? boundarySkinRoom, theme).wall);
       } else {
@@ -359,34 +373,19 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     // objects when purchased floor extends behind it. Those walls then become
     // interior partitions, with the same solids in the collision model. Do not
     // build a second low partition on top of either preserved wall.
-    const drawn=starterRect ? [
-      {side:'back',at:starterRect.minZ,from:starterRect.minX,to:starterRect.maxX},
-      {side:'left',at:starterRect.minX,from:starterRect.minZ,to:starterRect.maxZ},
-    ] : [];
-    const removeIntervals=(segments,cut)=>segments.flatMap(segment=>{
-      if(cut.to<=segment.from+1e-7||cut.from>=segment.to-1e-7)return[segment];
-      return [{from:segment.from,to:Math.min(segment.to,cut.from)},{from:Math.max(segment.from,cut.to),to:segment.to}].filter(p=>p.to-p.from>1e-6);
-    });
     for(const room of home.rooms.filter(room=>room.id!=='living')) {
       currentRoom=room;const rect=roomRect(room),kind=getRoomKind(room.kind);
       for(const piece of splitFloorAroundOpening(rect,stairs)) {
         const floor=box([piece.maxX-piece.minX,.006,piece.maxZ-piece.minZ],[(piece.minX+piece.maxX)/2,.064,(piece.minZ+piece.maxZ)/2],getRoomTheme(kind,room,theme).floor,'floor',.002,{mapKey:room.floor?.material??'oak'});floor.castShadow=false;
       }
-      if(includeWalls)for(const edge of getFloorBoundarySegments({rooms:[room]})) {
-        const axis=edge.side==='back'||edge.side==='front'?'x':'z';let intervals=[{from:edge.from,to:edge.to}];
-        for(const other of [...shell,...drawn]) {
-          const otherAxis=other.side==='back'||other.side==='front'?'x':'z';
-          if(axis===otherAxis&&Math.abs(edge.at-other.at)<1e-6)intervals=removeIntervals(intervals,other);
-        }
-        for(const part of intervals){partition(part.from,part.to,edge.at,axis,getRoomTheme(kind,room,theme).wall);drawn.push({...edge,...part});}
-      }
+      if(includeWalls)for(const edge of interiorPartitions.filter(edge=>edge.roomId===room.id))partition(edge.from,edge.to,edge.at,edge.axis,getRoomTheme(kind,room,theme).wall);
       const before=new Set(parts.zones);floorAccents(rect,kind);
       for(const object of parts.zones)if(!before.has(object)){object.position.y+=.007;clipFloor(object);}
     }
     currentRoom=null;
   }
   function buildRoam(home) {
-    const boundary=getFloorBoundarySegments(home),entry=roamEntrance??getHomeRoamEntrance(home,{theme}),drawn=[];
+    const boundary=getFloorBoundarySegments(home),entry=roamEntrance??getHomeRoamEntrance(home,{theme});
     const ownerAt=(edge,mid)=>home.rooms.find(room=>{const r=roomRect(room),alongX=edge.side==='back'||edge.side==='front',at=edge.side==='back'?r.minZ:edge.side==='front'?r.maxZ:edge.side==='left'?r.minX:r.maxX;return Math.abs(at-edge.at)<1e-6&&mid>(alongX?r.minX:r.minZ)-1e-6&&mid<(alongX?r.maxX:r.maxZ)+1e-6;});
     currentRoom=null;
     // This shell is standalone even for a canonical legacy starter. The live
@@ -395,7 +394,7 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       const x=(rect.minX+rect.maxX)/2,z=(rect.minZ+rect.maxZ)/2;
       currentRoom=room;
       const ceiling=add(new THREE.PlaneGeometry(rect.maxX-rect.minX,rect.maxZ-rect.minZ),'#f7f2ea',[x,ROAM_FLOOR_Y+WALL_HEIGHT-.015,z],'accents',{roughness:.95,emissive:'#efe6d8',emissiveIntensity:0});
-      ceiling.rotation.x=Math.PI/2;ceiling.userData.roamCeiling=true;ceiling.userData.point={x,y:ceiling.position.y,z};delete ceiling.userData.surfaceId;ceiling.castShadow=false;roamCeilings.push(ceiling);
+      ceiling.rotation.x=Math.PI/2;ceiling.userData.roamCeiling=true;ceiling.userData.point={x,y:ceiling.position.y,z};delete ceiling.userData.surfaceId;ceiling.castShadow=false;if(theme.id==='toy')applyL1Surface(ceiling,{role:'ceiling'});roamCeilings.push(ceiling);
     };
     for(const rect of getFloorRects(home)) {
       const width=rect.maxX-rect.minX,depth=rect.maxZ-rect.minZ,x=(rect.minX+rect.maxX)/2,z=(rect.minZ+rect.maxZ)/2;
@@ -417,16 +416,22 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       const alongX=edge.side==='back'||edge.side==='front',axis=alongX?'x':'z',mid=(edge.from+edge.to)/2;
       currentRoom=owner;
       const holes=[];
-      if(!shared&&!opening&&['back','left'].includes(edge.side)&&edge.to-edge.from>2.1)holes.push(roundedOpening(0,1.71,Math.min(1.25,edge.to-edge.from-.65),1.35,.21));
-      const geometry=createRoamWallGeometry({length:edge.to-edge.from,height:WALL_HEIGHT,thickness:shared ? .17 : ROAM_WALL_THICKNESS,opening,holes});
+      const liftOpening=!shared?exteriorElevatorDoorOnEdge(home,edge):null;
+      if(liftOpening)opening=liftOpening;
+      if(!shared&&(!opening||liftOpening)&&['back','left'].includes(edge.side)&&edge.to-edge.from>2.1){
+        const localX=liftOpening?mid+.9:0;
+        if(Math.abs(localX)+.625<=(edge.to-edge.from)/2-.1)holes.push(roundedOpening(localX,1.71,Math.min(1.25,edge.to-edge.from-.65),1.35,.21));
+      }
+      const height=shared?(edge.height??PARTITION_HEIGHT):WALL_HEIGHT;
+      const geometry=createRoamWallGeometry({length:edge.to-edge.from,height,thickness:shared ? .17 : ROAM_WALL_THICKNESS,opening,holes});
       const normal=edge.side==='back'||edge.side==='left'?-1:1,cross=edge.at-(shared?0:normal*ROAM_WALL_THICKNESS/2);
       const mesh=add(geometry,getRoomTheme(owner?.kind??'living',owner,theme).wall,alongX?[mid,ROAM_FLOOR_Y,cross]:[cross,ROAM_FLOOR_Y,mid],'walls',{roughness:.86});
       if(!alongX)mesh.rotation.y=Math.PI/2;
       const doorway=opening?{from:mid+(alongX?opening.center:-opening.center)-opening.width/2,to:mid+(alongX?opening.center:-opening.center)+opening.width/2,top:ROAM_FLOOR_Y+opening.top,arch:opening.arch!==false}:null;
-      mesh.userData.wallTextureAxis='x';mesh.userData.roamWall={id:`roam:${shared?'partition':'perimeter'}:${axis}:${edge.at}:${edge.from}:${edge.to}`,side:edge.side,alongAxis:axis,normalAxis:alongX?'z':'x',axis:alongX?'z':'x',plane:edge.at,centerPlane:cross,from:edge.from,to:edge.to,minY:ROAM_FLOOR_Y,maxY:ROAM_FLOOR_Y+WALL_HEIGHT,thickness:shared ? .17 : ROAM_WALL_THICKNESS,exterior:!shared,entrance:!!opening&&!shared,doorway};
+      mesh.userData.wallTextureAxis='x';mesh.userData.roamWall={id:`roam:${shared?'partition':'perimeter'}:${axis}:${edge.at}:${edge.from}:${edge.to}`,side:edge.side,alongAxis:axis,normalAxis:alongX?'z':'x',axis:alongX?'z':'x',plane:edge.at,centerPlane:cross,from:edge.from,to:edge.to,minY:ROAM_FLOOR_Y,maxY:ROAM_FLOOR_Y+height,thickness:shared ? .17 : ROAM_WALL_THICKNESS,exterior:!shared,entrance:!!opening&&!shared,doorway};
       mesh.userData.surfaceId=owner&&owner.id!=='living'?`room:${owner.id}.wall`:edge.side==='left'?'wall.side':'wall.inner';
       if(shared)mesh.userData.sharedPartitionAxis=axis;
-      if(holes.length){const before=parts.windows.length;windowAt(alongX?[mid,0,cross+.13]:[cross+.13,0,mid],axis,Math.min(1.25,edge.to-edge.from-.65));for(const piece of parts.windows.slice(before)){piece.userData.roamWallId=mesh.userData.roamWall.id;piece.userData.roamAttachment=true;}}
+      if(holes.length){const before=parts.windows.length;windowAt(alongX?[mid,0,cross+.13]:[cross+.13,0,liftOpening?-.9:mid],axis,Math.min(1.25,edge.to-edge.from-.65));for(const piece of parts.windows.slice(before)){piece.userData.roamWallId=mesh.userData.roamWall.id;piece.userData.roamAttachment=true;}}
       return mesh;
     };
     for(const edge of boundary) {
@@ -443,21 +448,36 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       }
       const index=parts.walls.indexOf(mesh);parts.walls.splice(index,1,...replacements);mesh.removeFromParent();geometries.delete(mesh.geometry);materials.delete(mesh.material);mesh.geometry.dispose();mesh.material.dispose();
     }
-    const remove=(segments,cut)=>segments.flatMap(s=>cut.to<=s.from+1e-7||cut.from>=s.to-1e-7?[s]:[{from:s.from,to:Math.min(s.to,cut.from)},{from:Math.max(s.from,cut.to),to:s.to}].filter(p=>p.to-p.from>1e-6));
-    for(const room of home.rooms)for(const edge of getFloorBoundarySegments({rooms:[room]})) {
-      const alongX=edge.side==='back'||edge.side==='front';let intervals=[{from:edge.from,to:edge.to}];
-      for(const other of[...boundary,...drawn])if(alongX===(other.side==='back'||other.side==='front')&&Math.abs(edge.at-other.at)<1e-6)intervals=remove(intervals,other);
-      for(const interval of intervals) {
-        const part={...edge,...interval},door=Math.min(1.45,(part.to-part.from)*.5);
-        wall(part,{width:door,top:2.15,center:0,arch:false},room,true);drawn.push(part);
+    // Enlarging a slab never removes the historical starter back/left walls.
+    // Those exact authored blocks remain physical in both camera modes.
+    for(const run of getRetainedStarterWallRuns(home)){
+      currentRoom=home.rooms.find(room=>room.id===run.roomId);const prefix=run.side==='back'?'back-':'side-';
+      for(const block of STARTER_WALL_BLOCKS.filter(block=>block.id.startsWith(prefix))){
+        const mesh=box(block.size,block.position,getRoomTheme('living',currentRoom,theme).wall,block.id.endsWith('body')?'walls':'border',block.radius);
+        const axis=run.axis,lo=run.from,hi=run.to,full=block.size[axis==='x'?0:2];
+        if(hi-lo<full-.19){const clipped=clipWallGeometryInterval(mesh,lo,hi,axis);if(clipped){geometries.delete(mesh.geometry);mesh.geometry.dispose();mesh.geometry=clipped;geometries.add(clipped);}}
+        const id='roam:retained-starter:'+run.side+':'+run.from+':'+run.to;
+        mesh.userData.surfaceId=run.side==='back'?'wall.inner':'wall.side';
+        if(block.id.endsWith('body')){
+          const cross=block.position[axis==='x'?2:0],height=block.size[1];mesh.userData.wallTextureAxis=axis;
+          mesh.userData.roamWall={id,side:run.side,alongAxis:axis,normalAxis:axis==='x'?'z':'x',axis:axis==='x'?'z':'x',plane:run.at,centerPlane:cross,from:run.from,to:run.to,minY:block.position[1]-height/2,maxY:block.position[1]+height/2,thickness:block.size[axis==='x'?2:0],exterior:false,retainedStarter:true,entrance:false,doorway:null};
+        }else{mesh.userData.roamWallId=id;mesh.userData.wallNeutralTrim=true;mesh.material.color.set(block.id.includes('skirting')?shellColor('trim'):shellColor('wallCap'));}
       }
+    }
+    // The normal room builder owns the physical partition plan. Preserve its
+    // original knee-wall height and open spans instead of surrounding every
+    // named room with newly invented 2.85m walls in this viewing mode.
+    for(const part of getHomeInteriorPartitions(home)) {
+      const owner=home.rooms.find(room=>room.id===part.roomId);
+      for(const run of getPartitionSolidIntervals(home,part))wall({...part,...run},null,owner,true);
     }
     currentRoom=null;
     group.userData.roamEntrance=entry;
     function axisFor(alongX){return alongX?'x':'z';}
   }
   function build(rooms) {
-    const home={rooms:resolveRooms(rooms),...(slab?{slab}:{}),profile,surfaces};
+    const home={rooms:resolveRooms(rooms),...(slab?{slab}:{}),profile,surfaces,staircases:stairs};
+    architectureHome=home;
     const slabMode=!!slab,standalone=usesRoam()||slabMode&&!hasStarterRoom(home);
     if(usesRoam()) {
       const bounds=getFloorBounds(home);if(!bounds)throw new TypeError('A roam interior requires actual floor area');
@@ -471,6 +491,19 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
     } else {
       definition = describeRooms(rooms);
       for (const room of definition.rooms.filter(room=>room.id!=='living')) buildRoom(definition.rooms, room, definition.bounds);
+    }
+    if(!usesRoam()&&includeWalls&&hasStarterRoom(home)&&stairs.some(isExteriorElevator)) {
+      const room=home.rooms.find(room=>room.id==='living'),r=roomRect(room),edge={side:'left',at:r.minX,from:r.minZ,to:r.maxZ},opening=exteriorElevatorDoorOnEdge(home,edge);
+      if(opening){
+        currentRoom=room;
+        const mid=(edge.from+edge.to)/2,holes=[[mid+.9,1.71,1.44,1.46,.12]];
+        const mesh=fullWall(edge.to-edge.from,[edge.at-.01,.06,mid],'z',getRoomTheme(room.kind,room,theme).wall,holes,opening);
+        mesh.name='exterior-elevator-starter-wall';mesh.userData.surfaceId='wall.side';
+        for(const [from,to]of[[edge.from,opening.coordinate-opening.width/2],[opening.coordinate+opening.width/2,edge.to]]){
+          const strip=box([.06,.09,to-from],[edge.at+.13,.105,(from+to)/2],trimColor(),'border',.008);strip.userData.surfaceId='wall.side';
+        }
+        currentRoom=null;
+      }
     }
     // The hand-built starter shell owns only the two tall window walls. Its
     // exposed front/right edges need the same render-only cut as other rooms.
@@ -486,6 +519,21 @@ export function createRoomExpansion({ rooms = 'starter', tier, maps = {}, includ
       const index=parts.walls.indexOf(original);parts.walls.splice(index,1,...faces);
       for(const face of faces){geometries.add(face.geometry);materials.add(face.material);group.add(face);}
       original.removeFromParent();geometries.delete(original.geometry);materials.delete(original.material);original.geometry.dispose();original.material.dispose();
+    }
+    if(theme.id==='toy') {
+      for(const mesh of parts.floor)applyL1Surface(mesh,{role:'floor',strength:.13});
+      for(const mesh of parts.walls)applyL1Surface(mesh,{role:'wall',strength:.14});
+      // Follow the actual retained wall intervals, and leave door apertures
+      // empty. These 9 cm strips are visual only, with no collision identity.
+      for(const wall of [...parts.walls]) {
+        const d=wall.userData.roamWall;if(!d)continue;
+        const segments=d.doorway?[{from:d.from,to:d.doorway.from},{from:d.doorway.to,to:d.to}]:[{from:d.from,to:d.to}];
+        for(const seg of segments){const length=seg.to-seg.from;if(length<.02)continue;
+          const alongX=d.alongAxis==='x',mid=(seg.from+seg.to)/2;
+          const strip=box(alongX?[length,.09,d.thickness+.025]:[d.thickness+.025,.09,length],alongX?[mid,ROAM_FLOOR_Y+.045,d.centerPlane]:[d.centerPlane,ROAM_FLOOR_Y+.045,mid],'#ffffff','border',.006,{roughness:.85});
+          strip.name='l1-white-skirting';strip.userData.wallNeutralTrim=true;strip.userData.roamWallId=d.id;strip.castShadow=false;delete strip.userData.surfaceId;
+        }
+      }
     }
     group.userData.rooms = definition.rooms; group.userData.roomCount = definition.count;
     group.userData.roomBounds = definition.bounds; group.userData.roomDimensions = { width: definition.width, depth: definition.depth, height: WALL_HEIGHT };

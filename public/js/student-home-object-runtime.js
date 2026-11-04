@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import {createComputerDisplayBinding} from './home-computer-display.js';
 import {getObjectCapabilities,getObjectState,TELEVISION_CHANNELS} from './home-object-state.js';
 import {getFloorRects} from './home-layout.js';
+import {drawExtraTelevisionChannel,TELEVISION_CHANNEL_TITLES} from './home-television-channels.js';
 
 export const OBJECT_LIGHT_LIMIT=4;
 export const TV_CHANNELS=TELEVISION_CHANNELS;
@@ -45,12 +47,13 @@ export function drawTelevisionFrame(ctx,{power,channel=0},time=0){
     ctx.beginPath();ctx.moveTo(256,25);ctx.lineTo(256,261);ctx.stroke();ctx.beginPath();ctx.arc(256,143,48,0,TAU);ctx.stroke();
     for(let n=0;n<6;n++){circle(80+n*69,83+Math.sin(t*1.4+n)*27,10,n%2?'#f2bb70':'#c3e3f3');circle(80+n*69,209+Math.cos(t*1.6+n)*17,10,n%2?'#c3e3f3':'#f2bb70');}
     const bx=256+Math.sin(t*.9)*155,by=143+Math.sin(t*1.8)*57;circle(bx+3,by+4,9,'#276653');circle(bx,by,9,'#fff8e7');circle(bx,by,3,'#34454e');
-  }else{
+  }else if(channel===3){
     rect(0,0,w,h,'#384571');const colors=['#efb66d','#e498a6','#a5c7b0','#99bddb','#c0a5df','#f1d784'];
     for(let n=0;n<12;n++){const height=35+(Math.sin(t*(2+n*.08)+n)+1)*65;rect(28+n*39,231-height,26,height,colors[n%6]);}
     ctx.fillStyle='#fff1d1';ctx.font='bold 45px sans-serif';ctx.fillText('♪',72,68);ctx.fillText('♫',376,67);
   }
-  rect(0,0,w,30,'#183f4d');ctx.fillStyle='#fff3ce';ctx.font='bold 15px sans-serif';ctx.fillText(['FOREST TV','WEATHER','SPORTS','MUSIC'][channel]??'FOREST TV',16,21);
+  if(channel>=4)drawExtraTelevisionChannel(ctx,channel,t);
+  rect(0,0,w,30,'#183f4d');ctx.fillStyle='#fff3ce';ctx.font='bold 15px sans-serif';ctx.fillText(TELEVISION_CHANNEL_TITLES[channel]??'FOREST TV',16,21);
   ctx.fillStyle='#fff3ce';ctx.font='13px sans-serif';ctx.fillText(`CH ${channel+1}`,453,21);
 }
 
@@ -68,6 +71,7 @@ export function createStudentHomeObjectRuntime({requestRender=()=>{},now=()=>per
   function parts(group){const result=new Map();group.traverse(node=>{const name=node.userData?.objectPart;if(name){if(!result.has(name))result.set(name,[]);result.get(name).push({node,position:node.position.clone(),rotation:node.rotation.clone(),visible:node.visible});}});return result;}
   function nodes(row,name){return row.parts.get(name)??[];}
   function release(row){
+    row.computer?.dispose();
     for(const entries of row.parts.values())for(const {node,position,rotation,visible:wasVisible}of entries){node.position.copy(position);node.rotation.copy(rotation);node.visible=wasVisible;}
     for(const {node,original,material,texture}of row.screens){node.material=original;material.dispose();texture.dispose();}
     for(const [material,base]of row.emission){material.color.copy(base.color);material.emissive.copy(base.emissive);material.emissiveIntensity=base.intensity;}
@@ -83,9 +87,10 @@ export function createStudentHomeObjectRuntime({requestRender=()=>{},now=()=>per
     }
     if(cap.type==='television')for(const {node}of nodes(row,'tv-screen'))if(node.isMesh){
       const canvas=doc?.createElement?.('canvas'),ctx=canvas?.getContext?.('2d');if(!ctx)continue;canvas.width=512;canvas.height=288;
-      const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;
+      const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;texture.userData.homeRuntimeTransient=true;
       const material=new THREE.MeshBasicMaterial({map:texture,toneMapped:false});row.screens.push({node,original:node.material,material,texture,ctx});node.material=material;
     }
+    if(cap.type==='computer')row.computer=createComputerDisplayBinding({group:model.group,document:doc});
     return row;
   }
   function sync(commerce,models,storey=0){
@@ -154,6 +159,7 @@ export function createStudentHomeObjectRuntime({requestRender=()=>{},now=()=>per
     if(disposed)return;const date=dateNow();let lamps=0,changed=false,musicPlayed=false;
     for(const row of records.values()){
       if(row.cap.type==='lamp'){applyLamp(row,row.state.power?lamps++:OBJECT_LIGHT_LIMIT);changed=true;}
+      if(row.cap.type==='computer'){if(row.computer.setPower(row.state.power))changed=true;}
       if(!canRun())continue;
       if(row.cap.type==='clock'){applyClock(row,date,time);changed=true;}
       if(row.cap.type==='television'){
@@ -172,7 +178,7 @@ export function createStudentHomeObjectRuntime({requestRender=()=>{},now=()=>per
     releaseModel(group){for(const[id,row]of records)if(row.group===group){release(row);records.delete(id);}},
     setRemoteHeld(id,held){if(held)heldRemotes.add(id);else heldRemotes.delete(id);const row=records.get(id);if(row)for(const{node}of nodes(row,'tv-remote'))node.visible=!held;requestRender();},
     setMuted(value){muted=!!value;if(muted)silence();},
-    getStats(){return {objects:records.size,activePointLights:[...records.values()].filter(row=>row.light?.intensity>0).length,textures:[...records.values()].reduce((sum,row)=>sum+row.screens.length,0)+(poolTexture?1:0),scheduled:!!frame||!!timer};},
+    getStats(){return {objects:records.size,activePointLights:[...records.values()].filter(row=>row.light?.intensity>0).length,textures:[...records.values()].reduce((sum,row)=>sum+row.screens.length+(row.computer?.getStats().textures??0),0)+(poolTexture?1:0),scheduled:!!frame||!!timer};},
     clear(){stop();silence();for(const row of records.values())release(row);records.clear();heldRemotes.clear();poolTexture?.dispose();poolTexture=null;void audio?.suspend?.();requestRender();},
     dispose(){if(disposed)return;stop();silence();for(const row of records.values())release(row);records.clear();heldRemotes.clear();poolTexture?.dispose();poolTexture=null;disposed=true;doc?.removeEventListener?.('visibilitychange',visibility);void audio?.close?.();audio=null;},
   };

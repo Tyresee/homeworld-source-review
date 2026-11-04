@@ -6,7 +6,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {createStudentHomeRobotController} from '../public/js/student-home-robot-controller.js';
 import {createHomeState,applyChange} from '../public/js/home-engine.js';
 import {isAvatarPositionWalkable} from '../public/js/home-avatar-navigation.js';
-import {FLOOR_Y,STOREY_HEIGHT,ELEVATOR_DOOR_CLEAR_WIDTH,ELEVATOR_CABIN_CLEAR_HEIGHT} from '../public/js/home-staircase-shape.js';
+import {FLOOR_Y,STOREY_HEIGHT,STAIR_DEPTH,ELEVATOR_DOOR_CLEAR_WIDTH,ELEVATOR_CABIN_CLEAR_HEIGHT,getHomeStairs} from '../public/js/home-staircase-shape.js';
 import {ROBOT_CLOTHING_PRODUCTS} from '../public/js/robot-wardrobe-catalog.js';
 import {createHomeElevator} from '../public/js/home-elevator-model.js';
 
@@ -104,8 +104,49 @@ test('hiding, backgrounding, replacing a world and disposing reset cabin state a
 test('missing paired lifts and blocked destination doors are rejected before approach or frame callbacks',t=>{
   const {c,floors,events,modelFrames}=fixture(t),mismatch=structuredClone(floors[1]);delete mismatch.stairs;
   c.setWorld(floors[0],0,{floors:[floors[0],mismatch]});assert.equal(c.useStairs('main-lift').ok,false);assert.equal(c.getState().scheduled,false);assert.equal(modelFrames.length,0);
-  const blocked=applyChange(floors[1],{type:'furniture',id:'door-blocker',kind:'cabinet',x:.55,z:-2.50,rotation:0});assert.equal(blocked.ok,true,blocked.error);
+  const blocked=applyChange(floors[1],{type:'furniture',id:'door-blocker',kind:'cabinet',x:.55,z:1.80,rotation:0});assert.equal(blocked.ok,true,blocked.error);
   c.setWorld(floors[0],0,{floors:[floors[0],blocked.state]});assert.equal(c.useStairs('main-lift').ok,false);assert.equal(c.getState().scheduled,false);assert.equal(events.length,0);assert.equal(modelFrames.length,0);
+});
+
+for(const rotation of[0,90,180,270])test(`actual v4 descends 3F → 2F → 1F through one front door without a rear detour at ${rotation} degrees`,t=>{
+  const floors=Array.from({length:3},()=>createHomeState({profile:'upper',slab:{rects:[{minX:-6,minZ:-6,width:12,depth:12}]}}));
+  for(let i=0;i<2;i++){
+    const up={id:`same-front-${i}`,type:'elevator',x:.55,z:-.35,rotation,direction:'up'};
+    for(const [floor,row]of[[i,up],[i+1,{...up,direction:'down'}]])floors[floor].staircases=[...getHomeStairs(floors[floor]),row];
+  }
+  const root=new THREE.Group(),arrivals=[],a=rotation*Math.PI/180,normal={x:Math.sin(a),z:Math.cos(a)};let c;
+  c=createStudentHomeRobotController({source,parent:root,requestRender(){},onStoreyChange:event=>{
+    arrivals.push(event.index);root.position.y=event.index*STOREY_HEIGHT;c.setWorld(floors[event.index],event.index,{floors,arrivalPoint:event.point});
+  }});t.after(()=>c.dispose());
+  c.setWorld(floors[2],2,{floors});
+  const margin=c.getState().navigation.radius+.08,front={x:.55+normal.x*(STAIR_DEPTH/2+margin),y:FLOOR_Y,z:-.35+normal.z*(STAIR_DEPTH/2+margin)};
+  c.setWorld(floors[2],2,{floors,arrivalPoint:front});
+  let previousArrival=null;
+  for(const [start,target,id]of[[2,1,'same-front-1'],[1,0,'same-front-0']]){
+    const before=capture(c);if(previousArrival)assert.deepEqual(before.point,previousArrival,'the next descent starts at the previous front exit');
+    const result=c.useStairs(id);assert.equal(result.ok,true,result.error);let prior=capture(c),moving=0,observedApproach=0;
+    for(let i=0;i<1600&&c.getState().floor===start;i++){
+      advance();const state=capture(c);
+      if(state.action==='walk')observedApproach++;
+      if(state.action==='elevator'){
+        const localZ=(state.point.x-.55)*normal.x+(state.point.z+.35)*normal.z;
+        assert.ok(localZ>=-1e-7,'robot never goes behind the shaft during a descent');
+        if(prior.action==='elevator'&&prior.phase===state.phase&&/board|leave/.test(state.phase)){
+          const dx=state.point.x-prior.point.x,dz=state.point.z-prior.point.z,length=Math.hypot(dx,dz);
+          if(length>1e-7){
+            const forward=new THREE.Vector3(0,0,1).applyQuaternion(state.rotation);
+            assert.ok((dx*forward.x+dz*forward.z)/length>.999,'actual robot faces forward throughout both doorway walks');moving++;
+          }
+        }
+      }
+      prior=state;
+    }
+    const end=c.getState();assert.equal(end.floor,target);assert.equal(end.action,'idle');assert.equal(end.scheduled,false);
+    assert.ok(Math.hypot(end.point.x-front.x,end.point.z-front.z)<1e-8,'exit is the identical next-ride front approach');
+    assert.equal(observedApproach,0,'a consecutive descent does not route around to another door');assert.ok(moving>40);
+    previousArrival={...end.point};
+  }
+  assert.deepEqual(arrivals,[1,0]);
 });
 
 test('optional frame callback does not prevent a complete ride, and an unhandled floor callback returns safely to the source door',t=>{

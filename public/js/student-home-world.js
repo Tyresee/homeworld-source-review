@@ -27,7 +27,7 @@ export async function createStudentHomeWorld({container,warmUI=false,onRoamChang
   try{
     scene=createHomeScene({container,onRoamChange:roamChanged,onStageCameraChange,onContextMenu,onDrag,onOutdoorMove,onPlacementPreview,onPlacementCommit,onPlacementCancel,onPlacementReject,onStoreyChange:index=>{if(view==='interior')onStoreyChange?.(index);},onSelect,onObjectClick,onCancel,onPanStart,onObjectEdit,
       avatarFactory:options=>createStudentHomeRobotController({...options,source}),onAvatarStatus:onStatus,onAvatarActivityChange:onRobotActivityChange,
-      onAvatarObjectAction:request=>onObjectAction?.(request),onAvatarObjectPresentation:request=>{if(Object.hasOwn(request,'remoteHeld'))objectRuntime?.setRemoteHeld(request.id,request.remoteHeld);if(Object.hasOwn(request,'cushionTidy'))cushions.apply(request);},onBeforeModelRelease:group=>{cushions.release(group);objectRuntime?.releaseModel(group);},floorClickWalk:true,
+      onAvatarObjectAction:request=>onObjectAction?.(request),onAvatarObjectPresentation:request=>{if(Object.hasOwn(request,'remoteHeld'))objectRuntime?.setRemoteHeld(request.id,request.remoteHeld);if(Object.hasOwn(request,'cushionTidy'))cushions.apply(request);},onBeforeModelRelease:group=>{cushions.release(group);objectRuntime?.releaseModel(group);},onFloorCapture:index=>{if(commerce&&scene)objectRuntime?.sync(commerce,scene.getFurnitureModels?.()??[],index);},floorClickWalk:true,
       onAvatarClick:request=>{if(onAvatarClick)onAvatarClick(request);else if(request.data?.surfaceId==='avatar'){if(!onObjectClick)onPalette?.({x:request.clientX,y:request.clientY});}else if(request.worldPoint)scene.walkAvatar(request.worldPoint);},
       // Only a completed click on the actual Warm entrance requests a visit.
       // Roofs and outdoor double-clicks retain their existing focus behavior.
@@ -43,7 +43,7 @@ export async function createStudentHomeWorld({container,warmUI=false,onRoamChang
     if(!warmUI||disposed||!commerce||typeof scene.enterRoam!=='function')return false;
     if(enterDoor&&view!=='estate')return false;
     if(view==='roam')return true;const epoch=++roamEpoch;roamPreviousView=view;
-    const result=await scene.enterRoam({enterDoor:enterDoor===true});if(disposed||epoch!==roamEpoch)return false;
+    const result=await scene.enterRoam({enterDoor:enterDoor===true,...(view==='estate'&&!enterDoor?{enterOutdoor:true}:{})});if(disposed||epoch!==roamEpoch)return false;
     return result!==false&&result?.ok!==false;
   }
   function setView(next){if(!['interior','estate','building'].includes(next)||disposed)return;exitRoam();view=next;scene.setView(next);objectRuntime.setVisible(next==='interior');if(commerce)objectRuntime.sync(commerce,scene.getFurnitureModels?.()??[],activeFloor);onViewChange?.(next);}

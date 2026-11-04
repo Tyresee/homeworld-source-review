@@ -13,6 +13,7 @@ export { getFurniturePose, getFurnitureMountBounds, getWallMountTargets, getFurn
 export { getFurniturePlacementType } from './home-item-placement.js';
 import { getHomeBuildingVolumes, getLuxuryCollisionBounds, getStaticUpgradeCollisionBounds, overlapBuildingVolume } from './home-building-collision.js';
 import { getStaircaseVolume, isStaircaseValid, getHomeStairs, areHomeStairsValid } from './home-staircase.js';
+import { isElevatorShaftContinuation, isExteriorElevator } from './home-staircase-shape.js';
 export { getStaircaseVolume, isStaircaseValid, getHomeStairs, areHomeStairsValid } from './home-staircase.js';
 
 export { ROOM_KINDS, getRoomKind, roomRect, getRoomSlots, findRoomAt, describeLayout, layoutBounds, MAX_ROOMS, LAYOUT_PRESETS, getFloorRects, getFloorBounds, getFloorBoundarySegments, getFloorArea, floorContainsRect, hasStarterRoom };
@@ -333,13 +334,14 @@ export function findHomeCollision(state, candidate) {
   return homeCollisionBoxes(state).find(box => !box.item?.mount && box.id !== candidate.id && box.layer === candidate.layer && overlaps(candidate, box)) ?? null;
 }
 /** Architecture placement must clear the same visible furnishings and wall volumes. */
-export function getStaircaseCollision(state, stairs) {
+export function getStaircaseCollision(state, stairs, {entrance = true} = {}) {
   const volume = getStaircaseVolume(stairs);
   if (!volume) return { label: "DisplayText0787", objectId: 'stairs' };
-  const footprint = { x: stairs.x, z: stairs.z, halfX: (volume.maxX-volume.minX)/2, halfZ: (volume.maxZ-volume.minZ)/2 };
+  const footprint = { x: (volume.minX+volume.maxX)/2, z: (volume.minZ+volume.maxZ)/2, halfX: (volume.maxX-volume.minX)/2, halfZ: (volume.maxZ-volume.minZ)/2 };
   if (!(state.slab ? floorContainsFootprint(state,footprint) : findContainingRoom(state.rooms,footprint))) return { ...volume, label: state.slab ? "DisplayText0788" : "DisplayText0789" };
-  const withoutStairs = { ...state,staircases:getHomeStairs(state).filter(row=>row.id!==stairs.id) }; delete withoutStairs.stairs;
-  const wall = getHomeBuildingVolumes(withoutStairs).find(box => overlapBuildingVolume(volume,box));
+  if(isExteriorElevator(stairs))return buildingCandidates(state).find(box=>overlapBuildingVolume(volume,box,.025))??null;
+  const withoutStairs = { ...state,staircases:getHomeStairs(state).filter(row=>row.id!==stairs.id&&!isElevatorShaftContinuation(row,stairs)) }; delete withoutStairs.stairs;
+  const wall = getHomeBuildingVolumes(withoutStairs).find(box => (entrance || box.objectId !== 'entrance') && overlapBuildingVolume(volume,box));
   if (wall) return wall;
   return buildingCandidates(withoutStairs).find(box => overlapBuildingVolume(volume,box,.025)) ?? null;
 }
@@ -347,7 +349,7 @@ function staircaseFitsFloor(stairs, home) {
   if (stairs === undefined) return true;
   const volume=getStaircaseVolume(stairs);
   if(!volume)return false;
-  const footprint={x:stairs.x,z:stairs.z,halfX:(volume.maxX-volume.minX)/2,halfZ:(volume.maxZ-volume.minZ)/2};
+  const footprint={x:(volume.minX+volume.maxX)/2,z:(volume.minZ+volume.maxZ)/2,halfX:(volume.maxX-volume.minX)/2,halfZ:(volume.maxZ-volume.minZ)/2};
   return home?.slab ? floorContainsFootprint(home,footprint) : !!findContainingRoom(Array.isArray(home?.rooms)?home.rooms:[],footprint);
 }
 /** A moved table carries its goods; upgrades that move a wall fixture outwards

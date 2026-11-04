@@ -125,3 +125,14 @@ test('visible real robot mesh envelopes stay inside the small oval water through
     c.stand();until(c,s=>s.action==='idle'&&!s.scheduled);
   }
 });
+
+for(const[id,variant]of[['swim-ring','ring'],['soak','spa']])test(`${id} visibly animates, persists its exact entry and pose, and cleans up on exit`,t=>{
+  const state=poolState(3,90),c=actor(t,state);
+  assert.equal(c.interact('outdoor:owned-pool',id).ok,true);advance();
+  assert.equal(c.group.getObjectByName('robot-swimming-ring').visible,variant==='ring','ring is already carried while approaching the pool');
+  until(c,s=>s.action==='swim');advance(20);const saved=c.captureActivity({emit:false}),before=sample(c);assert.equal(saved.variant,variant);assert.ok(Number.isSafeInteger(saved.entryIndex));
+  const robot=c.group.getObjectByName('robot-avatar'),eye=robot.getObjectByName('EyeL').getWorldPosition(new THREE.Vector3());assert.ok(eye.y>c.getState().point.y+.3,'float and spa use upright head-above-water poses');
+  const fresh=actor(t,state);fresh.setAvatar({activity:saved,equipped:{}});const after=sample(fresh);assert.ok(distance(before.point,after.point)<1e-6,'reload restores exact water contact');for(const name of Object.keys(before.joints))assert.ok(before.joints[name].angleTo(after.joints[name])<1e-6,'reload restores the same limb pose');
+  assert.equal(fresh.group.getObjectByName('robot-swimming-ring').visible,variant==='ring');
+  c.stand();until(c,s=>s.action==='idle'&&!s.scheduled);assert.equal(c.group.getObjectByName('robot-swimming-ring').visible,false);assert.equal(isOutdoorRobotPositionWalkable(state,c.getState().point,c.getState().navigation),true);
+});

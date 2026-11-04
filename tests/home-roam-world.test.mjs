@@ -30,7 +30,7 @@ test('the real first-floor builder preserves inputs and produces the exact eight
     for(const row of model.furniture){const item=home.furniture.find(item=>item.id===row.itemId),pose=getFurniturePose(home,item);assert.deepEqual(row.group.position.toArray(),[pose.x,pose.y,pose.z]);near(row.group.rotation.y,pose.rotation*Math.PI/180);}
     for(const descriptor of model.ceilingLights){assert.ok(descriptor.disc.isMesh);assert.ok(descriptor.light.isPointLight);assert.equal(descriptor.light.castShadow,false);assert.equal(descriptor.light.distance,11);assert.equal(descriptor.light.decay,2);near(descriptor.disc.geometry.parameters.radiusTop,.26);}
     for(const target of controller.targets)controller.activate(target);for(let i=0;i<30;i++)controller.tick(.1);assert.equal(lightCount(model.scene),lights,'interaction toggles do not reallocate lights');assert.equal(JSON.stringify(home),before);assert.equal(map.version,version);
-    assert.throws(()=>buildHomeRoamScene({home,theme:HOME_THEMES.default}),/Warm/);assert.throws(()=>buildHomeRoamScene({home,theme:HOME_THEMES.toy}),/Warm/);
+    assert.throws(()=>buildHomeRoamScene({home,theme:HOME_THEMES.default}),/Warm/);const toy=buildHomeRoamScene({home,theme:HOME_THEMES.toy});assert.equal(toy.lightingProfile.id,'L1');assert.ok(toy.ceilings.every(mesh=>mesh.castShadow&&!mesh.receiveShadow&&mesh.material.emissiveIntensity===0));toy.dispose();
   }finally{controller.dispose();model.dispose();assert.equal(mapDisposed,0,'borrowed furniture texture must remain owned by the caller');map.dispose();}
 });
 

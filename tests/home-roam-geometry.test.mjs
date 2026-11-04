@@ -103,7 +103,7 @@ test('roam interior owns starter floors, all four full walls, matching arched en
         assert.ok(entryWalls.length);assert.equal(rayAtEntry(entry).intersectObjects(entryWalls).length,0,'interior entry and exterior door align');
         const shoulder=new THREE.Vector3(entry.center.x,1,entry.center.z).addScaledVector(entry.outward,1),lateral=new THREE.Vector3(entry.outward.z,0,-entry.outward.x);shoulder.addScaledVector(lateral,spec.width*.75);
         assert.ok(new THREE.Raycaster(shoulder,entry.outward.clone().negate(),0,2).intersectObjects(entryWalls).length,'wall remains beside the door');
-        for(const mesh of room.getRoamWalls()){const box=new THREE.Box3().setFromObject(mesh);assert.ok(box.max.y<=.06+WALL_HEIGHT+1e-5);assert.equal(mesh.userData.wallCutaway,undefined);assert.ok(mesh.userData.roamWall.maxY>2.8);}
+        for(const mesh of room.getRoamWalls()){const box=new THREE.Box3().setFromObject(mesh);assert.ok(box.max.y<=.06+WALL_HEIGHT+1e-5);assert.equal(mesh.userData.wallCutaway,undefined);assert.ok(mesh.userData.roamWall.exterior?mesh.userData.roamWall.maxY>2.8:Math.abs(mesh.userData.roamWall.maxY-1.04)<1e-6,'the visitor retains physical knee partitions instead of inventing upper walls');}
         const ceilings=room.getRoamCeilings();assert.ok(ceilings.length>=home.rooms.length);for(const ceiling of ceilings){close(ceiling.position.y,.06+WALL_HEIGHT-.015);assert.ok(new THREE.Vector3(0,0,1).applyQuaternion(ceiling.quaternion).y<-.99);assert.ok(ceiling.userData.point);assert.equal(ceiling.userData.surfaceId,undefined);}
         for(const item of home.rooms)assert.ok(ceilings.some(mesh=>mesh.userData.roomId===item.id));
       }finally{room.dispose();}
@@ -117,7 +117,7 @@ test('roam walls preserve independent room finishes and expose clipping/attachme
   try {
     const walls=model.getRoamWalls();assert.ok(walls.some(mesh=>mesh.userData.sharedPartitionAxis));
     const bath=walls.filter(mesh=>mesh.userData.roomKind==='bathroom'&&!mesh.userData.wallNeutralTrim);assert.ok(bath.length);assert.ok(bath.every(mesh=>mesh.material.map.name==='wall:stripe-fine'&&mesh.material.color.getHexString()==='d4dfe7'));
-    for(const wall of walls){const descriptor=wall.userData.roamWall;assert.ok(['x','z'].includes(descriptor.axis));assert.ok(descriptor.to>descriptor.from);if(wall.userData.sharedPartitionAxis)close(descriptor.doorway.to-descriptor.doorway.from,Math.min(1.45,(descriptor.to-descriptor.from)*.5));}
+    for(const wall of walls){const descriptor=wall.userData.roamWall;assert.ok(['x','z'].includes(descriptor.axis));assert.ok(descriptor.to>descriptor.from);if(wall.userData.sharedPartitionAxis){close(descriptor.maxY-descriptor.minY,.98);assert.equal(descriptor.doorway,null,'each real knee-wall stub stops at its original doorway');}}
     const attachments=model.userData.roomParts.windows;assert.ok(attachments.length);assert.ok(attachments.every(mesh=>mesh.userData.roamAttachment&&walls.some(wall=>wall.userData.roamWall.id===mesh.userData.roamWallId)));
   }finally{model.dispose();t.dispose();}
 });
@@ -138,10 +138,10 @@ const BASELINES={
   toy:{rooms:'df9994048d28850592d0e35ba06e6464fde93d86a2e4723ca207e5378cb7a7ed',manor:'6068cd3f25f70c7a4e61df6b9ce493de055388e4f54bb001a650ea4373a8ad62'},
   warm:{rooms:'656eff6e2be31b00bf822082aff4227bb4bf36515b7fa4274047470f960882f2',manor:'4d385377fdaba86c55146b2654ed137cce985ce7306ba6ecd99c8605bfb2365f'},
 };
-test('Default and Toy meshes plus the Warm interior remain byte-identical while Warm exterior follows its selected entry',()=>{
+test('Default meshes and Warm interior remain byte-identical while Warm exterior follows its selected entry',()=>{
   const t=textures();
   try {
-    for(const id of['default','toy','warm'])for(const request of[{},...id==='warm'?[]:[{roam:true}]]) {
+    for(const id of['default','warm'])for(const request of[{},...id==='warm'?[]:[{roam:true}]]) {
       const options={rooms:resolveRooms('atrium'),theme:HOME_THEMES[id],...t,...request},room=createRoomExpansion(options),manor=createEstateManor(options);
       try {assert.equal(fingerprint(room),BASELINES[id].rooms);if(id!=='warm')assert.equal(fingerprint(manor),BASELINES[id].manor);else {const entry=getManorFacadeLayout({rooms:options.rooms},{theme:HOME_THEMES.warm}).entrance;assert.equal(entry.room.kind,'gallery','the enclosed canonical living room has no eligible front/right wall in this preset');const steps=meshes(manor).filter(mesh=>mesh.userData.buildingPart==='entrance-step');assert.equal(steps.length,3);assert.ok(steps.every(mesh=>mesh.userData.roomId===entry.room.id));assert.ok(fingerprint(manor)!==BASELINES[id].manor,'Warm may move its entrance under the new room-kind rule');}assert.equal(manor.getRoamEntry(),null);assert.equal(room.getRoamWalls().length,0);}finally{room.dispose();manor.dispose();}
     }

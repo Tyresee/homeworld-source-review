@@ -66,6 +66,36 @@ test('three-storey connections retain their own identities, heights and clear ex
   }
 });
 
+for(const rotation of[0,90,180,270])test(`same-front 3F → 2F → 1F keeps the exit at the next approach and walks facing forward at ${rotation} degrees`,()=>{
+  const floors=[newFloor(),newFloor(),newFloor()],a=rotation*Math.PI/180,normal={x:Math.sin(a),z:Math.cos(a)};
+  for(let i=0;i<2;i++){
+    const up={id:`front-chain-${i}`,x:.45,z:-.35,rotation,type:'elevator',direction:'up'};
+    for(const [floor,row]of[[i,up],[i+1,{...up,direction:'down'}]])floors[floor].staircases=[...(floors[floor].staircases??[]),row];
+  }
+  let from={x:.45+normal.x*3,z:-.35+normal.z*3},previousArrival=null;
+  for(const [index,id]of[[2,'front-chain-1'],[1,'front-chain-0']]){
+    const journey=planRobotElevator(floors[index],floors,index,id,from,navigation);assert.ok(journey.ok,journey.error);
+    if(previousArrival)assert.deepEqual(journey.approach,previousArrival,'consecutive descents use exactly the same front contact');
+    const localZ=(journey.approach.x-.45)*normal.x+(journey.approach.z+.35)*normal.z;near(localZ,STAIR_DEPTH/2+navigation.radius+.08);
+    const motion=createRobotElevatorMotion(journey,{rotation:a,point:journey.approach});assert.equal(motion.steps.length,9,'checkpoint step indexes remain compatible');
+    const samples=frames(motion,70);
+    for(let n=1;n<samples.length;n++){
+      const prior=samples[n-1],current=samples[n];assertContinuous(prior,current);
+      if(prior.phase===current.phase&&/board|leave/.test(current.phase)){
+        const dx=current.point.x-prior.point.x,dz=current.point.z-prior.point.z,length=Math.hypot(dx,dz);
+        if(length>1e-7)near((Math.sin(current.rotation)*dx+Math.cos(current.rotation)*dz)/length,1,1e-7);
+      }
+    }
+    const arrivalIndex=motion.steps.findIndex(step=>step.kind==='arrive'),arrival=motion.steps[arrivalIndex],pivotEnd=arrival.turnDuration/arrival.duration;
+    const turnStart=sampleRobotElevatorMotion(motion,arrivalIndex,0),turnMid=sampleRobotElevatorMotion(motion,arrivalIndex,pivotEnd/2),turnEnd=sampleRobotElevatorMotion(motion,arrivalIndex,pivotEnd);
+    near(deltaAngle(turnStart.rotation,turnEnd.rotation),Math.PI);near(deltaAngle(turnStart.rotation,turnMid.rotation),Math.PI/2);
+    for(const sample of[turnStart,turnMid,turnEnd]){assert.deepEqual(sample.doors,{lower:0,upper:0});near(distance(sample.point,turnStart.point),0);}
+    assert.ok(turnMid.visual.progress>0,'the in-place turn has supporting leg motion');
+    const opened=sampleRobotElevatorMotion(motion,arrivalIndex,1);near(deltaAngle(opened.rotation,motion.exitYaw),0);assert.equal(opened.doors[motion.arrival],1);
+    const end=samples.at(-1);near(end.point.x,journey.arrival.x);near(end.point.z,journey.arrival.z);previousArrival={...journey.arrival};from=previousArrival;
+  }
+});
+
 test('missing, ordinary, misaligned and blocked elevator peers reject before any motion',()=>{
   const clean=floorsFor(),from={x:0,z:3};
   assert.equal(planRobotElevator(clean[0],clean,0,'missing',from,navigation).ok,false);

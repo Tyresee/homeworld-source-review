@@ -1,0 +1,34 @@
+.student-home-share-entry{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 17px;border:1px solid #d9dfcf;border-radius:14px;background:#f4f7ed;color:#385144;font:inherit;font-size:14px;font-weight:700;line-height:1.3;cursor:pointer;white-space:nowrap;pointer-events:auto}
+.student-home-share-entry:disabled{opacity:.5;cursor:default}
+.student-home-share-dialog{box-sizing:border-box;width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 48px);margin:auto;padding:0;overflow:auto;border:1px solid #e4e2d8;border-radius:26px;background:#fbfaf4;color:#3c5146;box-shadow:0 28px 100px #26392d38;font-family:inherit}
+.student-home-share-dialog::backdrop{background:#1b2c3457;backdrop-filter:blur(4px)}
+.student-home-share-dialog *{box-sizing:border-box}
+.student-home-share-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:26px 28px 22px;border-bottom:1px solid #e4e5da}
+.student-home-share-eyebrow{margin:0 0 9px;color:#63755d;font-size:12px;font-weight:700;line-height:1.5;letter-spacing:.04em}
+.student-home-share-header h2{margin:0;font-size:25px;font-weight:800;line-height:1.3;letter-spacing:-.02em}
+.student-home-share-close{display:grid;place-items:center;flex:none;width:44px;height:44px;margin:-4px -6px 0 0;padding:0;border:0;border-radius:50%;background:#edf0e2;color:#536c55;line-height:0;cursor:pointer}
+.student-home-share-close svg{display:block;width:20px;height:20px}
+.student-home-share-content{display:grid;gap:18px;padding:24px 28px 28px}
+.student-home-share-intro{margin:0;color:#506355;font-size:16px;font-weight:600;line-height:1.8}
+.student-home-share-note{display:flex;align-items:flex-start;gap:13px;padding:16px;border:1px solid #dce4cf;border-radius:18px;background:#eef3e6}
+.student-home-share-note p{margin:0;color:#586c56;font-size:14px;line-height:1.7}
+.student-home-share-badge{flex:none;padding:4px 9px;border-radius:9px;background:#dce9cf;color:#3f6246;font-size:12px;font-weight:800;line-height:1.7;white-space:nowrap}
+.student-home-share-explanation{margin:0;color:#6c7569;font-size:13px;line-height:1.7}
+.student-home-share-history{display:grid;gap:7px}
+.student-home-share-history label,.student-home-share-result>label{font-size:13px;font-weight:750;color:#536651}
+.student-home-share-history select,.student-home-share-url{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #ced8c8;border-radius:12px;background:#fffefa;color:#405545;font:inherit;font-size:14px}
+.student-home-share-result{display:grid;gap:9px;padding:18px;border:1px solid #d8dfcc;border-radius:19px;background:#fffdf6}
+.student-home-share-url{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;text-overflow:ellipsis}
+.student-home-share-date{margin:0;color:#65705f;font-size:12px;line-height:1.5}
+.student-home-share-link-actions{display:flex;gap:10px;margin-top:4px}
+.student-home-share-copy,.student-home-share-open,.student-home-share-create{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 17px;border:1px solid #bccdac;border-radius:13px;background:#e5eed8;color:#3d5a43;font:inherit;font-size:14px;font-weight:750;text-decoration:none;cursor:pointer}
+.student-home-share-copy,.student-home-share-open{flex:1}
+.student-home-share-create{width:100%;border-color:#486a51;background:#486a51;color:#fffdf4;font-size:15px}
+.student-home-share-revoke{justify-self:start;min-height:42px;margin:0;padding:8px 2px;border:0;background:transparent;color:#84675c;font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.student-home-share-status{margin:0;padding:11px 13px;border-radius:12px;background:#edf3e5;color:#446146;font-size:13px;line-height:1.65}
+.student-home-share-status.is-error{background:#faece5;color:#874e3f}
+.student-home-share-dialog :is(button,a,input,select):focus-visible,.student-home-share-entry:focus-visible{outline:3px solid #8e672d;outline-offset:3px}
+.student-home-share-dialog button:disabled{opacity:.5;cursor:default}
+.student-home-share-dialog a[aria-disabled=true]{opacity:.5;pointer-events:none}
+.student-home-share-dialog [hidden]{display:none!important}
+@media(max-width:560px){.student-home-share-header{padding:21px 20px 18px}.student-home-share-header h2{font-size:22px}.student-home-share-content{padding:20px;gap:15px}.student-home-share-note{display:block}.student-home-share-note p{margin-top:9px}.student-home-share-link-actions{flex-wrap:wrap}.student-home-share-copy,.student-home-share-open{min-width:140px}.student-home-share-entry{padding:9px 13px}}

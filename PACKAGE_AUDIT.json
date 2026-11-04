@@ -2,75 +2,81 @@
   "schemaVersion": 1,
   "purpose": "source comprehension",
   "counts": {
-    "modules": 133,
-    "tests": 108,
-    "selectedSourceFiles": 285,
-    "packagedFiles": 749,
-    "browserModules": 124,
-    "serverModules": 9,
-    "qaScripts": 18
+    "modules": 174,
+    "tests": 122,
+    "selectedSourceFiles": 351,
+    "packagedFiles": 823,
+    "browserModules": 161,
+    "serverModules": 13,
+    "qaScripts": 25
   },
   "normalization": {
-    "localizedFragments": 5967,
-    "removedComments": 0,
-    "regexNormalizations": 122
+    "stableInitialDisplayLabels": 4676,
+    "priorPublishedDisplayLabels": 4773,
+    "currentDisplayLabels": 5063,
+    "newDisplayLabelsSincePrior": 290,
+    "changedSourceFiles": 172,
+    "privateDictionaryIncluded": false,
+    "catalogLabelsMayRetainStableDisplayIds": true,
+    "derivedReviewFixtures": 1
   },
   "identityDataIncluded": false,
   "productionCredentialsIncluded": false,
   "productionDataIncluded": false,
   "validation": {
-    "sourceRefresh": "verified-tests-and-browser",
-    "sourceRelevant": {
-      "tests": 100,
-      "pass": 100,
-      "fail": 0
-    },
-    "sourceFullSnapshot": {
-      "tests": 1006,
-      "pass": 1005,
-      "fail": 1,
-      "knownFailure": "Existing catalog count assertion expects 311 instead of 376; unchanged"
-    },
-    "releaseGate": {
-      "tests": 749,
-      "pass": 749,
+    "originalSource": {
+      "tests": 1698,
+      "pass": 1698,
       "fail": 0
     },
     "publicCore": {
-      "files": 70,
-      "tests": 495,
-      "pass": 495,
-      "fail": 0,
-      "dependencyEnvironment": "standard dependency environment"
-    },
-    "publicNoInstallFocused": {
-      "tests": 123,
-      "pass": 123,
-      "fail": 0,
-      "vendor": "included licensed Three"
-    },
-    "publicFinalInteractionRepeat": {
-      "tests": 25,
-      "pass": 25,
+      "files": 84,
+      "tests": 659,
+      "pass": 659,
       "fail": 0
     },
-    "noInstallCoreLimitation": "The account-service static vendor route requires the installed Three package. Both standalone review tools resolve bundled vendor/three; no npm is required for those browser tools.",
-    "fullPublicSuite": "Not re-run for this delivery; documented historical display-normalization-sensitive failures remain outside the passing core list. No old assertions were removed.",
-    "browser": "Fictional multi-floor application: actual door entry, elevator to floor 2, television power/remote, upstairs exit; real child viewport dock geometry at 1440x900, 1280x720 and 1024x600. No production data or physical classroom-device certification.",
+    "publicShareFocused": {
+      "files": 13,
+      "tests": 93,
+      "pass": 93,
+      "fail": 0
+    },
+    "publicPublisherRegressions": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "fullPublicSuite": "Display-normalization-sensitive assertions remain documented outside the default core. Earlier assertions were retained.",
     "privacy": {
-      "status": "PASS",
-      "approvedReferenceFilesPreserved": 113,
       "realStudentDataIncluded": false,
       "credentialsIncluded": false,
-      "productionDeploymentConfigurationIncluded": false
+      "productionDeploymentConfigurationIncluded": false,
+      "privateExportToolsIncluded": false,
+      "originalGitHistoryIncluded": false
+    },
+    "browser": {
+      "status": "PASS",
+      "noNpmOrNodeModules": true,
+      "states": [
+        "ORBIT",
+        "SPOT",
+        "EXPLODED",
+        "FOCUS"
+      ],
+      "firstPersonEntered": false,
+      "requests": 100,
+      "nonReadRequests": 0,
+      "accountApiRequests": 0,
+      "browserErrors": 0,
+      "httpErrors": 0,
+      "storageWrites": 0,
+      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json"
     }
   },
   "sourceRefresh": {
-    "purpose": "Optional look-development review candidate",
-    "normalizedSourceFiles": 285,
-    "changedSourceFiles": 24,
-    "stableSeedLabels": 4676,
-    "newDisplayLabels": 97,
+    "purpose": "Exterior-only named home sharing, WeChat copy and bounded publisher conflict recovery review",
+    "normalizedSourceFiles": 351,
+    "changedSourceFiles": 172,
     "identityDataIncluded": false
   },
   "previousSnapshotValidation": {
@@ -271,5 +277,167 @@
     "viewportBoundedControls": true,
     "publicCoreFilesAdded": 4,
     "oldCoreFilesRemoved": 0
+  },
+  "previousSnapshotNormalization": {
+    "localizedFragments": 5967,
+    "removedComments": 0,
+    "regexNormalizations": 122
+  },
+  "previousSourceRefresh": {
+    "purpose": "Optional look-development review candidate",
+    "normalizedSourceFiles": 285,
+    "changedSourceFiles": 24,
+    "stableSeedLabels": 4676,
+    "newDisplayLabels": 97,
+    "identityDataIncluded": false
+  },
+  "previousDeliveryValidation": {
+    "sourceRefresh": "verified-tests-and-browser",
+    "sourceRelevant": {
+      "tests": 100,
+      "pass": 100,
+      "fail": 0
+    },
+    "sourceFullSnapshot": {
+      "tests": 1006,
+      "pass": 1005,
+      "fail": 1,
+      "knownFailure": "Existing catalog count assertion expects 311 instead of 376; unchanged"
+    },
+    "releaseGate": {
+      "tests": 749,
+      "pass": 749,
+      "fail": 0
+    },
+    "publicCore": {
+      "files": 70,
+      "tests": 495,
+      "pass": 495,
+      "fail": 0,
+      "dependencyEnvironment": "standard dependency environment"
+    },
+    "publicNoInstallFocused": {
+      "tests": 123,
+      "pass": 123,
+      "fail": 0,
+      "vendor": "included licensed Three"
+    },
+    "publicFinalInteractionRepeat": {
+      "tests": 25,
+      "pass": 25,
+      "fail": 0
+    },
+    "noInstallCoreLimitation": "The account-service static vendor route requires the installed Three package. Both standalone review tools resolve bundled vendor/three; no npm is required for those browser tools.",
+    "fullPublicSuite": "Not re-run for this delivery; documented historical display-normalization-sensitive failures remain outside the passing core list. No old assertions were removed.",
+    "browser": "Fictional multi-floor application: actual door entry, elevator to floor 2, television power/remote, upstairs exit; real child viewport dock geometry at 1440x900, 1280x720 and 1024x600. No production data or physical classroom-device certification.",
+    "privacy": {
+      "status": "PASS",
+      "approvedReferenceFilesPreserved": 113,
+      "realStudentDataIncluded": false,
+      "credentialsIncluded": false,
+      "productionDeploymentConfigurationIncluded": false
+    }
+  },
+  "shareViewRefresh": {
+    "date": "2026-11-04",
+    "purpose": "Exterior-only named home sharing, WeChat copy and bounded publisher conflict recovery review",
+    "handoff": "docs/SHARE_VIEW_HANDOFF.md",
+    "normalizedSourceFiles": 351,
+    "priorPublishedSourceFiles": 285,
+    "priorPublishedSourceByteReconstruction": "285/285 identical before applying the new snapshot",
+    "priorPublishedSourceFilesRemoved": 0,
+    "sourceRegression": {
+      "tests": 1698,
+      "pass": 1698,
+      "fail": 0
+    },
+    "sourceReadOnlyBrowser": {
+      "checkpoints": 6,
+      "viewports": [
+        "1440x1000",
+        "390x844"
+      ],
+      "states": [
+        "ORBIT",
+        "SPOT",
+        "EXPLODED",
+        "FOCUS"
+      ],
+      "writeRequests": 0,
+      "storageWriterCalls": 0,
+      "httpErrors": 0,
+      "consoleErrors": 0,
+      "glbRequestAborts": 1,
+      "glbCompleteAssetVerified": true
+    },
+    "fullPublicSuite": "Display-normalization-sensitive assertions remain documented outside the default core. Earlier assertions were retained.",
+    "privacy": {
+      "realStudentDataIncluded": false,
+      "credentialsIncluded": false,
+      "productionDeploymentConfigurationIncluded": false,
+      "privateExportToolsIncluded": false,
+      "originalGitHistoryIncluded": false
+    },
+    "limits": [
+      "The public copy is normalized source for review, not a deployment replacement.",
+      "The browser preview uses a fictional snapshot and has no account, save or publish API.",
+      "No physical phone or embedded mobile-browser acceptance is claimed."
+    ],
+    "normalization": {
+      "stableInitialDisplayLabels": 4676,
+      "priorPublishedDisplayLabels": 4773,
+      "currentDisplayLabels": 5063,
+      "newDisplayLabelsSincePrior": 290,
+      "changedSourceFiles": 172,
+      "privateDictionaryIncluded": false,
+      "catalogLabelsMayRetainStableDisplayIds": true,
+      "derivedReviewFixtures": 1
+    },
+    "derivedReviewFixtures": 1,
+    "priorPublisherHotfixBrowser": {
+      "distinctLinks": 3,
+      "forcedRevisionConflictsRecovered": 2,
+      "visibleErrorBanners": 0,
+      "previousLinkStillReadable": true,
+      "fictionalSandboxOnly": true,
+      "scope": "Earlier hotfix sandbox; current merged code retains the bounded retry and its regression cases."
+    },
+    "publicCore": {
+      "files": 84,
+      "tests": 659,
+      "pass": 659,
+      "fail": 0
+    },
+    "publicShareFocused": {
+      "files": 13,
+      "tests": 93,
+      "pass": 93,
+      "fail": 0
+    },
+    "publicPublisherRegressions": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "proxyPolicyFixture": "Fictional header/namespace syntax fixture only; unavailable loopback upstream and no deployment artifacts.",
+    "wechatReceivingDeviceValidated": false,
+    "publicPreview": {
+      "status": "PASS",
+      "noNpmOrNodeModules": true,
+      "states": [
+        "ORBIT",
+        "SPOT",
+        "EXPLODED",
+        "FOCUS"
+      ],
+      "firstPersonEntered": false,
+      "requests": 100,
+      "nonReadRequests": 0,
+      "accountApiRequests": 0,
+      "browserErrors": 0,
+      "httpErrors": 0,
+      "storageWrites": 0,
+      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json"
+    }
   }
 }

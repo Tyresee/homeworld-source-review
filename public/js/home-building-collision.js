@@ -10,16 +10,10 @@ import { createRoomExpansion } from './home-room-expansion.js';
 import { resolveRooms, hasStarterRoom } from './home-layout.js';
 import { getStaircaseVolume, getHomeStairs } from './home-staircase.js';
 
-const freezeBlocks = blocks => Object.freeze(blocks.map(block => Object.freeze({ ...block, size: Object.freeze(block.size), position: Object.freeze(block.position) })));
-/** Shared with the living-room renderer; floor slabs are not obstructions. */
-export const STARTER_WALL_BLOCKS = freezeBlocks([
-  { id: 'back-body', objectId: 'wall', surfaceId: null, color: '#ccbca4', size: [5.78, 2.95, .23], position: [0, 1.44, -2.63], radius: .07 },
-  { id: 'back-cornice', objectId: 'wall', surfaceId: null, color: '#e0cfad', size: [5.82, .11, .29], position: [0, 2.91, -2.63], radius: .025 },
-  { id: 'back-skirting', objectId: 'wall', surfaceId: null, color: '#fbf0d8', size: [5.63, .14, .06], position: [0, .15, -2.46], radius: .02 },
-  { id: 'side-body', objectId: 'sidewall', surfaceId: 'wall.side', color: '#d0dcca', size: [.22, 2.95, 5.36], position: [-2.81, 1.44, -.08], radius: .065 },
-  { id: 'side-skirting', objectId: 'sidewall', surfaceId: null, color: '#f8edd7', size: [.06, .14, 5.25], position: [-2.67, .15, -.08], radius: .018 },
-  { id: 'side-cornice', objectId: 'sidewall', surfaceId: null, color: '#dce4d2', size: [.28, .11, 5.45], position: [-2.81, 2.91, -.08], radius: .025 },
-]);
+import {isExteriorElevator} from './home-staircase-shape.js';
+import {STARTER_WALL_BLOCKS} from './home-architecture-layout.js';
+import {getHomeEntranceClearanceVolumes} from './home-entrance-clearance.js';
+export {STARTER_WALL_BLOCKS} from './home-architecture-layout.js';
 const LABELS = { wall: "DisplayText0483", sidewall: "DisplayText0484", window: "DisplayText0485", shelf: "DisplayText0486" };
 const cache = new Map(), homeCache = new Map(), MAX_CACHE = 128;
 function cached(map, key, build, max = MAX_CACHE) {
@@ -179,7 +173,24 @@ export function getHomeBuildingVolumes(state) {
     const stairVolumes = getHomeStairs(state).map(getStaircaseVolume).filter(Boolean);
     const core=hasStarterRoom({...state,rooms});
     const volumes = [...(core?[...BASE_VOLUMES, ...staticVolumes('wall', state), ...staticVolumes('sidewall', state), ...fixtureVolumes(state, 'window'),
-      ...(state.profile==='upper'?[]:fixtureVolumes(state, 'shelf'))]:[]), ...expansionVolumes(state,rooms), ...stairVolumes];
+      ...(state.profile==='upper'?[]:fixtureVolumes(state, 'shelf'))]:[]), ...expansionVolumes(state,rooms), ...stairVolumes, ...getHomeEntranceClearanceVolumes(state)];
+    if(getHomeStairs(state).some(isExteriorElevator)){
+      // The CPU collision skin uses the same real opening as both renderers.
+      // Keep the adjacent starter window; the E1 axis was moved forward to 1.25.
+      const opening={minX:-3.12,maxX:-2.48,minZ:.71,maxZ:1.79,minY:.079,maxY:2.18};
+      const subtract=(volume)=>{
+        if(volume.placementOnly||!overlapBuildingVolume(volume,opening))return [volume];
+        const result=[],middle={...volume};
+        for(const axis of ['X','Y','Z']){
+          const lo=`min${axis}`,hi=`max${axis}`,a=Math.max(volume[lo],opening[lo]),b=Math.min(volume[hi],opening[hi]);
+          if(a>middle[lo]+1e-7)result.push({...middle,[hi]:a});
+          if(b<middle[hi]-1e-7)result.push({...middle,[lo]:b});
+          middle[lo]=a;middle[hi]=b;
+        }
+        return result.map((row,index)=>Object.freeze({...row,id:`${volume.id}:e1-${index}`}));
+      };
+      return Object.freeze(volumes.flatMap(subtract));
+    }
     return Object.freeze(volumes);
   }, 32);
 }

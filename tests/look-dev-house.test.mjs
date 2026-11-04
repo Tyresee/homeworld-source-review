@@ -12,8 +12,8 @@ import {isAvatarPositionWalkable} from '../public/js/home-avatar-navigation.js';
 
 const required=[
   ['h-sofa','sofa',0,4.1],['h-table','lcCoffeeTable',0,5.4],['h-rug','rug',0,5.4],
-  ['h-lamp','hhTripodLamp',-1.8,4.05],['h-cooker','mkDoubleGas',3.4,-1.65],
-  ['h-sink','mkSingleSink',4.35,-1.65],['h-dining','hhDropLeafTable',4.2,.9],
+  ['h-lamp','hhTripodLamp',-1.8,4.05],['h-cooker','mkDoubleGas',3.4,-1.95],
+  ['h-sink','mkSingleSink',3.75,-.65],['h-dining','hhDropLeafTable',4.2,.9],
   ['h-bed','bedTimber',-.9,-.9],['h-bedside','bedsideCabinet',.3,-1.8],
   ['h-bedrug','rug',-.6,1.2],['h-toilet','compactToilet',3.5,3.5],['h-vanity','bathroomVanity',4.7,3.4],
 ];
@@ -45,8 +45,8 @@ test('both warm review presets apply to the four existing room kinds without alt
   }
 });
 
-test('the original five fixture payloads remain byte-stable when the house review is added',()=>{
-  const baseline={living:'9b6b4c628a98e0619292a1638e9231ba85109f0fbb8c6d3db27b446d5f1427ec',bedroom:'0027517c4a846770bdd774fe737db72c694ef6a2a712d23a3742da475c641e94',kitchen:'87d3193aed0bd7edecee0289a926e4b65b711e9383ee6011c3ff8c375f2946c4',bathroom:'e4e6ff9b880e70bebf26d3c7bd68a5b6a3d6ba4af2972cedd96bde96423ee4a4',exterior:'d53b09c5d9287e6437e9f2d2949c31ba31ec1199664963665666e191d7ed7463'};
+test('the original interior fixtures stay byte-stable and the entrance-safe exterior stays deterministic',()=>{
+  const baseline={living:'9b6b4c628a98e0619292a1638e9231ba85109f0fbb8c6d3db27b446d5f1427ec',bedroom:'0027517c4a846770bdd774fe737db72c694ef6a2a712d23a3742da475c641e94',kitchen:'87d3193aed0bd7edecee0289a926e4b65b711e9383ee6011c3ff8c375f2946c4',bathroom:'e4e6ff9b880e70bebf26d3c7bd68a5b6a3d6ba4af2972cedd96bde96423ee4a4',exterior:'417e879134121de42d02ec04535824588b7267ef9c029aa11ed28953d049e952'};
   for(const[id,hash]of Object.entries(baseline))assert.equal(createHash('sha256').update(JSON.stringify(createLookDevFixture(id))).digest('hex'),hash,id);
 });
 

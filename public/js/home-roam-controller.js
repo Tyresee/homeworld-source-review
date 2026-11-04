@@ -16,15 +16,18 @@ export function isHomeRoamInputTarget(target){
   return !!(target?.isContentEditable||/^(INPUT|TEXTAREA|SELECT|OPTION)$/.test(String(target?.tagName).toUpperCase())||target?.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],[role="combobox"],[role="dialog"],[role="menu"]'));
 }
 
-export function createHomeRoamController({element,eventTarget=globalThis.window,bounds,interiorBounds,containsInterior,wallTop=2.85,entrance,onChange=()=>{},onMode=()=>{},onDoorAngle=()=>{},onExit=()=>{},onRequestLeave,now=()=>performance.now(),controlsFactory=(camera,canvas)=>new OrbitControls(camera,canvas)}={}){
+export function createHomeRoamController({element,eventTarget=globalThis.window,bounds,displayBounds,orbitMaxDistance,interiorBounds,containsInterior,wallTop=2.85,entrance,onChange=()=>{},onMode=()=>{},onDoorAngle=()=>{},onViewOpacity=()=>{},onExit=()=>{},onRequestLeave,onRequestOverview,exitOnEscape=true,now=()=>performance.now(),controlsFactory=(camera,canvas)=>new OrbitControls(camera,canvas)}={}){
   if(!element)throw new TypeError('A canvas is required for the viewing camera.');
   const camera=new THREE.PerspectiveCamera(HOME_ROAM_CAMERA.fov,1,.05,400);
   const controls=controlsFactory(camera,element);
   Object.assign(controls,{enabled:false,enableDamping:true,dampingFactor:.08,zoomToCursor:true,screenSpacePanning:false,minDistance:1.6,maxDistance:45,maxPolarAngle:THREE.MathUtils.degToRad(86),rotateSpeed:.7,autoRotateSpeed:.6,autoRotate:false});
   controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};
   const listeners=[],keys=new Set();
-  let active=false,disposed=false,phase='inactive',displayMode='auto',shown='exterior',sceneMode='ext',dirty=false,lastTime=null,lastSignature='',drag=null,lastPointer=null,glide=null,flight=null,steps=[],stepStart=0,doorAngle=0,yaw=0,pitch=0;
-  let houseBounds=new THREE.Box3(),insideBounds=new THREE.Box3(),center=new THREE.Vector3(),span=8,door=null;
+  let active=false,disposed=false,inputPaused=false,phase='inactive',displayMode='auto',shown='exterior',sceneMode='ext',dirty=false,lastTime=null,lastSignature='',drag=null,lastPointer=null,glide=null,flight=null,steps=[],stepStart=0,doorAngle=0,yaw=0,pitch=0;
+  let houseBounds=new THREE.Box3(),insideBounds=new THREE.Box3(),center=new THREE.Vector3(),span=8,displaySpan=8,door=null;
+  // A tall purchased house may have real floors above the ordinary 30m free
+  // camera ceiling. Moving after a lift arrival must not snap down to 30m.
+  const maxFreeHeight=()=>Math.max(HOME_ROAM_CAMERA.maxHeight,insideBounds.max.y+HOME_ROAM_CAMERA.eye);
   const add=(target,type,listener,options)=>{target?.addEventListener?.(type,listener,options);listeners.push(()=>target?.removeEventListener?.(type,listener,options));};
   const invalidate=()=>{if(!active||disposed)return;dirty=true;onChange();};
   const state=()=>({active,phase,walking:phase==='free',transition:active&&!['orbit','free'].includes(phase),view:shown,sceneMode,displayMode,autoRotate:!!controls.autoRotate,doorAngle});
@@ -37,6 +40,8 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     const min=vector(value?.min,new THREE.Vector3(-4,0,-4)),max=vector(value?.max,new THREE.Vector3(4,2.85,4));
     if(min.x>=max.x||min.z>=max.z||min.y>max.y)throw new TypeError('Viewing bounds must have a positive footprint.');
     houseBounds.set(min,max);houseBounds.getCenter(center);span=Math.max(...houseBounds.getSize(new THREE.Vector3()).toArray(),1);
+    const viewBounds=options.displayBounds??displayBounds;displaySpan=viewBounds?.getSize?Math.max(...viewBounds.getSize(new THREE.Vector3()).toArray(),1):span;
+    controls.maxDistance=Math.max(45,Number(options.orbitMaxDistance??orbitMaxDistance)||45);
     const indoor=options.interiorBounds??interiorBounds;
     insideBounds.set(indoor?vector(indoor.min):min.clone(),indoor?vector(indoor.max):new THREE.Vector3(max.x,(options.wallTop??wallTop)+min.y,max.z));
     const valueDoor=options.entrance??entrance;
@@ -51,7 +56,7 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
   function isInside(){return camera.position.x>=insideBounds.min.x&&camera.position.x<=insideBounds.max.x&&camera.position.z>=insideBounds.min.z&&camera.position.z<=insideBounds.max.z&&camera.position.y>=insideBounds.min.y&&camera.position.y<insideBounds.max.y&&(!containsInterior||containsInterior(camera.position));}
   function updateDisplay(){
     if(phase==='orbit'){
-      const view=displayMode==='auto'?(camera.position.distanceTo(controls.target)>1.55*span?'exterior':'interior'):displayMode;
+      const view=displayMode==='auto'?(camera.position.distanceTo(controls.target)>1.55*displaySpan?'exterior':'interior'):displayMode;
       setSceneMode(view==='exterior'?'ext':'orbit-in');
     }else if(phase==='free'||phase==='entering'||phase==='leaving'||steps.length>0)setSceneMode(isInside()?'in':'ext+in');
   }
@@ -59,6 +64,9 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
   function applyLook(){pitch=clamp(pitch,-1.45,1.45);camera.rotation.set(pitch,yaw,0,'YXZ');}
   function releaseDrag(){if(drag){try{element.releasePointerCapture?.(drag.id);}catch{/* A canceled pointer may already be released. */}}drag=null;}
   function clearInput(){keys.clear();releaseDrag();}
+  function setInputPaused(value){
+    if(disposed)return false;inputPaused=!!value;clearInput();glide=null;flight=null;controls.autoRotate=false;controls.enabled=active&&phase==='orbit'&&!inputPaused;invalidate();return inputPaused;
+  }
   function overview(animate=true){
     if(!active||phase!=='orbit')return false;
     glide=null;clearInput();
@@ -66,6 +74,16 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     if(!animate){camera.position.copy(to);controls.target.copy(center);setFov(38);controls.update(0);updateDisplay();invalidate();return true;}
     flight={from:camera.position.clone(),to,fromTarget:controls.target.clone(),toTarget:center.clone(),fromFov:camera.fov,start:now(),duration:700};
     controls.enabled=false;invalidate();return true;
+  }
+  /** Presentation-only framing for shared models. It changes the camera and
+   * orbit target under a veil, never the house, doors or transport state. */
+  function frameView(box,{displayMode:mode='interior',onFocus=()=>{}}={}){
+    if(!active||!['orbit','free'].includes(phase)||!box?.isBox3||box.isEmpty()||!['interior','exterior'].includes(mode)||![...box.min.toArray(),...box.max.toArray()].every(Number.isFinite))return false;
+    const target=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3()),distance=Math.max(size.x,size.y,size.z,1),to=target.clone().add(new THREE.Vector3(.95,1.05,1.25).multiplyScalar(distance));
+    beginSequence([
+      {name:'framing-view-out',duration:200,apply:e=>onViewOpacity(1-e)},
+      {name:'framing-view-in',duration:200,begin:()=>{onViewOpacity(0);onFocus();camera.position.copy(to);controls.target.copy(target);camera.lookAt(target);setFov(38);displayMode=mode;setSceneMode(mode==='interior'?'orbit-in':'ext');},apply:e=>onViewOpacity(e)},
+    ],()=>{phase='orbit';controls.enabled=true;controls.update(0);updateDisplay();publish();});return true;
   }
   function beginSequence(sequence,finish){
     clearInput();glide=null;flight=null;controls.enabled=false;controls.autoRotate=false;
@@ -75,16 +93,52 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     const eye=door.ground+1.45,look=door.center.clone().setY(door.ground+1.2);
     return {outside:door.center.clone().addScaledVector(door.outward,2.8).setY(eye),inside:door.center.clone().addScaledVector(door.outward,-2).setY(eye),look,far:door.center.clone().addScaledVector(door.outward,-8).setY(eye-.1)};
   }
+  // Region navigation is an explicit view change, not a walk through the house.
+  // Move between regions only while the scene is fully veiled, then restore it.
+  function relocateSteps(name,position,look,fov=68,onFocus=()=>{}){return[
+    {name:`${name}-out`,duration:200,apply:e=>onViewOpacity(1-e)},
+    {name:`${name}-in`,duration:200,begin:()=>{onViewOpacity(0);onFocus();camera.position.copy(position);camera.lookAt(look);setFov(fov);updateDisplay();},apply:e=>onViewOpacity(e)},
+  ];}
+  /** First-person viewing moves only the camera. In particular it never opens
+   * a furniture/door controller or animates a saved robot into the room. */
+  function enterInterior({position,lookAt,onEnter=()=>{}}={}){
+    if(!active||!['orbit','free'].includes(phase))return false;
+    const invalid=new THREE.Vector3(NaN,NaN,NaN),to=vector(position,invalid),look=vector(lookAt,invalid);
+    if(![...to.toArray(),...look.toArray()].every(Number.isFinite)||to.distanceTo(look)<.05||!insideBounds.containsPoint(to)||containsInterior&&!containsInterior(to))return false;
+    beginSequence(relocateSteps('entering-interior',to,look,68,onEnter),()=>{phase='free';lookFromCamera();applyLook();setFov(68);updateDisplay();publish();});return true;
+  }
   function enterDoor(){
-    if(!active||phase!=='orbit'||shown!=='exterior'||!door)return false;
+    if(!active||!['orbit','free'].includes(phase)||shown!=='exterior'||!door||phase==='free'&&isInside())return false;
     const points=doorPoints(),from=camera.position.clone(),target=controls.target.clone(),fov=camera.fov,temp=new THREE.Vector3();
-    beginSequence([
+    const approach=phase==='free'?relocateSteps('approaching-door',points.outside,points.look,50):[
       {name:'approaching',duration:1500,begin:()=>setSceneMode('ext'),apply:e=>{camera.position.lerpVectors(from,points.outside,e);camera.lookAt(temp.lerpVectors(target,points.look,e));setFov(fov+(50-fov)*e);}},
+    ];
+    beginSequence([
+      ...approach,
       {name:'pausing',duration:250,begin:()=>setSceneMode('ext+in'),apply:()=>{}},
       {name:'opening',duration:1200,apply:e=>setDoorAngle(e*1.8)},
       {name:'entering',duration:1800,apply:e=>{camera.position.lerpVectors(points.outside,points.inside,e);camera.lookAt(temp.lerpVectors(points.look,points.far,e));setFov(50+18*e);updateDisplay();}},
     ],()=>{phase='free';lookFromCamera();applyLook();setFov(68);updateDisplay();publish();});
     return true;
+  }
+  /** Enter eye-level viewing on any real estate ground point. This is a
+   * camera-only path, independent of the house door and saved robot activity. */
+  function enterOutdoor(point,{lookAt}={}){
+    if(!active||!['orbit','free'].includes(phase))return false;
+    const to=vector(point,door?door.center.clone().addScaledVector(door.outward,2.8):center);
+    to.y=(point?to.y:door?.ground??0)+HOME_ROAM_CAMERA.eye;
+    const from=camera.position.clone(),target=controls.target.clone(),fov=camera.fov;
+    const look=door?door.center.clone().setY(to.y-.05):center.clone().setY(to.y-.05);
+    if(lookAt){const requested=vector(lookAt,new THREE.Vector3(NaN,NaN,NaN));if(requested.toArray().every(Number.isFinite)&&requested.distanceTo(to)>=.3)look.copy(requested);}
+    if(look.distanceTo(to)<.3)look.copy(to).add(new THREE.Vector3(0,-.05,-2));
+    const temp=new THREE.Vector3();
+    const sequence=phase==='free'?relocateSteps('entering-garden',to,look):[{name:'approaching-outdoor',duration:900,apply:e=>{camera.position.lerpVectors(from,to,e);camera.lookAt(temp.lerpVectors(target,look,e));setFov(fov+(68-fov)*e);updateDisplay();}}];
+    beginSequence(sequence,()=>{phase='free';lookFromCamera();applyLook();setFov(68);updateDisplay();publish();});
+    return true;
+  }
+  function leaveOutdoor(){
+    if(!active||phase!=='free'||isInside())return false;
+    clearInput();glide=null;phase='orbit';displayMode='auto';controls.enabled=true;controls.autoRotate=false;setDoorAngle(0);setSceneMode('ext');publish();overview();return true;
   }
   function leave({direct=false}={}){
     if(!active||phase!=='free'||!door)return false;
@@ -97,7 +151,7 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     return true;
   }
   function moveTo(point,{floor=false,direction}={}){
-    if(!active||phase!=='free')return false;
+    if(!active||inputPaused||phase!=='free')return false;
     const to=vector(point,camera.position),ray=vector(direction,to.clone().sub(camera.position));
     if(!floor&&ray.lengthSq()>1e-8)to.addScaledVector(ray.normalize(),-.9);
     to.y=camera.position.y;const distance=to.distanceTo(camera.position);if(distance<.15)return false;
@@ -106,31 +160,37 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     glide={from:camera.position.clone(),to,yaw0:yaw,yaw1:yaw+delta*(floor?1:.6),pitch0:pitch,start:now(),duration:clamp(distance/3*1000,350,2600)};
     invalidate();return true;
   }
-  function travel(journeys,{onSample=()=>{},onComplete=()=>{}}={}){
-    if(!active||phase!=='free'||!Array.isArray(journeys)||!journeys.length)return false;
-    const sequence=journeys.flatMap(journey=>journey.steps.map(step=>({name:step.name,duration:step.duration,apply:progress=>{
+  function travel(journeys,{onSample=()=>{},onComplete=()=>{},preparation=null}={}){
+    if(!active||!['free','orbit'].includes(phase)||phase==='orbit'&&!preparation||!Array.isArray(journeys)||!journeys.length)return false;
+    let entry=null;
+    if(preparation){const invalid=new THREE.Vector3(NaN,NaN,NaN),position=vector(preparation.position,invalid),lookAt=vector(preparation.lookAt,invalid);if(![...position.toArray(),...lookAt.toArray()].every(Number.isFinite)||position.distanceTo(lookAt)<.05||!insideBounds.containsPoint(position)||containsInterior&&!containsInterior(position))return false;entry={position,lookAt};}
+    const sequence=journeys.flatMap(journey=>journey.steps.map(step=>({name:step.name,duration:step.duration,rawProgress:true,apply:progress=>{
       const pose=journey.sample(step,progress);camera.position.copy(pose.position);camera.lookAt(pose.lookAt);setFov(68);onSample(journey,pose);updateDisplay();
     }})));
     if(!sequence.length)return false;
+    // Explicit floor intent recovers an arbitrary viewing pose under a veil;
+    // the already-preflighted physical doorway journey begins only afterwards.
+    if(entry)sequence.unshift(...relocateSteps('preparing-elevator',entry.position,entry.lookAt));
+    inputPaused=false;
     beginSequence(sequence,()=>{phase='free';lookFromCamera();applyLook();updateDisplay();publish();onComplete();});return true;
   }
   function setDisplayMode(value){if(!active||phase!=='orbit'||!['auto','exterior','interior'].includes(value))return false;displayMode=value;updateDisplay();publish();invalidate();return true;}
   function setAutoRotate(value){if(!active||phase!=='orbit')return false;controls.autoRotate=!!value;publish();invalidate();return true;}
   function start(options={}){
-    if(disposed)return false;configure(options);active=true;phase='orbit';displayMode='auto';shown='exterior';sceneMode='ext';lastTime=now();steps=[];flight=null;glide=null;lastPointer=null;clearInput();controls.autoRotate=false;controls.enabled=true;setDoorAngle(0);overview(false);publish(true);return true;
+    if(disposed)return false;configure(options);onViewOpacity(1);inputPaused=false;active=true;phase='orbit';displayMode='auto';shown='exterior';sceneMode='ext';lastTime=now();steps=[];flight=null;glide=null;lastPointer=null;clearInput();controls.autoRotate=false;controls.enabled=true;setDoorAngle(0);overview(false);publish(true);return true;
   }
   function stop(){
-    if(!active)return false;active=false;phase='inactive';controls.enabled=false;controls.autoRotate=false;steps=[];flight=glide=null;lastPointer=null;clearInput();dirty=false;lastTime=null;setDoorAngle(0);publish(true);return true;
+    if(!active)return false;inputPaused=false;active=false;phase='inactive';controls.enabled=false;controls.autoRotate=false;steps=[];flight=glide=null;lastPointer=null;clearInput();dirty=false;lastTime=null;setDoorAngle(0);onViewOpacity(1);publish(true);return true;
   }
   function keyboard(event){
-    if(!active||event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||isHomeRoamInputTarget(event.target)||isHomeRoamInputTarget(element.ownerDocument?.activeElement))return;
+    if(!active||inputPaused||event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||isHomeRoamInputTarget(event.target)||isHomeRoamInputTarget(element.ownerDocument?.activeElement))return;
     const code=event.code;
     // Buttons keep native Space activation, while W/A/S/D remain usable after
     // choosing the viewing dock without requiring an extra canvas click.
     if(code==='Space'&&[event.target,element.ownerDocument?.activeElement].some(target=>String(target?.tagName).toUpperCase()==='BUTTON'||target?.closest?.('button,[role="button"]')))return;
     if(phase!=='orbit'&&phase!=='free')return;
-    if(code==='Escape'){event.preventDefault();if(phase==='free')leave();else{stop();onExit();}return;}
-    if(phase==='orbit'&&code==='KeyR'){if(!event.repeat){event.preventDefault();overview();}return;}
+    if(code==='Escape'){event.preventDefault();if(phase==='free')leave();else if(!exitOnEscape)onRequestLeave?.();else{stop();onExit();}return;}
+    if(phase==='orbit'&&code==='KeyR'){if(!event.repeat){event.preventDefault();if(onRequestOverview)onRequestOverview();else overview();}return;}
     if(phase==='orbit'&&code==='Space'){event.preventDefault();if(!event.repeat)setAutoRotate(!controls.autoRotate);return;}
     if(!MOVEMENT_CODES.has(code))return;
     keys.add(code);event.preventDefault();if(flight){flight=null;controls.enabled=true;}invalidate();
@@ -154,16 +214,16 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
       camera.position.addScaledVector(direction,forward*speed).addScaledVector(new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),side*speed);camera.position.y+=up*speed;moved=true;
     }
     if(glide){const progress=clamp((time-glide.start)/glide.duration,0,1),ease=smooth(progress);camera.position.lerpVectors(glide.from,glide.to,ease);yaw=glide.yaw0+(glide.yaw1-glide.yaw0)*Math.min(1,ease*1.6);pitch=glide.pitch0*(1-ease)-.05*ease;if(progress===1)glide=null;moved=true;}
-    if(moved){camera.position.y=clamp(camera.position.y,.25,30);applyLook();updateDisplay();}
+    if(moved){camera.position.y=clamp(camera.position.y,.25,maxFreeHeight());applyLook();updateDisplay();}
     return moved;
   }
   function tick(time=now()){
     if(!active||disposed)return false;
     const dt=clamp(lastTime===null?0:(time-lastTime)/1000,0,.1);lastTime=time;let changed=dirty;dirty=false;
     if(steps.length){
-      while(steps.length){const step=steps[0],progress=clamp((time-stepStart)/step.duration,0,1);step.apply(smooth(progress));changed=true;if(progress<1)break;stepStart+=step.duration;steps.shift();if(steps.length){phase=steps[0].name;steps[0].begin?.();publish();}else{const done=steps.onComplete;steps=[];done?.();}}
-    }else if(phase==='free')changed=moveFree(dt,time)||changed;
-    else if(phase==='orbit'){
+      while(steps.length){const step=steps[0],progress=clamp((time-stepStart)/step.duration,0,1);step.apply(step.rawProgress?progress:smooth(progress));changed=true;if(progress<1)break;stepStart+=step.duration;steps.shift();if(steps.length){phase=steps[0].name;steps[0].begin?.();publish();}else{const done=steps.onComplete;steps=[];done?.();}}
+    }else if(phase==='free'&&!inputPaused)changed=moveFree(dt,time)||changed;
+    else if(phase==='orbit'&&!inputPaused){
       if(flight){const progress=clamp((time-flight.start)/flight.duration,0,1),ease=smooth(progress);camera.position.lerpVectors(flight.from,flight.to,ease);controls.target.lerpVectors(flight.fromTarget,flight.toTarget,ease);camera.lookAt(controls.target);setFov(flight.fromFov+(38-flight.fromFov)*ease);if(progress===1){flight=null;controls.enabled=true;}changed=true;}
       else changed=moveOrbit(dt)||changed;
       if(!flight)changed=!!controls.update(dt)||changed;
@@ -174,10 +234,10 @@ export function createHomeRoamController({element,eventTarget=globalThis.window,
     return changed||steps.length>0||!!flight||!!glide||!!controls.autoRotate;
   }
   add(eventTarget,'keydown',keyboard);add(eventTarget,'keyup',event=>keys.delete(event.code));add(eventTarget,'blur',clearInput);
-  add(element,'pointerdown',event=>{if(!active||!['orbit','free'].includes(phase))return;lastPointer={id:event.pointerId,x:event.clientX,y:event.clientY,button:event.button};if(phase!=='free'||event.button!==0)return;glide=null;drag={id:event.pointerId,x:event.clientX,y:event.clientY};try{element.setPointerCapture?.(event.pointerId);}catch{/* Capture is optional in test/embed surfaces. */}});
-  add(element,'pointermove',event=>{if(!active||phase!=='free'||!drag||event.pointerId!==drag.id)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;drag.x=event.clientX;drag.y=event.clientY;if(!dx&&!dy)return;yaw-=dx*.0045;pitch=clamp(pitch-dy*.0035,-1.45,1.45);applyLook();invalidate();});
+  add(element,'pointerdown',event=>{if(!active||inputPaused||!['orbit','free'].includes(phase))return;lastPointer={id:event.pointerId,x:event.clientX,y:event.clientY,button:event.button};if(phase!=='free'||event.button!==0)return;glide=null;drag={id:event.pointerId,x:event.clientX,y:event.clientY};try{element.setPointerCapture?.(event.pointerId);}catch{/* Capture is optional in test/embed surfaces. */}});
+  add(element,'pointermove',event=>{if(!active||inputPaused||phase!=='free'||!drag||event.pointerId!==drag.id)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;drag.x=event.clientX;drag.y=event.clientY;if(!dx&&!dy)return;yaw-=dx*.0045;pitch=clamp(pitch-dy*.0035,-1.45,1.45);applyLook();invalidate();});
   add(element,'pointerup',event=>{if(event.pointerId===drag?.id)releaseDrag();});add(element,'pointercancel',()=>{clearInput();lastPointer=null;});add(element,'lostpointercapture',()=>{drag=null;});
-  add(element,'wheel',event=>{if(!active||phase!=='free'||!event.deltaY)return;event.preventDefault();glide=null;camera.position.addScaledVector(camera.getWorldDirection(new THREE.Vector3()),-Math.sign(event.deltaY)*.45);camera.position.y=clamp(camera.position.y,.25,30);updateDisplay();invalidate();},{passive:false});
+  add(element,'wheel',event=>{if(!active||inputPaused||phase!=='free'||!event.deltaY)return;event.preventDefault();glide=null;camera.position.addScaledVector(camera.getWorldDirection(new THREE.Vector3()),-Math.sign(event.deltaY)*.45);camera.position.y=clamp(camera.position.y,.25,maxFreeHeight());updateDisplay();invalidate();},{passive:false});
   const controlsChanged=()=>{if(active&&phase==='orbit')invalidate();};controls.addEventListener?.('change',controlsChanged);
-  return {camera,controls,start,stop,tick,overview,enterDoor,leave,moveTo,travel,setDisplayMode,setAutoRotate,toggleAutoRotate:()=>setAutoRotate(!controls.autoRotate),getState:state,getCameraPose:()=>({position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov,target:controls.target.toArray()}),isPointerClick:event=>!!(active&&lastPointer&&lastPointer.button===0&&event.button===0&&event.pointerId===lastPointer.id&&Math.hypot(event.clientX-lastPointer.x,event.clientY-lastPointer.y)<6),get active(){return active;},resize(width,height){if(width>0&&height>0){camera.aspect=width/height;camera.updateProjectionMatrix();invalidate();}},dispose(){if(disposed)return;stop();disposed=true;for(const remove of listeners)remove();controls.removeEventListener?.('change',controlsChanged);controls.dispose();}};
+  return {camera,controls,start,stop,tick,overview,frameView,enterInterior,enterDoor,enterOutdoor,leaveOutdoor,leave,moveTo,travel,setInputPaused,setDisplayMode,setAutoRotate,toggleAutoRotate:()=>setAutoRotate(!controls.autoRotate),getState:state,getCameraPose:()=>({position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov,target:controls.target.toArray()}),isPointerClick:event=>!!(active&&!inputPaused&&lastPointer&&lastPointer.button===0&&event.button===0&&event.pointerId===lastPointer.id&&Math.hypot(event.clientX-lastPointer.x,event.clientY-lastPointer.y)<6),get active(){return active;},resize(width,height){if(width>0&&height>0){camera.aspect=width/height;camera.updateProjectionMatrix();invalidate();}},dispose(){if(disposed)return;stop();disposed=true;for(const remove of listeners)remove();controls.removeEventListener?.('change',controlsChanged);controls.dispose();}};
 }

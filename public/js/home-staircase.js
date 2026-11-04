@@ -1,10 +1,10 @@
 import {createHomeElevator} from './home-elevator-model.js';
 import * as THREE from 'three';
 
-import { STOREY_HEIGHT, STAIR_WIDTH, STAIR_DEPTH, FLOOR_Y, HANDRAIL_HEIGHT, STAIR_FLIGHT_WIDTH, STAIR_STEP_COUNT, STAIR_FLIGHT_START, STAIR_FLIGHT_END, isStaircaseValid, getStaircaseVolume, getStaircaseEntrances, getHomeStairs, getStaircaseSurfaceId, areHomeStairsValid } from './home-staircase-shape.js';
-export { STOREY_HEIGHT, STAIR_WIDTH, STAIR_DEPTH, isStaircaseValid, getStaircaseVolume, getStaircaseEntrances, getHomeStairs, getStaircaseSurfaceId, areHomeStairsValid } from './home-staircase-shape.js';
+import { STOREY_HEIGHT, STAIR_WIDTH, STAIR_DEPTH, FLOOR_Y, HANDRAIL_HEIGHT, STAIR_FLIGHT_WIDTH, STAIR_STEP_COUNT, STAIR_FLIGHT_START, STAIR_FLIGHT_END, isStaircaseValid, getStaircaseVolume, getStaircaseEntrances, getHomeStairs, getStaircaseSurfaceId, areHomeStairsValid,isExteriorElevator } from './home-staircase-shape.js';
+export { STOREY_HEIGHT, STAIR_WIDTH, STAIR_DEPTH, isStaircaseValid, getStaircaseVolume, getStaircaseEntrances, getHomeStairs, getStaircaseSurfaceId, areHomeStairsValid,isExteriorElevator } from './home-staircase-shape.js';
 export function getStaircaseOpening(stairs) {
-  return stairs?.direction === 'down' ? getStaircaseVolume(stairs) : null;
+  return stairs?.direction === 'down'&&!isExteriorElevator(stairs) ? getStaircaseVolume(stairs) : null;
 }
 export function getStaircaseOpenings(stairs) { return (Array.isArray(stairs)?stairs:stairs?[stairs]:[]).map(getStaircaseOpening).filter(Boolean); }
 /** Split a floor rectangle, not just its texture, so the stairs are never capped. */

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import {createLuxuryItem} from '../public/js/home-luxury-models.js';
 import {createHomeRoamInteractions} from '../public/js/home-roam-interactions.js';
 import {createStudentHomeObjectRuntime} from '../public/js/student-home-object-runtime.js';
+import {TELEVISION_CHANNEL_TITLES} from '../public/js/home-television-channels.js';
 import {OBJECT_CAPABILITY_KINDS} from '../public/js/home-object-state.js';
 
 const quietAudio=()=>({unlock(){},play(){},setMuted(){}});
@@ -15,13 +16,13 @@ function fixture(kind='ipRetroTelevision',{storey=0,height=0}={}){
   return{root,model,controller,power,channel,calls,document,dispose(){controller.dispose();release(root);}};
 }
 
-test('each real television tier powers its actual CanvasTexture screen and changes all four shared original channels through its remote',()=>{
+test('each real television tier powers its actual CanvasTexture screen and changes all twelve shared original channels through its remote',()=>{
   for(const kind of OBJECT_CAPABILITY_KINDS.television){
     const f=fixture(kind);try{
       assert.ok(f.power,kind);assert.ok(f.channel,kind);assert.equal(f.power.screens.length,1);const screen=f.power.screens[0];assert.equal(screen.node.userData.objectPart,'tv-screen');assert.equal(screen.node.material.isMeshBasicMaterial,true);assert.equal(screen.node.material.toneMapped,false);assert.equal(screen.node.material.map,screen.texture);assert.equal(screen.texture.isCanvasTexture,true);assert.equal(screen.canvas.width,512);assert.equal(screen.canvas.height,288);assert.equal(screen.texture.generateMipmaps,false);
       assert.equal(f.controller.tick(.1),false);assert.equal(f.power.label(),'Turn television on');
       f.calls.length=0;f.controller.activate(f.power);assert.equal(f.power.label(),'Turn television off');assert.ok(f.calls.some(call=>call[0]==='fillText'&&call[1]==='FOREST TV'));assert.equal(f.power.on,true);
-      for(const[expected,title]of[[1,'WEATHER'],[2,'SPORTS'],[3,'MUSIC'],[0,'FOREST TV']]){f.calls.length=0;f.controller.activate(f.channel);assert.equal(f.channel.media.channel,expected);assert.ok(f.calls.some(call=>call[0]==='fillText'&&call[1]===title));}
+      for(const[expected,title]of [...TELEVISION_CHANNEL_TITLES.entries()].slice(1).concat([[0,'FOREST TV']])){f.calls.length=0;f.controller.activate(f.channel);assert.equal(f.channel.media.channel,expected);assert.ok(f.calls.some(call=>call[0]==='fillText'&&call[1]===title));}
       const state=f.controller.getState().targets.find(target=>target.type==='television-power');assert.equal(state.power,true);assert.equal(state.channel,0);assert.equal(state.channelName,'Forest animation');
       f.controller.activate(f.power);assert.equal(f.controller.tick(.1),false);assert.equal(f.power.on,false);f.controller.activate(f.channel);assert.equal(f.power.on,true,'a remote channel choice can wake a powered-off TV');assert.equal(f.power.media.channel,1);
     }finally{f.dispose();}

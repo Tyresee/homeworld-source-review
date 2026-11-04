@@ -22,7 +22,7 @@ const matches=(header,etag)=>String(header??'').split(',').some(value=>value.tri
  * use this responder and keep their existing private/no-store behavior. */
 export function createStaticAssetResponder({isDist=false}={}) {
   const digests=new Map();
-  return async function sendStaticAsset(request,response,{canonical,canonicalBase,info,contentType}){
+  return async function sendStaticAsset(request,response,{canonical,canonicalBase,info,contentType,responseHeaders={}}){
     let selected=canonical,selectedInfo=info,encoding=null;
     if(isDist)for(const candidate of acceptedStaticEncodings(request.headers['accept-encoding'])){
       try{
@@ -40,7 +40,7 @@ export function createStaticAssetResponder({isDist=false}={}) {
     }
     const headers={'content-type':contentType,'cache-control':isDist?'public, max-age=0, must-revalidate':'no-store',
       etag:cached.etag,vary:'Accept-Encoding','x-content-type-options':'nosniff','referrer-policy':'same-origin',
-      ...(encoding?{'content-encoding':encoding}:{})};
+      ...(encoding?{'content-encoding':encoding}:{}),...responseHeaders};
     if(isDist&&matches(request.headers['if-none-match'],cached.etag)){
       response.writeHead(304,headers);response.end();return;
     }

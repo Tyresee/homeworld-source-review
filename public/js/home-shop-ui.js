@@ -748,7 +748,7 @@ export function createHomeShop({ catalog, getState, onCartChange, onCheckout, on
     for(const entry of [...(state().constructionLedger??[])].reverse()){
       const article=element('article','home-shop-order');
       if(entry.type==='elevator-upgrade')article.append(element('h3','',`${entry.lowerStorey+1} ↔ ${entry.upperStorey+1} DisplayText0931 · DisplayText0747`),element('p','',"DisplayText3483, DisplayText0752"),element('strong','',`DisplayText3484 ${number(entry.total)} DisplayText0920`));
-      else article.append(element('h3','',`${entry.storey+1} DisplayText0931 · DisplayText3485`),element('p','',`DisplayText0949 ${number(entry.addedArea)} sqm${entry.stairCost?` · DisplayText3486 ${number(entry.stairCost)} DisplayText0920`:''}`),element('strong','',`DisplayText3484 ${number(entry.total)} DisplayText0920`));section.append(article);
+      else article.append(element('h3','',`${entry.storey+1} DisplayText0931 · DisplayText3485`),element('p','',`DisplayText0949 ${number(entry.addedArea)} sqm${entry.stairCost?` · DisplayText4908 ${number(entry.stairCost)} DisplayText0920`:''}`),element('strong','',`DisplayText3484 ${number(entry.total)} DisplayText0920`));section.append(article);
     }
     for (const entry of [...(state().areaLedger??[])].reverse()) {
       const article=element('article','home-shop-order');

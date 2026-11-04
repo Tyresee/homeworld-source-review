@@ -1,0 +1,183 @@
+{
+  "status": "pass",
+  "scope": "Fresh desktop browser; fictional bundled snapshot; exterior share-view navigation only",
+  "preview": {
+    "npmRequired": false,
+    "nodeModulesPresent": false,
+    "vendor": "Three.js 0.186.1 bundled runtime"
+  },
+  "browser": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "webgl2": true,
+    "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+    "webglError": 0,
+    "description": "Sample Learner's home, built in English class. Take a look.",
+    "storageWrites": {
+      "storage": [],
+      "cookies": [],
+      "indexedDB": [],
+      "beacons": []
+    },
+    "localStorageKeys": [],
+    "sessionStorageKeys": []
+  },
+  "statesVisited": [
+    "ORBIT",
+    "SPOT",
+    "EXPLODED",
+    "FOCUS"
+  ],
+  "roomLabelPassivityVerified": true,
+  "firstPersonEntryObserved": false,
+  "nonReadRequests": [],
+  "accountRequests": [],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "httpErrors": [],
+  "requestFailures": [],
+  "requestCount": 100,
+  "steps": [
+    {
+      "state": "ORBIT",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Drag to rotate. Use the wheel or pinch to zoom.",
+      "trail": [
+        "Overview"
+      ],
+      "controls": [
+        "Explode house"
+      ],
+      "roomLabels": []
+    },
+    {
+      "state": "SPOT",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Drag to look around",
+      "trail": [
+        "Overview",
+        "Outdoor features"
+      ],
+      "controls": [
+        "Back to overview"
+      ],
+      "roomLabels": []
+    },
+    {
+      "state": "ORBIT",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Drag to rotate. Use the wheel or pinch to zoom.",
+      "trail": [
+        "Overview"
+      ],
+      "controls": [
+        "Explode house"
+      ],
+      "roomLabels": []
+    },
+    {
+      "state": "EXPLODED",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Choose a floor",
+      "trail": [
+        "Overview",
+        "Explode house"
+      ],
+      "controls": [
+        "1F",
+        "2F",
+        "Assemble house"
+      ],
+      "roomLabels": []
+    },
+    {
+      "state": "FOCUS",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Drag to look around this floor",
+      "trail": [
+        "Overview",
+        "Explode house",
+        "2F"
+      ],
+      "controls": [
+        "1F",
+        "2F",
+        "Back"
+      ],
+      "roomLabels": [
+        {
+          "tag": "SPAN",
+          "text": "DisplayText1449Bedroom",
+          "pointerEvents": "none",
+          "tabindex": null
+        },
+        {
+          "tag": "SPAN",
+          "text": "DisplayText1449Study",
+          "pointerEvents": "none",
+          "tabindex": null
+        }
+      ]
+    },
+    {
+      "state": "FOCUS_AFTER_ROOM_CLICK_AND_MOVEMENT_KEYS",
+      "title": "Sample Learner Home",
+      "badge": "Read-only view",
+      "hint": "Drag to look around this floor",
+      "trail": [
+        "Overview",
+        "Explode house",
+        "2F"
+      ],
+      "controls": [
+        "1F",
+        "2F",
+        "Back"
+      ],
+      "roomLabels": [
+        {
+          "tag": "SPAN",
+          "text": "DisplayText1449Bedroom",
+          "pointerEvents": "none",
+          "tabindex": null
+        },
+        {
+          "tag": "SPAN",
+          "text": "DisplayText1449Study",
+          "pointerEvents": "none",
+          "tabindex": null
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    "overview.png",
+    "focus.png"
+  ],
+  "limits": [
+    "Desktop loopback preview only; no physical mobile or real WeChat share action was tested."
+  ],
+  "screenshots": [
+    {
+      "path": "overview.png",
+      "bytes": 248442,
+      "sha256": "34ea0019029be67ebf318e032cfaa67c3d65d9e747b833a4eba104becfb972ab"
+    },
+    {
+      "path": "focus.png",
+      "bytes": 573224,
+      "sha256": "7e67797513632c4446fdcbda36547f13200955b39ffffbaf0be654a30ac30efc"
+    }
+  ],
+  "harness": "browser-smoke.cjs",
+  "verifiedAtUtc": "2026-11-04T14:50:07.711869+00:00",
+  "automationNote": "Navigation buttons were clicked with Playwright noWaitAfter because they change camera state without navigating the document."
+}

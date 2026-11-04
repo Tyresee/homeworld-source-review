@@ -1,29 +1,76 @@
 import * as THREE from 'three';
+import {applyL1Surface,createL1FurnitureContacts} from './home-interior-lighting.js';
 import {createRoomExpansion,WALL_HEIGHT} from './home-room-expansion.js';
 import {createEstateManor} from './home-estate-manor.js';
 import {createLuxuryItem} from './home-luxury-models.js';
+import {attachDefaultCookingPot} from './home-cooking-pot.js';
 import {getFurniturePose,getWallMountTargets} from './home-engine.js';
 import {getFloorBounds,getFloorRects} from './home-layout.js';
 import {getHomeRoamEntrance,ROAM_FLOOR_Y} from './home-roam-geometry.js';
 import {createHomeRoamDaylight} from './home-roam-daylight.js';
 import {createStaircase,clipFloorMeshToOpening,splitFloorAroundOpening} from './home-staircase.js';
-import {STOREY_HEIGHT,getHomeStairs,getStaircaseEntrances} from './home-staircase-shape.js';
+import {STOREY_HEIGHT,getHomeStairs,getStaircaseEntrances,getElevatorStationContacts} from './home-staircase-shape.js';
+import {createHomeElevator} from './home-elevator-model.js';
+import {getHomeElevatorPhysicalStacks} from './home-elevator-stack.js';
+import {createHomeRoamElevatorPanel} from './home-roam-elevator-panel.js';
+
+const EXTERIOR_WALL_CLEARANCE=.01;
+const WALL_MOUNT_CLEARANCE=.008;
+
+/** The visitor's perimeter walls extend farther indoors than the editor's
+ * thin skins. Keep the saved mount anchor, but place its actual geometry in
+ * front of the matching physical support wall in this temporary scene. */
+function alignRoamWallMount(model,target,walls){
+  if(!target)return;
+  model.updateWorldMatrix(true,true);
+  const bounds=new THREE.Box3().setFromObject(model);if(bounds.isEmpty())return;
+  const normal=target.axis==='x'?'z':'x',along=target.axis,side=target.axis==='x'?'back':'left';
+  const supports=walls.filter(({info,box})=>info.side===side&&info.alongAxis===along&&(info.exterior||info.retainedStarter)
+    &&Math.abs(info.plane-target.face)<.35&&bounds.min[along]<info.to-1e-7&&bounds.max[along]>info.from+1e-7
+    &&bounds.min.y<box.max.y-1e-7&&bounds.max.y>box.min.y+1e-7);
+  if(!supports.length)return;
+  const distance=Math.min(...supports.map(({info})=>Math.abs(info.plane-target.face)));
+  const selected=supports.filter(({info})=>Math.abs(Math.abs(info.plane-target.face)-distance)<1e-6);
+  const face=Math.max(...selected.map(({box})=>box.max[normal]));
+  const forward=Math.max(0,face+WALL_MOUNT_CLEARANCE-bounds.min[normal]);
+  model.position[normal]+=forward;bounds.min[normal]+=forward;bounds.max[normal]+=forward;
+  // A saved mount can be valid against the thin editor skin yet nick an
+  // adjacent visitor wall at a corner. Only the actual perpendicular walls
+  // ending this same support segment may constrain its along-wall position.
+  const from=Math.min(...selected.map(({info})=>info.from)),to=Math.max(...selected.map(({info})=>info.to));
+  let lower=from-bounds.min[along],upper=to-bounds.max[along],penetrating=false;
+  for(const {info,box}of walls){
+    if(info.alongAxis!==normal||!(info.exterior||info.retainedStarter)
+      ||Math.min(Math.abs(info.plane-from),Math.abs(info.plane-to))>1e-6
+      ||bounds.min[normal]>=box.max[normal]-1e-7||bounds.max[normal]<=box.min[normal]+1e-7
+      ||bounds.min.y>=box.max.y-1e-7||bounds.max.y<=box.min.y+1e-7)continue;
+    if(bounds.min[along]<box.max[along]-1e-7&&bounds.max[along]>box.min[along]+1e-7)penetrating=true;
+    if(info.side==='back'||info.side==='left')lower=Math.max(lower,box.max[along]+WALL_MOUNT_CLEARANCE-bounds.min[along]);
+    else upper=Math.min(upper,box.min[along]-WALL_MOUNT_CLEARANCE-bounds.max[along]);
+  }
+  // Incompatible ends cannot be solved by pushing the object across the room.
+  if(penetrating&&lower<=upper+1e-7)model.position[along]+=Math.max(lower,Math.min(upper,0));
+}
 
 /** Read-only model of every actual purchased floor. No account transport,
  * wallet, placement command or saved state belongs to this temporary scene. */
-export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},robot=null,robotStorey}={}){
-  if(theme?.id!=='warm'||!home||!Array.isArray(floors)||!floors.length||floors.some(floor=>!floor||!Array.isArray(floor.rooms)||!getFloorBounds(floor)))throw new TypeError('The viewing scene requires existing Warm home floors.');
+export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},robot=null,robotStorey,robotEnvironment}={}){
+  if(!['warm','toy'].includes(theme?.id)||!home||!Array.isArray(floors)||!floors.length||floors.some(floor=>!floor||!Array.isArray(floor.rooms)||!getFloorBounds(floor)))throw new TypeError('The viewing scene requires existing Warm or Toy home floors.');
   const scene=new THREE.Scene(),interior=new THREE.Group();interior.name='roam-interior';scene.add(interior);
-  const floorModels=[],furniture=[],ceilingLights=[],ceilings=[],transports=[],wallGroups=new Map();
+  const floorModels=[],furniture=[],ceilingLights=[],ceilings=[],transports=[],elevatorPanels=[],wallGroups=new Map();
   const ownedGeometries=new Set(),ownedMaterials=new Set(),customModels=[];
-  let manor,daylight,doorway,entrance,disposed=false;
+  let manor,daylight,doorway,entrance,disposed=false;const l1Contacts=[];
   const ground=floors[0],bounds=getFloorBounds(ground),rects=getFloorRects(ground),entry=getHomeRoamEntrance(ground,{theme});
   const transportGroup=new THREE.Group();transportGroup.name='roam-transports';interior.add(transportGroup);
+  // The outdoor shaft remains part of the building when panorama hides the
+  // interior layer. Indoor stairs and legacy lifts still follow that layer.
+  const exteriorTransportGroup=new THREE.Group();exteriorTransportGroup.name='roam-exterior-transports';scene.add(exteriorTransportGroup);
   const own=group=>{group.traverse(node=>{if(node.geometry)ownedGeometries.add(node.geometry);for(const material of[].concat(node.material??[]))ownedMaterials.add(material);});return group;};
   const mark=(group,storey,extra={})=>{group.userData.roamStorey=storey;group.traverse(node=>{if(node.isMesh)Object.assign(node.userData,{roamStorey:storey},extra);});};
   function dispose(){
     if(disposed)return;disposed=true;
-    daylight?.dispose();for(const floor of floorModels)floor.architecture.dispose();
+    for(const entry of elevatorPanels)entry.panel.dispose();
+    daylight?.dispose();for(const contact of l1Contacts)contact.dispose();for(const floor of floorModels)floor.architecture.dispose();
     for(const model of customModels)model.dispose();manor?.dispose();
     for(const geometry of ownedGeometries)geometry.dispose();for(const material of ownedMaterials)material.dispose();
     scene.clear();
@@ -62,7 +109,22 @@ export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},ro
       if(cutOpening(copy,down)){ownedGeometries.add(copy.geometry);mesh.removeFromParent();}
       else{copy.removeFromParent();copy.geometry.dispose();}
     }
-    manor.traverse(mesh=>{if(mesh.isMesh)mesh.userData.roamStorey=mesh.userData.storey??0;});
+    // The architecture also builds a complete structural plinth per floor.
+    // Both scenes share the same slab faces, so only the exterior-only view
+    // uses the manor slabs. Combined/interior views use the clipped plinths.
+    const facadeSlabs=[];
+    manor.traverse(mesh=>{
+      if(!mesh.isMesh)return;
+      mesh.userData.roamStorey=mesh.userData.storey??0;
+      if(mesh.userData.buildingPart==='floor-slab'){facadeSlabs.push(mesh);mesh.visible=false;}
+      // Keep the exterior finish just outside the interior wall volume. From
+      // either side, its own finish is then the nearest face instead of two
+      // differently painted faces competing at exactly the same depth.
+      if(mesh.userData.buildingPart==='roam-wall'){
+        const wall=mesh.userData.roamWall,offset=(['back','left'].includes(wall.side)?-1:1)*EXTERIOR_WALL_CLEARANCE;
+        mesh.position[wall.normalAxis]+=offset;wall.plane+=offset;
+      }
+    });
     for(let storey=0;storey<floors.length;storey++){
       const floorHome=floors[storey],baseY=storey*STOREY_HEIGHT,group=new THREE.Group();group.name=`roam-floor-${storey}`;
       // A truthy nonmatching entrance prevents an upstairs facade from gaining
@@ -78,13 +140,18 @@ export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},ro
         if(part==='floor'||part==='zones'||part==='border'&&new THREE.Box3().setFromObject(mesh).max.y<.11)cutOpening(mesh,down);
       });
       for(const ceiling of architecture.getRoamCeilings())cutCeiling(ceiling,up);
+      const mountTargets=new Map(getWallMountTargets(floorHome).map(target=>[target.wallId,target]));
+      const mountWalls=architecture.getRoamWalls().map(mesh=>({info:mesh.userData.roamWall,box:new THREE.Box3().setFromObject(mesh)}));
       for(const item of floorHome.furniture??[]){
-        const model=own(createLuxuryItem({...item,maps})),pose=getFurniturePose(floorHome,item);model.position.set(pose.x,pose.y,pose.z);model.rotation.y=THREE.MathUtils.degToRad(pose.rotation);model.userData.furnitureId=item.id;group.add(model);
+        const model=createLuxuryItem({...item,maps});attachDefaultCookingPot(model,item);own(model);
+        const pose=getFurniturePose(floorHome,item);model.position.set(pose.x,pose.y,pose.z);model.rotation.y=THREE.MathUtils.degToRad(pose.rotation);
+        if(item.mount?.type==='wall')alignRoamWallMount(model,mountTargets.get(item.mount.wallId),mountWalls);
+        model.userData.furnitureId=item.id;group.add(model);
         const descriptor={itemId:item.id,item,home:floorHome,storey,group:model};row.furniture.push(descriptor);furniture.push(descriptor);
       }
       for(const ceiling of architecture.getRoamCeilings()){
         if(!ceiling.geometry.getAttribute('position').count)continue;
-        ceiling.material.emissive=new THREE.Color('#efe6d8');ceiling.material.emissiveIntensity=.32;row.ceilings.push(ceiling);ceilings.push(ceiling);
+        ceiling.material.emissive=new THREE.Color('#efe6d8');ceiling.material.emissiveIntensity=theme.id==='toy'?0:.32;if(theme.id==='toy')applyL1Surface(ceiling,{role:'ceiling'});row.ceilings.push(ceiling);ceilings.push(ceiling);
         const point=ceiling.userData.point??{x:bounds.x,y:ROAM_FLOOR_Y+WALL_HEIGHT-.015,z:bounds.z};
         const disc=own(new THREE.Mesh(new THREE.CylinderGeometry(.26,.26,.035,32),new THREE.MeshStandardMaterial({color:'#fff3dd',emissive:'#ffe1b8',emissiveIntensity:.8,roughness:.45})));
         disc.name='roam-ceiling-light';disc.position.set(point.x,point.y-.3,point.z);disc.userData.roamCeilingLight=true;group.add(disc);
@@ -92,6 +159,7 @@ export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},ro
         const descriptor={id:`ceiling:${storey===0?'':storey+':'}${ceiling.userData.roomId??row.ceilingLights.length}`,roomId:ceiling.userData.roomId,storey,baseY,disc,light,worldPoint:disc.position.clone().add(new THREE.Vector3(0,baseY,0)),on:true,enabled:true,setEnabled(value){this.enabled=this.on=!!value;}};
         row.ceilingLights.push(descriptor);ceilingLights.push(descriptor);
       }
+      if(theme.id==='toy'&&typeof document!=='undefined'&&row.furniture.length){const contact=createL1FurnitureContacts(row.furniture.map(row=>row.group));if(contact){l1Contacts.push(contact);group.add(contact.mesh);}}
       // Clipping planes use world Y, whereas authored walls and caps remain in
       // their actual floor's local coordinates. Keys include the floor index.
       const localWalls=new Map();
@@ -100,7 +168,6 @@ export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},ro
         if(!wall){wall={info:{...local,id:key,minY:local.minY+baseY,maxY:local.maxY+baseY},storey,meshes:[],caps:[],attachments:[]};localWalls.set(key,wall);wallGroups.set(key,wall);}
         wall.meshes.push(mesh);for(const material of[].concat(mesh.material)){material.clippingPlanes=[new THREE.Plane(new THREE.Vector3(0,-1,0),1e6)];material.clipShadows=true;}
       }
-      const mountTargets=new Map(getWallMountTargets(floorHome).map(target=>[target.wallId,target]));
       for(const wall of localWalls.values()){
         const d=wall.info,door=d.doorway,intervals=door?[{from:d.from,to:door.from},{from:door.to,to:d.to}]:[{from:d.from,to:d.to}];
         for(const interval of intervals){
@@ -116,29 +183,58 @@ export function createHomeRoamModel({home,floors=home?[home]:[],theme,maps={},ro
     // staircase uses the upstairs-authored version once to retain its opening
     // guards; its local -STOREY_HEIGHT offset is cancelled here. Elevators use
     // their full lower-floor shaft and car once, never a duplicate upper shaft.
+    const elevatorStacks=getHomeElevatorPhysicalStacks(floors),stackModels=new Map();
     for(let from=0;from<floors.length-1;from++)for(const stairs of getHomeStairs(floors[from]).filter(stair=>stair.direction==='up')){
       const to=from+1,peer=getHomeStairs(floors[to]).find(stair=>stair.id===stairs.id&&stair.direction==='down');
       if(!peer)continue;
-      const elevator=stairs.type==='elevator',model=createStaircase(elevator?stairs:peer),baseY=from*STOREY_HEIGHT;
-      model.position.y=baseY+(elevator?0:STOREY_HEIGHT);transportGroup.add(model);if(elevator)customModels.push(model);else own(model);
+      const elevator=stairs.type==='elevator',stack=elevatorStacks.find(rows=>rows.some(link=>link.from===from&&link.stairs.id===stairs.id)),merged=stack?.length>1,baseY=from*STOREY_HEIGHT;
+      let model=merged?stackModels.get(stack):null;const fresh=!model;
+      if(!model){
+        model=elevator?createHomeElevator(merged?stack[0].stairs:stairs,{connections:merged?stack.map(link=>({stairs:link.stairs,baseY:(link.from-stack[0].from)*STOREY_HEIGHT})):null,groundY:-(merged?stack[0].from:from)*STOREY_HEIGHT}):createStaircase(peer);
+        model.position.y=merged?stack[0].from*STOREY_HEIGHT:baseY+(elevator?0:STOREY_HEIGHT);(model.userData.exteriorElevator?exteriorTransportGroup:transportGroup).add(model);if(elevator)customModels.push(model);else own(model);if(merged)stackModels.set(stack,model);
+      }
       const id=`transport:${from}:${stairs.id}`,positions=getStaircaseEntrances(stairs),angle=THREE.MathUtils.degToRad(stairs.rotation),outward=new THREE.Vector3(Math.sin(angle),0,Math.cos(angle));
+      const contacts=elevator?getElevatorStationContacts(stairs):null;
+      const world=point=>new THREE.Vector3(point.x,point.y+baseY,point.z);
+      const landing=(side,storey,normal)=>contacts?{storey,position:world(contacts[side].position),doorPosition:world(contacts[side].doorPosition),normal:new THREE.Vector3(contacts[side].normal.x,0,contacts[side].normal.z),waitingPosition:world(contacts[side].waitingPosition),cabinDoorPosition:world(contacts[side].cabinDoorPosition),cabinCentre:world(contacts[side].cabinCentre),clearWidth:contacts[side].clearWidth,clearHeight:contacts[side].clearHeight}:{storey,position:world(positions[side]),normal};
       const localSetter=model.userData.setElevatorFrame;
       const descriptor={id,stairId:stairs.id,type:elevator?'elevator':'stairs',from,to,baseY,stairs,model,landings:{
-        lower:{storey:from,position:new THREE.Vector3(positions.lower.x,positions.lower.y+baseY,positions.lower.z),normal:outward.clone()},
-        upper:{storey:to,position:new THREE.Vector3(positions.upper.x,positions.upper.y+baseY,positions.upper.z),normal:outward.clone().negate()},
-      },setElevatorFrame(frame={}){if(disposed||!localSetter)return false;return localSetter({...frame,...Number.isFinite(frame.cabinY)?{cabinY:frame.cabinY-baseY}:{}});},getElevatorFrame(){const value=model.userData.elevatorFrame;return value?{...value,cabinY:value.cabinY+baseY,doors:{...value.doors}}:null;}};
-      Object.assign(model.userData,{roamTransportId:id,roamTransportType:descriptor.type,roamTransportFrom:from,roamTransportTo:to});mark(model,from,{roamTransportId:id,roamTransportType:descriptor.type});
+        lower:landing('lower',from,outward.clone()),
+        upper:landing('upper',to,outward.clone().negate()),
+      },setElevatorFrame(frame={}){if(disposed||!localSetter)return false;return localSetter({...frame,stairId:stairs.id,...Number.isFinite(frame.cabinY)?{cabinY:frame.cabinY-model.position.y}:{}});},getElevatorFrame(){const value=model.userData.elevatorFrame;return value?{...value,cabinY:value.cabinY+model.position.y,doors:{...value.doors}}:null;}};
+      if(fresh){Object.assign(model.userData,{roamTransportId:id,roamTransportType:descriptor.type,roamTransportFrom:from,roamTransportTo:to});mark(model,from,{roamTransportId:id,roamTransportType:descriptor.type});}
+      if(merged)model.traverse(node=>{if(node.isMesh&&node.userData.elevatorConnectionId===stairs.id)Object.assign(node.userData,{roamStorey:node.userData.elevatorStationSide==='upper'?to:from,roamTransportId:id,roamTransportType:descriptor.type});});
       transports.push(descriptor);floorModels[from].transports.push(descriptor);floorModels[to].transports.push(descriptor);
     }
+    // Each temporary visit owns one physical control panel inside each real
+    // moving cabin. Merged links share the same panel, just as they share the
+    // same car; the editor's model builder and its resources stay untouched.
+    for(const elevator of new Set(transports.filter(row=>row.type==='elevator').map(row=>row.model))){
+      const links=transports.filter(row=>row.model===elevator),served=[...new Set(links.flatMap(row=>[row.from,row.to]))].sort((a,b)=>a-b),cabin=elevator.getObjectByName('elevator-cabin');
+      if(!cabin)continue;
+      for(const mesh of cabin.children)if(['elevator-cabin-controls','elevator-cabin-control-button'].includes(mesh.name))mesh.visible=false;
+      const panel=createHomeRoamElevatorPanel({floorCount:floors.length,served,currentStorey:served[0]});
+      if(links[0].stairs.placement==='exterior-left-v1')panel.group.position.x=.64;
+      cabin.add(panel.group);mark(panel.group,served[0],{roamTransportId:links[0].id,roamTransportType:'elevator'});
+      const entry={model:elevator,panel,transportIds:links.map(row=>row.id),served};elevatorPanels.push(entry);
+    }
     let avatar=null;
-    if(robot){const inferred=floors.indexOf(home),storey=Number.isInteger(robotStorey)&&robotStorey>=0&&robotStorey<floors.length?robotStorey:Math.max(0,inferred);avatar=own(copyRobot(robot));avatar.visible=true;avatar.userData.avatar=true;floorModels[storey].group.add(avatar);mark(avatar,storey);}
+    if(robot){
+      const outside=robotEnvironment==='estate',inferred=floors.indexOf(home),storey=outside?0:Number.isInteger(robotStorey)&&robotStorey>=0&&robotStorey<floors.length?robotStorey:Math.max(0,inferred);
+      avatar=own(copyRobot(robot));avatar.visible=true;Object.assign(avatar.userData,{avatar:true,robotEnvironment:outside?'estate':'interior'});
+      // The active editor floor is only a selection. A companion on the lawn
+      // or in a pool stays in world space and remains visible independently of
+      // the interior layer and whichever floor the visitor is inspecting.
+      (outside?scene:floorModels[storey].group).add(avatar);mark(avatar,storey);
+    }
     scene.updateMatrixWorld(true);entrance=manor.getRoamEntry();
     daylight=createHomeRoamDaylight({manor,bounds,entrance});scene.add(daylight.group);mark(daylight.group,0);
     doorway=new THREE.Group();doorway.name='roam-doorway';entrance?.hinge?.parent?.matrixWorld.decompose(doorway.position,doorway.quaternion,doorway.scale);scene.add(doorway);doorway.updateMatrixWorld(true);
     if(entrance?.hinge)doorway.attach(entrance.hinge);if(entrance?.frame)doorway.attach(entrance.frame);mark(doorway,0);scene.updateMatrixWorld(true);
     const interiorBounds=new THREE.Box3();for(const row of floorModels){const box=getFloorBounds(row.home);interiorBounds.expandByPoint(new THREE.Vector3(box.minX,row.baseY,box.minZ));interiorBounds.expandByPoint(new THREE.Vector3(box.maxX,row.baseY+ROAM_FLOOR_Y+WALL_HEIGHT,box.maxZ));}
-    const buildingBounds=new THREE.Box3().setFromObject(manor).union(new THREE.Box3().setFromObject(transportGroup));
-    return {scene,interior,architecture:floorModels[0].architecture,manor,doorway,daylight,furniture,ceilingLights,ceilings,entrance,bounds,rects,floorModels,floorCount:floorModels.length,transports,transportGroup,robot:avatar,interiorBounds,buildingBounds,
+    const buildingBounds=new THREE.Box3().setFromObject(manor).union(new THREE.Box3().setFromObject(transportGroup)).union(new THREE.Box3().setFromObject(exteriorTransportGroup));
+    return {lightingProfile:theme.id==='toy'?{id:'L1',...theme.lighting.interior}:null,scene,interior,architecture:floorModels[0].architecture,manor,doorway,daylight,furniture,ceilingLights,ceilings,entrance,bounds,rects,floorModels,floorCount:floorModels.length,transports,elevatorPanels,transportGroup,exteriorTransportGroup,robot:avatar,interiorBounds,buildingBounds,
+      setFloorSlabMode(mode){for(const mesh of facadeSlabs)mesh.visible=mode==='ext';},
       setOrbitCut(camera,target,enabled){let changed=false;for(const wall of wallGroups.values()){const d=wall.info,cut=!!enabled&&(camera.position[d.axis]-d.plane)*(target[d.axis]-d.plane)<-1e-5;if(wall.cut===cut)continue;wall.cut=cut;changed=true;for(const mesh of wall.meshes)for(const material of[].concat(mesh.material))material.clippingPlanes[0].constant=cut?d.minY+.5:1e6;for(const cap of wall.caps)cap.visible=cut;for(const node of wall.attachments)node.visible=!cut;}return changed;},
       getWallState:()=>[...wallGroups.values()].map(wall=>({id:wall.info.id,storey:wall.storey,cut:!!wall.cut,axis:wall.info.axis,plane:wall.info.plane,capHeight:.045,bodyHeight:.5})),dispose};
   }catch(error){dispose();throw error;}

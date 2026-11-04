@@ -6,11 +6,12 @@ import {HOME_THEMES} from '../public/js/home-theme.js';
 import {createAccountCommerce,prepareCommerceCommand,validateAccountCommerce} from '../server/student-homes/commerce.mjs';
 import {getFloorHomes,getStoreyRoomSlots} from '../public/js/home-commerce.js';
 import {applyChange,getFurniturePose,roomRect} from '../public/js/home-engine.js';
-import {getHomeStairs,STOREY_HEIGHT,FLOOR_Y} from '../public/js/home-staircase-shape.js';
+import {getHomeStairs,STOREY_HEIGHT,FLOOR_Y,getElevatorStationContacts,getStaircaseEntrances,STAIR_DEPTH} from '../public/js/home-staircase-shape.js';
 import {WALL_HEIGHT} from '../public/js/home-room-expansion.js';
 import {ROAM_FLOOR_Y} from '../public/js/home-roam-geometry.js';
 import {getFloorTextureCacheStats} from '../public/js/home-floor-textures.js';
 import {getWallTextureCacheStats} from '../public/js/home-wall-textures.js';
+import {getFloorBounds,getFloorBoundarySegments,resolveRooms} from '../public/js/home-layout.js';
 
 let previousDocument;
 before(()=>{previousDocument=globalThis.document;globalThis.document={createElement(){const context=new Proxy({},{get:(target,key)=>target[key]??(()=>{}),set:(target,key,value)=>(target[key]=value,true)});return {width:0,height:0,getContext:()=>context};}};});
@@ -46,6 +47,83 @@ function account({count=2,elevator=null,decorated=false}={}){
 }
 function modelFor(state,options={}){const floors=getFloorHomes(state);return createHomeRoamModel({home:floors[0],floors,theme:HOME_THEMES.warm,...options});}
 function visibleMeshes(root){return nodes(root).filter(node=>node.isMesh&&(()=>{for(let p=node;p;p=p.parent)if(!p.visible)return false;return true;})());}
+
+test('inter-storey slab skins never compete when a walk shows exterior and interior together',()=>{
+  const state=account({count:3}),before=JSON.stringify(state),model=modelFor(state);
+  const sideHits=row=>{
+    const bounds=getFloorBounds(row.home),origin=new THREE.Vector3(bounds.minX+bounds.width*.37,row.baseY-.15,bounds.minZ-1);
+    const candidates=visibleMeshes(model.scene).filter(mesh=>mesh.userData.buildingPart==='floor-slab'||mesh.userData.roomPart==='border');
+    return [...new Set(new THREE.Raycaster(origin,new THREE.Vector3(0,0,1),0,1.2).intersectObjects(candidates,false).map(hit=>hit.object))];
+  };
+  try{
+    model.scene.updateMatrixWorld(true);
+    for(const row of model.floorModels){
+      const hits=sideHits(row);assert.equal(hits.length,1,'the initial combined scene has one solid side face, without overlapping cream and brown slabs');
+      assert.equal(hits[0].material.color.getHexString(),new THREE.Color(HOME_THEMES.warm.shell.plinth).getHexString());
+    }
+    for(const mode of ['ext','ext+in','in','orbit-in','ext+in','ext']){
+      model.setFloorSlabMode(mode);model.manor.visible=mode==='ext'||mode==='ext+in';model.interior.visible=mode!=='ext';
+      for(const row of model.floorModels)row.group.visible=mode!=='orbit-in'||row.storey===1;
+      model.scene.updateMatrixWorld(true);
+      for(const row of model.floorModels)assert.equal(sideHits(row).length,mode==='orbit-in'&&row.storey!==1?0:1,`${mode}: floor ${row.storey} retains exactly its intended solid slab`);
+    }
+    assert.equal(JSON.stringify(state),before);
+  }finally{model.dispose();}
+});
+
+test('legacy floor outlines and clipped stairwell slabs stay solid in exterior-only and combined modes',()=>{
+  const legacy={rooms:resolveRooms('starter'),furniture:[]},legacyModel=createHomeRoamModel({home:legacy,floors:[legacy],theme:HOME_THEMES.warm});
+  try{
+    for(const mode of ['ext','ext+in','in']){
+      legacyModel.setFloorSlabMode(mode);legacyModel.manor.visible=mode==='ext'||mode==='ext+in';legacyModel.interior.visible=mode!=='ext';legacyModel.scene.updateMatrixWorld(true);
+      const bounds=getFloorBounds(legacy),ray=new THREE.Raycaster(new THREE.Vector3(bounds.minX+bounds.width*.37,-.15,bounds.minZ-1),new THREE.Vector3(0,0,1),0,1.2);
+      const hits=ray.intersectObjects(visibleMeshes(legacyModel.scene).filter(mesh=>mesh.userData.buildingPart==='floor-slab'||mesh.userData.roomPart==='border'),false);
+      assert.equal(new Set(hits.map(hit=>hit.object)).size,1,`${mode}: legacy slab remains present once`);
+    }
+  }finally{legacyModel.dispose();}
+  const model=modelFor(account()),transport=model.transports[0],upper=model.floorModels[1],down=new THREE.Vector3(0,-1,0);
+  try{
+    for(const mode of ['ext','ext+in','in']){
+      model.setFloorSlabMode(mode);model.manor.visible=mode==='ext'||mode==='ext+in';model.interior.visible=mode!=='ext';model.scene.updateMatrixWorld(true);
+      const slabs=visibleMeshes(model.scene).filter(mesh=>mesh.userData.buildingPart==='floor-slab'||mesh.userData.roomPart==='border');
+      const hole=new THREE.Vector3(transport.stairs.x,upper.baseY+.01,transport.stairs.z);
+      assert.equal(new THREE.Raycaster(hole,down,0,.35).intersectObjects(slabs,false).length,0,`${mode}: the real upstairs shaft stays open`);
+      const solid=hole.clone().add(new THREE.Vector3(1.5,0,0)),top=new THREE.Raycaster(solid,down,0,.35).intersectObjects(slabs,false);
+      assert.equal(new Set(top.map(hit=>hit.object)).size,1,`${mode}: a single slab remains solid beside the shaft`);
+      const bottom=new THREE.Raycaster(solid.clone().setY(upper.baseY-.4),new THREE.Vector3(0,1,0),0,.45).intersectObjects(slabs,false);
+      assert.equal(new Set(bottom.map(hit=>hit.object)).size,1,`${mode}: the slab underside remains solid`);
+    }
+  }finally{model.dispose();}
+});
+
+test('combined-view exterior and interior wall finishes stay separated on every side and storey',()=>{
+  const state=account(),before=JSON.stringify(state),model=modelFor(state);
+  const uniqueHits=ray=>{
+    const candidates=visibleMeshes(model.scene).filter(mesh=>mesh.userData.buildingPart==='roam-wall'||mesh.userData.roamWall?.exterior),seen=new Set();
+    return ray.intersectObjects(candidates,false).filter(hit=>{if(seen.has(hit.object))return false;seen.add(hit.object);return true;});
+  };
+  try{
+    model.scene.updateMatrixWorld(true);
+    for(const row of model.floorModels)for(const edge of getFloorBoundarySegments(row.home)){
+      const alongX=['front','back'].includes(edge.side),sign=['front','right'].includes(edge.side)?1:-1,along=edge.from+(edge.to-edge.from)*.23;
+      const outward=alongX?new THREE.Vector3(0,0,sign):new THREE.Vector3(sign,0,0);
+      const point=alongX?new THREE.Vector3(along,row.baseY+2.4,edge.at):new THREE.Vector3(edge.at,row.baseY+2.4,along);
+      const outside=uniqueHits(new THREE.Raycaster(point.clone().addScaledVector(outward,1),outward.clone().negate(),0,1.4));
+      assert.equal(outside.length,2,`${edge.side}: the exterior and interior walls remain physically present`);
+      assert.equal(outside[0].object.userData.buildingPart,'roam-wall','outside sees the exterior finish first');
+      near(outside[1].distance-outside[0].distance,.01);
+      assert.equal(outside[0].object.material.color.getHexString(),new THREE.Color(HOME_THEMES.warm.manor.wall).getHexString());
+      assert.notEqual(outside[0].object.material.color.getHexString(),outside[1].object.material.color.getHexString(),'the distinct interior finish is preserved');
+      near(outside[0].object.userData.roamWall.plane,edge.at+sign*.01);
+      const inside=uniqueHits(new THREE.Raycaster(point.clone().addScaledVector(outward,-.6),outward,0,.8));
+      assert.equal(inside.length,2);assert.equal(inside[0].object.userData.roomPart,'walls','inside sees the actual interior finish first');
+      near(inside[1].distance-inside[0].distance,.01);
+    }
+    const entry=model.entrance,ray=new THREE.Raycaster(entry.center.clone().addScaledVector(entry.outward,1),entry.outward.clone().negate(),0,1.6);
+    assert.equal(uniqueHits(ray).length,0,'separating wall skins never fills or blocks the real arched entry');
+    assert.equal(JSON.stringify(state),before);
+  }finally{model.dispose();}
+});
 
 test('the visitor builds every real floor layout and furnishing at its actual storey height',()=>{
   const state=account({elevator:0,decorated:true}),before=JSON.stringify(state),floors=getFloorHomes(state),model=modelFor(state);
@@ -94,12 +172,13 @@ test('a paid elevator is modeled once with its real transparent cabin, movable c
     const transport=model.transports[0];assert.equal(transport.type,'elevator');assert.equal(nodes(model.scene).filter(node=>node.name==='home-elevator').length,1);
     assert.equal(nodes(model.scene).filter(node=>node.name==='elevator-shaft').length,1);
     assert.ok(nodes(transport.model).filter(node=>node.isMesh&&node.material.transparent).every(node=>node.material.opacity===.12&&node.material.depthWrite===false));
-    assert.deepEqual(transport.landings.lower.normal.toArray(),[0,0,1]);assert.deepEqual(transport.landings.upper.normal.toArray().map(v=>v||0),[0,0,-1]);
+    near(transport.landings.lower.normal.distanceTo(new THREE.Vector3(1,0,0)),0);near(transport.landings.upper.normal.distanceTo(new THREE.Vector3(1,0,0)),0);
     const mid=FLOOR_Y+STOREY_HEIGHT*.5;assert.equal(transport.setElevatorFrame({cabinY:mid,doors:{lower:0,upper:0}}),true);model.scene.updateMatrixWorld(true);
     near(transport.model.getObjectByName('elevator-cabin').getWorldPosition(new THREE.Vector3()).y,mid);near(transport.getElevatorFrame().cabinY,mid);
     transport.setElevatorFrame({cabinY:FLOOR_Y+STOREY_HEIGHT,doors:{upper:1}});assert.equal(transport.getElevatorFrame().doors.upper,1);
     const surfaces=visibleMeshes(model.scene).filter(mesh=>mesh.userData.roomPart==='floor'||mesh.userData.roamCeiling||mesh.userData.buildingPart==='floor-slab');
-    assert.equal(new THREE.Raycaster(new THREE.Vector3(transport.stairs.x,STOREY_HEIGHT-.6,transport.stairs.z),new THREE.Vector3(0,1,0),0,1).intersectObjects(surfaces,false).length,0);
+    assert.equal(transport.stairs.placement,'exterior-left-v1');
+    assert.ok(new THREE.Raycaster(new THREE.Vector3(0,STOREY_HEIGHT-.6,0),new THREE.Vector3(0,1,0),0,1).intersectObjects(surfaces,false).length>0,'the former indoor well is restored to solid usable floor');
     assert.ok(nodes(transport.model).filter(node=>node.isMesh).every(node=>node.userData.roamTransportId===transport.id));
     assert.equal(JSON.stringify(state),before);
   }finally{model.dispose();}
@@ -131,4 +210,60 @@ test('model teardown frees every visible owned resource once, keeps borrowed map
   assert.equal(model.scene.children.length,0);assert.ok([...geometries,...materials].every(resource=>released.get(resource)===1));
   assert.equal(transport.setElevatorFrame({cabinY:1}),false);assert.equal(borrowed,0);assert.equal(getFloorTextureCacheStats().clones,0);assert.equal(getWallTextureCacheStats().clones,0);
   assert.equal(robot.children.length,0);assert.equal(robot.material.color.getHexString(),'abcdef');robot.geometry.dispose();robot.material.dispose();map.dispose();
+});
+
+test('an outdoor frozen robot keeps its real pool height despite an upstairs editor selection and hidden interior',()=>{
+  const state=account({count:2,elevator:0}),source=new THREE.Group(),geometry=new THREE.BoxGeometry(.32,.8,.3),material=new THREE.MeshStandardMaterial({color:'#eedcb4'}),body=new THREE.Mesh(geometry,material);
+  source.name='student-home-robot';body.name='review-pool-robot';body.position.set(14,.77,2.68);source.add(body);source.visible=false;source.updateMatrixWorld(true);
+  const saved=body.getWorldPosition(new THREE.Vector3()),sourcePose=source.matrixWorld.clone();
+  const outside=modelFor(state,{robot:source,robotStorey:1,robotEnvironment:'estate'}),inside=modelFor(state,{robot:source,robotStorey:1,robotEnvironment:'interior'});
+  try{
+    outside.scene.updateMatrixWorld(true);inside.scene.updateMatrixWorld(true);
+    const outdoorBody=outside.robot.getObjectByName('review-pool-robot'),indoorBody=inside.robot.getObjectByName('review-pool-robot');
+    near(outdoorBody.getWorldPosition(new THREE.Vector3()).y,saved.y);near(outside.robot.getWorldPosition(new THREE.Vector3()).y,0);
+    near(indoorBody.getWorldPosition(new THREE.Vector3()).y,saved.y+STOREY_HEIGHT);
+    assert.equal(outside.robot.parent,outside.scene,'outside companion is not owned by the hideable floor layer');assert.equal(outside.robot.userData.roamStorey,0);assert.equal(outside.robot.visible,true);
+    outside.interior.visible=false;for(const row of outside.floorModels)row.group.visible=false;
+    const visible=[];outside.scene.traverseVisible(node=>visible.push(node));assert.ok(visible.includes(outdoorBody),'the frozen outside companion remains visible during exterior/other-floor viewing');
+    assert.equal(source.visible,false);assert.deepEqual(source.matrixWorld.toArray(),sourcePose.toArray());assert.notEqual(outdoorBody.geometry,geometry);assert.notEqual(outdoorBody.material,material);
+  }finally{outside.dispose();inside.dispose();geometry.dispose();material.dispose();}
+});
+
+for(const rotation of[0,90,180,270])for(const baseStorey of[0,1])test(`elevator actual door and cabin contacts match triangles at ${rotation} degrees from storey ${baseStorey}`,()=>{
+  const state=account({count:baseStorey+2,elevator:baseStorey}),floors=getFloorHomes(state),connection=getHomeStairs(floors[baseStorey]).find(stair=>stair.type==='elevator');
+  // This rotation matrix deliberately retains an old indoor lift fixture; E1
+  // has one fixed left-wall orientation and is covered by its own geometry tests.
+  for(const floor of floors)for(const stair of getHomeStairs(floor))if(stair.id===connection.id){delete stair.placement;stair.rotation=rotation;stair.x=3.4;stair.z=0;}
+  const model=modelFor(state),transport=model.transports.find(row=>row.type==='elevator');
+  try{
+    for(const side of['lower','upper']){
+      const station=transport.landings[side],floorY=FLOOR_Y+(baseStorey+(side==='upper'?1:0))*STOREY_HEIGHT;
+      transport.setElevatorFrame({cabinY:floorY,doors:{lower:0,upper:0}});model.scene.updateMatrixWorld(true);
+      const authored=transport.model.getObjectByName(`elevator-${side}-landing-doors`).getWorldPosition(new THREE.Vector3());
+      near(station.position.distanceTo(authored),0);near(station.doorPosition.distanceTo(authored),0);near(station.position.y,floorY);
+      near(station.cabinCentre.x,connection.x);near(station.cabinCentre.z,connection.z);near(station.cabinCentre.y,floorY);
+      const carGate=transport.model.getObjectByName('elevator-cabin-front-doors').getWorldPosition(new THREE.Vector3());
+      near(station.cabinDoorPosition.distanceTo(carGate),0);
+      const expectedNormal=new THREE.Vector3(Math.sin(rotation*Math.PI/180),0,Math.cos(rotation*Math.PI/180));near(station.normal.distanceTo(expectedNormal),0);
+      near(station.waitingPosition.clone().sub(station.position).dot(station.normal),.51);
+      near(station.waitingPosition.clone().sub(station.cabinCentre).dot(station.normal),STAIR_DEPTH/2+.35);
+      const cabinFloor=new THREE.Box3().setFromObject(transport.model.getObjectByName('elevator-cabin-floor'));near(cabinFloor.max.y,station.cabinCentre.y);
+      // A real triangle ray crosses the closed landing/car leaf; after opening
+      // the correct floor's leaves, the same path reaches the cabin without
+      // crossing a side window, shaft post, frame or fixed cabin rear wall.
+      const right=new THREE.Vector3(station.normal.z,0,-station.normal.x),start=station.waitingPosition.clone().addScaledVector(right,.18).add(new THREE.Vector3(0,1.45,0)),end=station.cabinCentre.clone().addScaledVector(right,.18).add(new THREE.Vector3(0,1.45,0));
+      const direction=end.clone().sub(start),length=direction.length(),ray=new THREE.Raycaster(start,direction.normalize(),0,length);
+      const closed=ray.intersectObjects(visibleMeshes(transport.model),false);assert.ok(closed.some(hit=>/door/.test(hit.object.name)),'closed real doors block the board path');
+      transport.setElevatorFrame({cabinY:floorY,doors:{[side]:1}});model.scene.updateMatrixWorld(true);
+      assert.deepEqual(ray.intersectObjects(visibleMeshes(transport.model),false).map(hit=>hit.object.name),[],'open doorway path must be free in actual triangles, not merely an aggregate AABB');
+      const other=side==='lower'?'upper':'lower';assert.equal(transport.getElevatorFrame().doors[other],0);
+    }
+  }finally{model.dispose();}
+});
+test('elevator contacts respect down-record local coordinates, are independent copies and leave legacy stair entrances unchanged',()=>{
+  const up={id:'contact-fixture',x:2,z:3,rotation:90,direction:'up',type:'elevator'},down={...up,direction:'down'},a=getElevatorStationContacts(up),b=getElevatorStationContacts(down);
+  for(const side of['lower','upper'])for(const key of['position','doorPosition','waitingPosition','cabinDoorPosition','cabinCentre']){near(a[side][key].x,b[side][key].x);near(a[side][key].z,b[side][key].z);near(a[side][key].y-b[side][key].y,STOREY_HEIGHT);}
+  const legacy=getStaircaseEntrances(up);near(Math.abs(legacy.lower.x-up.x),1.6);near(Math.abs(legacy.upper.x-up.x),1.6);
+  a.lower.cabinCentre.y=999;a.lower.doorPosition.x=999;assert.notEqual(getElevatorStationContacts(up).lower.cabinCentre.y,999);assert.notEqual(getElevatorStationContacts(up).lower.doorPosition.x,999);
+  assert.equal(getElevatorStationContacts({...up,type:undefined}),null);
 });

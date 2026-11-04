@@ -17,3 +17,9 @@ The optional Toy v1 candidate and isolated real-render workstation are now inclu
 ## Explicitly approved upstream reference exception
 
 The supplied 2026-10-29 reviewer bundle is retained verbatim, including its original README and three reference-sheet captions, as explicitly requested by the user. This exception is limited to those reference artifacts and does not relax implementation-source, credential, account, deployment or personal-path normalization. IMPORT_PROVENANCE.json records all 24 original file hashes.
+
+## Read-only share refresh (2026-11-04)
+
+The current share-view runtime and its formal model, elevator, publisher and server dependency closure are refreshed together. The earlier published source was reconstructed byte-for-byte before applying the refresh; its stable display identifiers are retained. Newly added share-view controls use concise English. The original display dictionary, private export tools, production configuration, deployment logs and original Git history remain excluded. Earlier reviewer reference artifacts are retained.
+
+`docs/SHARE_VIEW_HANDOFF.md` distinguishes anonymous read-only navigation from authenticated publication, including the bounded revision-conflict retry. `node scripts/qa/share-view-review.mjs` serves only a fictional static sample over loopback using the included licensed renderer; it provides no account or save API. See `PACKAGE_AUDIT.json` for validation scope and limits.

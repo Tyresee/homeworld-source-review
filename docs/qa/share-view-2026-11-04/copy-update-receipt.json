@@ -1,0 +1,73 @@
+{
+  "status": "pass",
+  "scope": "Initial ordinary desktop-browser load after the copy and optional diagnostics update. Existing four-state evidence and both screenshots are retained unchanged.",
+  "preview": {
+    "npmRequired": false,
+    "nodeModulesPresent": false,
+    "vendor": "Three.js 0.186.1 bundled runtime"
+  },
+  "rawDocumentDescriptionVerified": true,
+  "observed": {
+    "title": "Sample Learner Home",
+    "description": "Every small effort can be seen.",
+    "diagnosticPanelPresent": false,
+    "diagnosticSnapshot": null,
+    "diagnosticQueryPresent": false,
+    "badge": "Read-only view",
+    "hint": "Drag to rotate. Use the wheel or pinch to zoom.",
+    "controls": [
+      "Explode house"
+    ],
+    "webgl2": true,
+    "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+    "webglError": 0,
+    "storageWrites": {
+      "storage": [],
+      "cookies": [],
+      "indexedDB": [],
+      "beacons": []
+    },
+    "localStorageKeys": [],
+    "sessionStorageKeys": [],
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  "accountRequests": [],
+  "nonReadRequests": [],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "httpErrors": [],
+  "requestFailures": [],
+  "requestCount": 100,
+  "limits": [
+    "No new navigation sweep, screenshots, real-device WeChat bridge or completed share action was tested in this incremental check."
+  ],
+  "verifiedAtUtc": "2026-11-04T15:15:37.247322+00:00",
+  "priorFourStateEvidence": "browser-receipt.json",
+  "screenshotsPreserved": [
+    {
+      "path": "overview.png",
+      "bytes": 248442,
+      "sha256": "34ea0019029be67ebf318e032cfaa67c3d65d9e747b833a4eba104becfb972ab"
+    },
+    {
+      "path": "focus.png",
+      "bytes": 573224,
+      "sha256": "7e67797513632c4446fdcbda36547f13200955b39ffffbaf0be654a30ac30efc"
+    }
+  ],
+  "changeSummary": "Description copy is now Every small effort can be seen. Temporary WeChat diagnostics require wxdiag=1; ordinary viewing remains panel-free. Camera, world, UI and snapshot backend files are unchanged in this increment.",
+  "focusedTests": {
+    "files": 4,
+    "tests": 46,
+    "passed": 46,
+    "failed": 0
+  },
+  "normalization": {
+    "baselineFilesByteValidated": 352,
+    "legacyFilesByteValidated": 285,
+    "frozenDisplayLabels": 5063,
+    "newDisplayLabels": 0,
+    "reviewedRuntimeAndTestFiles": 7,
+    "changedRuntimeAndTestFiles": 6
+  }
+}

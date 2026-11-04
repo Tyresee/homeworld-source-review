@@ -4,8 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {getHomeShareCopy} from '../public/js/home-share-copy.js';
 import {renderHomeShareDocument} from '../server/student-homes/share-document.mjs';
 test('a named share uses the child title and the requested factual description without inventing statistics',()=>{
-  assert.deepEqual(getHomeShareCopy("Sample Learner Home"),{title:"Sample Learner Home",description:"Sample Learner's home, built in English class. Take a look."});
-  for(const title of [null,'',"My Learning Home","My Little World","My Home",'invalid'])assert.deepEqual(getHomeShareCopy(title),{title:"My Home",description:"A home built in English class. Take a look."});
+  assert.deepEqual(getHomeShareCopy("Sample Learner Home"),{title:"Sample Learner Home",description:"Every small effort can be seen."});
+  for(const title of [null,'',"My Learning Home","My Little World","My Home",'invalid'])assert.deepEqual(getHomeShareCopy(title),{title:"My Home",description:"Every small effort can be seen."});
 });
 test('server metadata and browser copy share one source, and all title/description markup remains escaped',async()=>{
   const template=await readFile(new URL('../public/home-share.html',import.meta.url),'utf8'),title="Sample </title><script>x</script> Home";

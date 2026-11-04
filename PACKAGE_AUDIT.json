@@ -5,7 +5,7 @@
     "modules": 174,
     "tests": 122,
     "selectedSourceFiles": 351,
-    "packagedFiles": 823,
+    "packagedFiles": 824,
     "browserModules": 161,
     "serverModules": 13,
     "qaScripts": 25
@@ -27,19 +27,27 @@
     "originalSource": {
       "tests": 1698,
       "pass": 1698,
-      "fail": 0
+      "fail": 0,
+      "scope": "Full exterior-only and named-sharing baseline; later copy/diagnostics follow-up leaves navigation and snapshot/publication modules unchanged."
+    },
+    "latestOriginalSourceFocused": {
+      "tests": 46,
+      "pass": 46,
+      "fail": 0,
+      "scope": "Latest coordinated page-copy, optional WeChat diagnostics, viewer and public-HTML boundaries"
     },
     "publicCore": {
       "files": 84,
-      "tests": 659,
-      "pass": 659,
+      "tests": 665,
+      "pass": 665,
       "fail": 0
     },
     "publicShareFocused": {
-      "files": 13,
-      "tests": 93,
-      "pass": 93,
-      "fail": 0
+      "files": 14,
+      "tests": 100,
+      "pass": 100,
+      "fail": 0,
+      "scope": "Share and portable-preview files included in the current default core run"
     },
     "publicPublisherRegressions": {
       "tests": 10,
@@ -70,7 +78,8 @@
       "browserErrors": 0,
       "httpErrors": 0,
       "storageWrites": 0,
-      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json"
+      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json",
+      "scope": "Four-state baseline; navigation runtime unchanged in the later copy/diagnostics follow-up."
     }
   },
   "sourceRefresh": {
@@ -279,9 +288,14 @@
     "oldCoreFilesRemoved": 0
   },
   "previousSnapshotNormalization": {
-    "localizedFragments": 5967,
-    "removedComments": 0,
-    "regexNormalizations": 122
+    "stableInitialDisplayLabels": 4676,
+    "priorPublishedDisplayLabels": 4773,
+    "currentDisplayLabels": 5063,
+    "newDisplayLabelsSincePrior": 290,
+    "changedSourceFiles": 172,
+    "privateDictionaryIncluded": false,
+    "catalogLabelsMayRetainStableDisplayIds": true,
+    "derivedReviewFixtures": 1
   },
   "previousSourceRefresh": {
     "purpose": "Optional look-development review candidate",
@@ -349,7 +363,8 @@
     "sourceRegression": {
       "tests": 1698,
       "pass": 1698,
-      "fail": 0
+      "fail": 0,
+      "scope": "Full exterior-only and named-sharing baseline; later copy/diagnostics follow-up leaves navigation and snapshot/publication modules unchanged."
     },
     "sourceReadOnlyBrowser": {
       "checkpoints": 6,
@@ -404,15 +419,16 @@
     },
     "publicCore": {
       "files": 84,
-      "tests": 659,
-      "pass": 659,
+      "tests": 665,
+      "pass": 665,
       "fail": 0
     },
     "publicShareFocused": {
-      "files": 13,
-      "tests": 93,
-      "pass": 93,
-      "fail": 0
+      "files": 14,
+      "tests": 100,
+      "pass": 100,
+      "fail": 0,
+      "scope": "Share and portable-preview files included in the current default core run"
     },
     "publicPublisherRegressions": {
       "tests": 10,
@@ -437,7 +453,32 @@
       "browserErrors": 0,
       "httpErrors": 0,
       "storageWrites": 0,
-      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json"
+      "evidence": "docs/qa/share-view-2026-11-04/browser-receipt.json",
+      "scope": "Four-state baseline; navigation runtime unchanged in the later copy/diagnostics follow-up."
+    },
+    "sourceLatestFocused": {
+      "tests": 46,
+      "pass": 46,
+      "fail": 0,
+      "scope": "Latest coordinated page-copy, optional WeChat diagnostics, viewer and public-HTML boundaries"
+    },
+    "wechatCopyPolicy": "Keep named frozen home titles; use the later authorized fixed effort description, with optional sanitized diagnostics only for an explicit selector.",
+    "publicLatestFocused": {
+      "files": 4,
+      "tests": 46,
+      "pass": 46,
+      "fail": 0
+    },
+    "publicCopyUpdatePreview": {
+      "status": "PASS",
+      "description": "Every small effort can be seen.",
+      "ordinaryBrowserDiagnosticPanel": false,
+      "diagnosticsSnapshot": null,
+      "requests": 100,
+      "apiRequests": 0,
+      "writes": 0,
+      "errors": 0,
+      "evidence": "docs/qa/share-view-2026-11-04/copy-update-receipt.json"
     }
   }
 }

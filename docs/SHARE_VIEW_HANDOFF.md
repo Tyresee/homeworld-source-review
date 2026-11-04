@@ -68,3 +68,8 @@ The merged original implementation passed 1,698 automated tests. The new exterio
 Physical phones, embedded-browser touch feel, extended memory/thermal behavior and received WeChat cards were not certified by that desktop browser run. Earlier first-person acceptance checkpoints are superseded by the current exterior-only contract.
 
 Useful independent reviews are geometry diversity, upper-floor/roof ownership, hidden geometry picking, zoom/framing at extreme house sizes, cancel/resize/disposal races, token/metadata boundaries, named-title escaping and repeated authenticated publication across revision or identity changes. Report a concrete trigger, consequence and reproducer against the current code.
+
+
+## Coordinated copy and diagnostics follow-up
+
+A later authorized change keeps the named title and uses the fixed description “Every small effort can be seen.”. It adds optional, sanitized WeChat diagnostics under an explicit `wxdiag=1` selector. Normal links show no diagnostic panel, and no raw URL, capability, signature, account or original SDK error is displayed. The exterior controller, world, UI, snapshot and publication runtime hashes are unchanged from the validated four-state release. The earlier 1,698-check full regression is its baseline; the current copy/diagnostics follow-up passed all 46 relevant original-source checks. The public normalized checks are recorded separately in `PACKAGE_AUDIT.json`.

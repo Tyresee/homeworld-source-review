@@ -1,6 +1,6 @@
 {
   "edition": "source-review-v3-read-only-share",
-  "totalFiles": 823,
+  "totalFiles": 824,
   "files": [
     {
       "path": ".gitignore",
@@ -12,7 +12,7 @@
     },
     {
       "path": "FILE_INDEX.json",
-      "bytes": 84311
+      "bytes": 84417
     },
     {
       "path": "LOOK_DEV_REVIEW.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "PACKAGE_AUDIT.json",
-      "bytes": 13548
+      "bytes": 15546
     },
     {
       "path": "PROJECT_BRIEF.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "REVIEW_TEST_LIMITS.md",
-      "bytes": 4863
+      "bytes": 5022
     },
     {
       "path": "VENDORED_THREE.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "docs/SHARE_VIEW_HANDOFF.md",
-      "bytes": 7946
+      "bytes": 8671
     },
     {
       "path": "docs/WALL_CUTAWAY_HANDOFF.md",
@@ -853,6 +853,10 @@
     {
       "path": "docs/qa/share-view-2026-11-04/browser-smoke.cjs",
       "bytes": 7445
+    },
+    {
+      "path": "docs/qa/share-view-2026-11-04/copy-update-receipt.json",
+      "bytes": 2483
     },
     {
       "path": "docs/qa/share-view-2026-11-04/focus.png",
@@ -1880,7 +1884,7 @@
     },
     {
       "path": "public/home-share.html",
-      "bytes": 3039
+      "bytes": 3003
     },
     {
       "path": "public/home-shop.css",
@@ -2284,7 +2288,7 @@
     },
     {
       "path": "public/js/home-share-copy.js",
-      "bytes": 655
+      "bytes": 518
     },
     {
       "path": "public/js/home-share-model.js",
@@ -2300,7 +2304,7 @@
     },
     {
       "path": "public/js/home-share-wechat.js",
-      "bytes": 9840
+      "bytes": 16476
     },
     {
       "path": "public/js/home-share-world.js",
@@ -2844,7 +2848,7 @@
     },
     {
       "path": "tests/home-share-copy.test.mjs",
-      "bytes": 2030
+      "bytes": 1990
     },
     {
       "path": "tests/home-share-metadata.test.mjs",
@@ -2864,11 +2868,11 @@
     },
     {
       "path": "tests/home-share-viewer.test.mjs",
-      "bytes": 14080
+      "bytes": 14052
     },
     {
       "path": "tests/home-share-wechat.test.mjs",
-      "bytes": 13773
+      "bytes": 19381
     },
     {
       "path": "tests/home-theme-rooms.test.mjs",
